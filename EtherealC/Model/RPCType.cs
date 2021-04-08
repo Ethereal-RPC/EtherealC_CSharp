@@ -8,7 +8,6 @@ namespace EtherealC.Model
     {
         public delegate object ConvertDelegage(string obj);
         public Dictionary<Type, string> AbstractName { get; set; } = new Dictionary<Type, string>();
-
         public Dictionary<string, Type> AbstractType { get; set; } = new Dictionary<string,Type>();
         public Dictionary<string, ConvertDelegage> TypeConvert { get; set; } = new Dictionary<string, ConvertDelegage>();
 
@@ -26,7 +25,18 @@ namespace EtherealC.Model
             }
             catch (Exception)
             {
-                if (TypeConvert.ContainsKey(typeName) || AbstractName.ContainsKey(typeof(T))) Console.WriteLine($"注册类型:{typeof(T)}转{typeName}发生异常");
+                if (TypeConvert.ContainsKey(typeName))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"转换器中已包含{typeName}");
+                }
+                if (AbstractType.ContainsKey(typeName))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"真实类中已包含{typeName}");
+                }
+                if (AbstractName.ContainsKey(typeof(T)))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"抽象类中已包含{typeof(T)}");
+                }
             }
         }
         public void Add<T>(string typeName, ConvertDelegage convert)
@@ -39,7 +49,18 @@ namespace EtherealC.Model
             }
             catch (Exception)
             {
-                if ( TypeConvert.ContainsKey(typeName) || AbstractName.ContainsKey(typeof(T))) Console.WriteLine($"注册类型:{typeof(T)}转{typeName}发生异常");
+                if (TypeConvert.ContainsKey(typeName))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"转换器中已包含{typeName}");
+                }
+                if (AbstractType.ContainsKey(typeName))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"真实类中已包含{typeName}");
+                }
+                if (AbstractName.ContainsKey(typeof(T)))
+                {
+                    throw new RPCException(RPCException.ErrorCode.RegisterError, $"抽象类中已包含{typeof(T)}");
+                }
             }
         }
     }

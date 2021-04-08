@@ -12,6 +12,15 @@ namespace EtherealC.RPCService
     public class ServiceCore
     {
         private static Dictionary<Tuple<string, string, string>, Service> services { get; } = new Dictionary<Tuple<string, string, string>, Service>();
+
+        public static void Register<T>(string servicename, string hostname, string port,RPCType type) where T : new()
+        {
+            Register(new T(), servicename, hostname, port, new ServiceConfig(type));
+        }
+        public static void Register<T>(object instance,string servicename, string hostname, string port, RPCType type) where T : new()
+        {
+            Register(instance, servicename, hostname, port, new ServiceConfig(type));
+        }
         public static void Register<T>(string servicename, string hostname, string port, ServiceConfig config) where T : new()
         {
             Register(new T(), servicename, hostname, port, config);
@@ -52,12 +61,12 @@ namespace EtherealC.RPCService
                 catch (SocketException e)
                 {
                     Console.WriteLine("发生异常报错,销毁注册\n" + e.StackTrace);
-                    Destory(servicename, hostname, port);
+                    UnRegister(servicename, hostname, port);
                 }
             }
         }
 
-        public static void Destory(string servicename, string hostname, string port)
+        public static void UnRegister(string servicename, string hostname, string port)
         {
             services.Remove(new Tuple<string, string, string>(servicename,hostname,port), out Service value);
         }
@@ -67,25 +76,25 @@ namespace EtherealC.RPCService
         }
         public static void ServerRequestReceive(string ip, string port,NetConfig config,ServerRequestModel request)
         {
-            if (!services.TryGetValue(new Tuple<string, string, string>(request.Service, ip, port), out Service proxy) || !proxy.Methods.TryGetValue(request.MethodId, out MethodInfo method))
+            if (services.TryGetValue(new Tuple<string, string, string>(request.Service, ip, port), out Service proxy))
             {
+                if (proxy.Methods.TryGetValue(request.MethodId, out MethodInfo method))
+                {
 #if DEBUG
-                Console.WriteLine("------------------未找到该适配--------------------");
-                Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[客]\n{request}");
-                Console.WriteLine("------------------未找到该适配--------------------");
+                    Console.WriteLine("---------------------------------------------------------");
+                    Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-指令]\n{request}");
+                    Console.WriteLine("---------------------------------------------------------");
 #endif
-                throw new RPCException(RPCException.ErrorCode.NotFoundService, request.Service + " ServerRequest Not Found!");
-            }
-            else
-            {
+                    proxy.ConvertParams(request.MethodId, request.Params);
+                    method.Invoke(proxy.Instance, request.Params);
+                }
 #if DEBUG
-                Console.WriteLine("---------------------------------------------------------");
-                Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-指令]\n{request}");
-                Console.WriteLine("---------------------------------------------------------");
+                else throw new RPCException(RPCException.ErrorCode.NotFoundService, $" {ip}-{port}-{services}-{request.MethodId}未找到!");
 #endif
-                proxy.ConvertParams(request.MethodId, request.Params);
-                method.Invoke(proxy.Instance, request.Params);
             }
+#if DEBUG
+            else throw new RPCException(RPCException.ErrorCode.NotFoundService, $" {ip}-{port}-{services} 未找到!");
+#endif
         }
     }
 }

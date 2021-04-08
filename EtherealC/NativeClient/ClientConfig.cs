@@ -13,8 +13,5 @@ namespace EtherealC.NativeClient
         #region --属性--
         public int BufferSize { get => bufferSize; set => bufferSize = value; }
         #endregion
-
-
-
     }
 }

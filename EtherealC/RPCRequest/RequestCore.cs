@@ -24,9 +24,9 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string servicename, string hostname, string port) where T : class
+        public static T Register<T>(string servicename, string hostname, string port,RPCType type) where T : class
         {
-            return Register<T>(servicename, hostname, port, new RequestConfig());
+            return Register<T>(servicename, hostname, port, new RequestConfig(type));
         }
         /// <summary>
         /// 获取RPC代理
@@ -81,6 +81,9 @@ namespace EtherealC.RPCRequest
                     model.Set(response);
                 }
             }
+#if DEBUG
+            else throw new RPCException(RPCException.ErrorCode.NotFoundRequest, $"{ip}-{port}-{response.Service}未找到!");
+#endif
         }
         #endregion
     }

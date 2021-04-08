@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using EtherealC.Model;
+using EtherealC.RPCNet;
 
 namespace EtherealC.NativeClient
 {
@@ -34,13 +36,16 @@ namespace EtherealC.NativeClient
             {
                 try
                 {
-                    if (socketserver == null) socketserver = new SocketClient(key, config);
-                    SocketClients[key] = socketserver;
+                    if (NetCore.Get(key, out NetConfig netConfig))
+                    {
+                        if (socketserver == null) socketserver = new SocketClient(key, config);
+                        netConfig.ClientRequestSend = socketserver.Send;
+                        SocketClients[key] = socketserver;
+                    }
+                    else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}的NetConfig未找到");
                 }
                 catch (SocketException e)
                 {
-                    Console.WriteLine("发生异常报错,销毁注册");
-                    Console.WriteLine(e.Message + "\n" + e.StackTrace);
                     socketserver.Dispose();
                 }
             }

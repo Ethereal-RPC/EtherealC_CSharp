@@ -39,7 +39,8 @@ namespace EtherealC.Model
             //暂停当前进程，等待返回.
             while (Result == null)
             {
-                Sign.WaitOne(timeout);
+                if (timeout == -1) Sign.WaitOne();
+                else Sign.WaitOne(timeout);
             }
             return Result;
         }

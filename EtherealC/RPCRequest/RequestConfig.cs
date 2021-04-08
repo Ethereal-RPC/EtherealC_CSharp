@@ -7,7 +7,8 @@ namespace EtherealC.RPCRequest
         #region --字段--
         private bool tokenEnable = true;
         private RPCType type;
-        private int timeout = 0;
+        private int timeout = -1;
+
         #endregion
 
         #region --属性--
@@ -16,11 +17,8 @@ namespace EtherealC.RPCRequest
         public int Timeout { get => timeout; set => timeout = value; }
         #endregion
 
-        #region --方法--
-        public RequestConfig()
-        {
 
-        }
+        #region --方法--
         public RequestConfig(RPCType type)
         {
             this.type = type;

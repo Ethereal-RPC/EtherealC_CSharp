@@ -4,7 +4,7 @@ namespace EtherealC.Model
 {
     public class RPCException : Exception
     {
-        public enum ErrorCode { Main, Intercepted,NotFoundService, RegisterError, NotFoundNetConfig }
+        public enum ErrorCode { Intercepted,NotFoundService,NotFoundRequest, RegisterError, NotFoundNetConfig }
 
         private ErrorCode errorCode;
 

@@ -91,9 +91,13 @@ namespace EtherealC.RPCRequest
                     else throw new RPCException($"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
                 ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
-
+                if (!NetCore.Get(clientKey, out NetConfig netConfig))
+                {
+                    throw new RPCException(RPCException.ErrorCode.NotFoundNetConfig, "未找到NetConfig");
+                }
                 if (targetMethod.ReturnType == typeof(void))
                 {
+                    netConfig.ClientRequestSend(request);
                     return null;
                 }
                 else
@@ -105,12 +109,9 @@ namespace EtherealC.RPCRequest
                     }
                     tasks.TryAdd(id, request);
                     request.Id = id.ToString();
-                    if (NetCore.Get(clientKey, out NetConfig netConfig))
-                    {
-                        netConfig.ClientRequestSend(request);
-                    }
                     int timeout = config.Timeout;
                     if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
+                    netConfig.ClientRequestSend(request);
                     ClientResponseModel result = request.Get(timeout);
                     if (result != null)
                     {
