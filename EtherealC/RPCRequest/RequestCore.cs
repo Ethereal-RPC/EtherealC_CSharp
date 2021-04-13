@@ -67,24 +67,6 @@ namespace EtherealC.RPCRequest
         {
             requests.Remove(key, out object value);
         }
-        public static void ClientResponseProcess(string ip, string port,NetConfig netConfig, ClientResponseModel response)
-        {
-#if DEBUG
-            Console.WriteLine("---------------------------------------------------------");
-            Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-返回]\n{response}");
-            Console.WriteLine("---------------------------------------------------------");
-#endif
-            if (int.TryParse(response.Id, out int id) && Get(new Tuple<string, string, string>(response.Service, ip,port), out Request request))
-            {
-                if (request.GetTask(id, out ClientRequestModel model))
-                {
-                    model.Set(response);
-                }
-            }
-#if DEBUG
-            else throw new RPCException(RPCException.ErrorCode.NotFoundRequest, $"{ip}-{port}-{response.Service}未找到!");
-#endif
-        }
         #endregion
     }
 }

@@ -93,7 +93,7 @@ namespace EtherealC.RPCRequest
                 ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
                 if (!NetCore.Get(clientKey, out NetConfig netConfig))
                 {
-                    throw new RPCException(RPCException.ErrorCode.NotFoundNetConfig, "未找到NetConfig");
+                    throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                 }
                 if (targetMethod.ReturnType == typeof(void))
                 {

@@ -34,20 +34,8 @@ namespace EtherealC.NativeClient
             Tuple<string, string> key = new Tuple<string, string>(ip, port);
             if (!SocketClients.TryGetValue(key, out socketserver))
             {
-                try
-                {
-                    if (NetCore.Get(key, out NetConfig netConfig))
-                    {
-                        if (socketserver == null) socketserver = new SocketClient(key, config);
-                        netConfig.ClientRequestSend = socketserver.Send;
-                        SocketClients[key] = socketserver;
-                    }
-                    else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}的NetConfig未找到");
-                }
-                catch (SocketException e)
-                {
-                    socketserver.Dispose();
-                }
+                if (socketserver == null) socketserver = new SocketClient(key, config);
+                SocketClients[key] = socketserver;
             }
             return socketserver;
         }

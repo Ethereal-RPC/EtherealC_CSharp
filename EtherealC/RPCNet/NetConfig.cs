@@ -14,8 +14,8 @@ namespace EtherealC.RPCNet
         #endregion
 
         #region --字段--
-        private ServerRequestReceiveDelegate serverRequestReceive = ServiceCore.ServerRequestReceive;
-        private ClientResponseReceiveDelegate clientResponseReceive = RequestCore.ClientResponseProcess;
+        private ServerRequestReceiveDelegate serverRequestReceive;
+        private ClientResponseReceiveDelegate clientResponseReceive;
         private ClientRequestSendDelegate clientRequestSend;
         private bool exceptionThrow = false;
         #endregion

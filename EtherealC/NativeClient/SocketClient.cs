@@ -20,10 +20,10 @@ namespace EtherealC.NativeClient
         private static AutoResetEvent autoConnectEvent = new AutoResetEvent(false);
         private ClientConfig config;
         private Tuple<string, string> clientKey;
-        private SocketAsyncEventArgs socketArgs;
+        private DataToken dataToken;
         private Random random = new Random();
-        public SocketAsyncEventArgs SocketArgs { get; set; }
 
+        public DataToken DataToken { get => dataToken; set => dataToken = value; }
         /// <summary>
         /// Token
         /// </summary>
@@ -31,11 +31,16 @@ namespace EtherealC.NativeClient
         {
             this.clientKey = clientKey;
             this.config = config;
-            this.SocketArgs = new SocketAsyncEventArgs();
             // Get host related information.
             IPAddress[] addressList = Dns.GetHostEntry(clientKey.Item1).AddressList;
             // Instantiates the endpoint and socket.
             hostEndPoint = new IPEndPoint(addressList[addressList.Length - 1], int.Parse(clientKey.Item2));
+
+            if (NetCore.Get(clientKey, out NetConfig netConfig))
+            {
+                netConfig.ClientRequestSend = Send;
+            }
+            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{clientKey.Item1}-{clientKey.Item2}的NetConfig未找到");
         }
 
         public void Start()
@@ -52,13 +57,14 @@ namespace EtherealC.NativeClient
                 SocketError errorCode = acceptArgs.SocketError;
                 if (errorCode == SocketError.Success)
                 {
-                    SocketArgs = new SocketAsyncEventArgs();
+                    dataToken = new DataToken(clientKey, config);
+                    SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
                     SocketArgs.Completed += OnReceiveCompleted;
-                    SocketArgs.SetBuffer(new Byte[config.BufferSize], 0, config.BufferSize);
                     SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
-                    SocketArgs.UserToken = new DataToken(SocketArgs, clientKey, config);
+                    SocketArgs.UserToken = dataToken;
                     SocketArgs.RemoteEndPoint = hostEndPoint;
                     SocketArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnConnect);
+                    dataToken.Connect(socket);
                     if (!SocketArgs.AcceptSocket.ReceiveAsync(SocketArgs))
                     {
                         ProcessReceive(SocketArgs);
@@ -83,7 +89,8 @@ namespace EtherealC.NativeClient
 
         public void Disconnect()
         {
-            SocketArgs.AcceptSocket.Disconnect(false);
+            dataToken.DisConnect();
+            dataToken.SocketArgs.AcceptSocket.Disconnect(false);
         }
 
         private void OnReceiveCompleted(object sender, SocketAsyncEventArgs e)
@@ -117,7 +124,8 @@ namespace EtherealC.NativeClient
         public bool Reconnect()
         {
             Debug.WriteLine("与服务器连接异常,开始尝试重连！");
-            Socket clientSocket = SocketArgs.AcceptSocket;
+            Socket clientSocket = null;
+            if (dataToken != null)clientSocket = dataToken.SocketArgs.AcceptSocket;
             for (int i = 1; i <= 10; i++)
             {
                 if (clientSocket != null)
@@ -140,11 +148,15 @@ namespace EtherealC.NativeClient
                     SocketError errorCode = acceptArgs.SocketError;
                     if (errorCode == SocketError.Success)
                     {
-                        SocketArgs = new SocketAsyncEventArgs();
-                        SocketArgs.SetBuffer(new byte[config.BufferSize], 0, config.BufferSize);
+                        dataToken = new DataToken(clientKey, config);
+                        SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
                         SocketArgs.Completed += OnReceiveCompleted;
-                        SocketArgs.UserToken = new DataToken(SocketArgs,clientKey, config);
-                        if (!clientSocket.ReceiveAsync(SocketArgs))
+                        SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
+                        SocketArgs.UserToken = dataToken;
+                        SocketArgs.RemoteEndPoint = hostEndPoint;
+                        SocketArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnConnect);
+                        dataToken.Connect(clientSocket);
+                        if (!SocketArgs.AcceptSocket.ReceiveAsync(SocketArgs))
                         {
                             ProcessReceive(SocketArgs);
                         }
@@ -170,9 +182,9 @@ namespace EtherealC.NativeClient
             }
             else return true;
         }
-        public void Send(ClientRequestModel request)
+        private void Send(ClientRequestModel request)
         {
-            if (socketArgs.AcceptSocket != null && socketArgs.AcceptSocket.Connected)
+            if (dataToken.SocketArgs.AcceptSocket != null && dataToken.SocketArgs.AcceptSocket.Connected)
             {
 #if DEBUG
                 Console.WriteLine("---------------------------------------------------------");
@@ -197,7 +209,7 @@ namespace EtherealC.NativeClient
                 Buffer.BlockCopy(bodyBytes, 0, sendBuffer, headerBytes.Length + pattern.Length + future.Length, bodyBytes.Length);
                 SocketAsyncEventArgs sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
-                socketArgs.AcceptSocket.SendAsync(sendEventArgs);
+                dataToken.SocketArgs.AcceptSocket.SendAsync(sendEventArgs);
             }
         }
         #region IDisposable Members
@@ -215,7 +227,7 @@ namespace EtherealC.NativeClient
 
         private void Dispose(bool disposing)
         {
-            Socket clientSocket = SocketArgs.AcceptSocket;
+            Socket clientSocket = dataToken.SocketArgs.AcceptSocket;
             if (isDipose) return;
             if (disposing)
             {
@@ -227,6 +239,7 @@ namespace EtherealC.NativeClient
             try
             {
                 clientSocket.Shutdown(SocketShutdown.Both);
+                dataToken = null;
             }
             catch (Exception)
             {

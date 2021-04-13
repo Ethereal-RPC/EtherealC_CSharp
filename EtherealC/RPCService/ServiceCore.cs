@@ -70,31 +70,13 @@ namespace EtherealC.RPCService
         {
             services.Remove(new Tuple<string, string, string>(servicename,hostname,port), out Service value);
         }
-        public static bool Get(string servicename, string hostname, string port ,out Service proxy)
+        public static bool Get(string servicename, string hostname, string port ,out Service service)
         {
-            return services.TryGetValue(new Tuple<string, string, string>(servicename, hostname, port), out proxy);
+            return services.TryGetValue(new Tuple<string, string, string>(servicename, hostname, port), out service);
         }
-        public static void ServerRequestReceive(string ip, string port,NetConfig config,ServerRequestModel request)
+        public static bool Get(Tuple<string, string, string> key, out Service service)
         {
-            if (services.TryGetValue(new Tuple<string, string, string>(request.Service, ip, port), out Service proxy))
-            {
-                if (proxy.Methods.TryGetValue(request.MethodId, out MethodInfo method))
-                {
-#if DEBUG
-                    Console.WriteLine("---------------------------------------------------------");
-                    Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-指令]\n{request}");
-                    Console.WriteLine("---------------------------------------------------------");
-#endif
-                    proxy.ConvertParams(request.MethodId, request.Params);
-                    method.Invoke(proxy.Instance, request.Params);
-                }
-#if DEBUG
-                else throw new RPCException(RPCException.ErrorCode.NotFoundService, $" {ip}-{port}-{services}-{request.MethodId}未找到!");
-#endif
-            }
-#if DEBUG
-            else throw new RPCException(RPCException.ErrorCode.NotFoundService, $" {ip}-{port}-{services} 未找到!");
-#endif
+            return services.TryGetValue(key, out service);
         }
     }
 }
