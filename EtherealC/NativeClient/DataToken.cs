@@ -12,14 +12,13 @@ namespace EtherealC.NativeClient
     /// </summary>
     public sealed class DataToken
     {
-        private int dynamicAdjustBufferCount = -1;
+        private int dynamicAdjustBufferCount = 1;
         //下面两部分只负责接收部分，发包构造部分并没有使用，修改时请注意！
         //下面这部分用于拆包分析   
         private static int headsize = 32;//头包长度
         private static int bodysize = 4;//数据大小长度
         private static int patternsize = 1;//消息类型长度
         private static int futuresize = 27;//后期看情况加
-        Random random = new Random();
         private Tuple<string, string> clientKey;
         private SocketAsyncEventArgs socketArgs;
         private DotNetty.Buffers.IByteBuffer buffer;
@@ -32,6 +31,7 @@ namespace EtherealC.NativeClient
         public DataToken(Tuple<string, string> clientKey, ClientConfig config)
         {
             this.SocketArgs = new SocketAsyncEventArgs();
+            dynamicAdjustBufferCount = config.DynamicAdjustBufferCount;
             this.clientKey = clientKey;
             this.config = config;
         }
@@ -71,13 +71,13 @@ namespace EtherealC.NativeClient
                     //判断Body数据是否足够
                     if (length <= count)
                     {
+                        if (!NetCore.Get(clientKey, out NetConfig netConfig))
+                        {
+                            throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
+                        }
                         try
                         {
                             string data = buffer.GetString(buffer.ReaderIndex + headsize, body_length, config.Encoding);
-                            if (!NetCore.Get(clientKey, out NetConfig netConfig))
-                            {
-                                throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
-                            }
                             //0-Request 1-Response
                             if (pattern == 0)
                             {
@@ -106,7 +106,7 @@ namespace EtherealC.NativeClient
                             Buffer.BlockCopy(buffer.Array, 0, buffer.Array, buffer.ReaderIndex, count);
                             buffer.ResetReaderIndex();
                             buffer.SetWriterIndex(count);
-                        }
+                        }   
                         //数据还有一些未接收到，原因可能是前面已经有了数据，也可能是本身大小不够
                         if (length > buffer.Capacity)
                         {
@@ -131,7 +131,7 @@ namespace EtherealC.NativeClient
                     //头包凑不够，迁移数据至缓冲区头
                     if (buffer.ReaderIndex != 0)
                     {
-                        Buffer.BlockCopy(buffer.Array, 0, buffer.Array, buffer.ReaderIndex, buffer.WriterIndex - buffer.ReaderIndex);
+                        Buffer.BlockCopy(buffer.Array, 0, buffer.Array, buffer.ReaderIndex, count);
                         buffer.ResetReaderIndex();
                         buffer.SetWriterIndex(count);
                     }
@@ -142,9 +142,10 @@ namespace EtherealC.NativeClient
             buffer.ResetReaderIndex();
             buffer.ResetWriterIndex();
             //充分退出，说明可能存在一定的空间浪费
-            if (buffer.Capacity > config.BufferSize && dynamicAdjustBufferCount != -1 && dynamicAdjustBufferCount-- == 0)
+            if (buffer.Capacity > config.BufferSize && dynamicAdjustBufferCount-- == 0)
             {
                 buffer.AdjustCapacity(config.BufferSize);
+                dynamicAdjustBufferCount = config.DynamicAdjustBufferCount;
                 SocketArgs.SetBuffer(buffer.Array, 0, buffer.Capacity);
             }
             else SocketArgs.SetBuffer(0, buffer.Capacity);

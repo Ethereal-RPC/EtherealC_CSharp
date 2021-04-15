@@ -46,7 +46,7 @@ namespace EtherealC.RPCNet
         }
         private static void ServerRequestReceive(string ip, string port, NetConfig config, ServerRequestModel request)
         {
-            if (ServiceCore.Get(new Tuple<string, string, string>(request.Service, ip, port), out Service service))
+            if (ServiceCore.Get(new Tuple<string, string, string>(ip, port,request.Service), out Service service))
             {
                 if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
                 {
@@ -73,7 +73,7 @@ namespace EtherealC.RPCNet
             Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-返回]\n{response}");
             Console.WriteLine("---------------------------------------------------------");
 #endif
-            if (int.TryParse(response.Id, out int id) && RequestCore.Get(new Tuple<string, string, string>(response.Service, ip, port), out Request request))
+            if (int.TryParse(response.Id, out int id) && RequestCore.Get(new Tuple<string, string, string>(ip, port, response.Service), out Request request))
             {
                 if (request.GetTask(id, out ClientRequestModel model))
                 {

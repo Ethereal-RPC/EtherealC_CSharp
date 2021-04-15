@@ -13,19 +13,19 @@ namespace EtherealC.RPCService
     {
         private static Dictionary<Tuple<string, string, string>, Service> services { get; } = new Dictionary<Tuple<string, string, string>, Service>();
 
-        public static void Register<T>(string servicename, string hostname, string port,RPCType type) where T : new()
+        public static void Register<T>( string hostname, string port, string servicename, RPCType type) where T : new()
         {
             Register(new T(), servicename, hostname, port, new ServiceConfig(type));
         }
-        public static void Register<T>(object instance,string servicename, string hostname, string port, RPCType type) where T : new()
+        public static void Register<T>(object instance,string hostname, string port, string servicename, RPCType type) where T : new()
         {
             Register(instance, servicename, hostname, port, new ServiceConfig(type));
         }
-        public static void Register<T>(string servicename, string hostname, string port, ServiceConfig config) where T : new()
+        public static void Register<T>( string hostname, string port, string servicename, ServiceConfig config) where T : new()
         {
             Register(new T(), servicename, hostname, port, config);
         }
-        public static void Register(object instance,string servicename,string hostname, string port, ServiceConfig config)
+        public static void Register(object instance,string hostname, string port, string servicename, ServiceConfig config)
         {
             if (string.IsNullOrEmpty(servicename))
             {
@@ -47,7 +47,7 @@ namespace EtherealC.RPCService
                 throw new ArgumentNullException(nameof(config.Type));
             }
             Service service = null;
-            Tuple<string, string, string> key = new Tuple<string, string, string>(servicename, hostname, port);
+            Tuple<string, string, string> key = new Tuple<string, string, string>(hostname, port, servicename);
             services.TryGetValue(key,out service);
             if(service == null)
             {
@@ -66,13 +66,13 @@ namespace EtherealC.RPCService
             }
         }
 
-        public static void UnRegister(string servicename, string hostname, string port)
+        public static void UnRegister( string hostname, string port, string servicename)
         {
-            services.Remove(new Tuple<string, string, string>(servicename,hostname,port), out Service value);
+            services.Remove(new Tuple<string, string, string>(hostname,port,servicename), out Service value);
         }
-        public static bool Get(string servicename, string hostname, string port ,out Service service)
+        public static bool Get(string hostname, string port, string servicename, out Service service)
         {
-            return services.TryGetValue(new Tuple<string, string, string>(servicename, hostname, port), out service);
+            return services.TryGetValue(new Tuple<string, string, string>( hostname, port, servicename), out service);
         }
         public static bool Get(Tuple<string, string, string> key, out Service service)
         {

@@ -23,11 +23,11 @@ namespace EtherealC.RPCRequest
         {
             return tasks.TryGetValue(id, out model);
         }
-        public static T Register<T>(string servicename, Tuple<string, string> clientkey, RequestConfig config)
+        public static T Register<T>(Tuple<string, string> clientkey,string requestname, RequestConfig config)
         {
-            if (string.IsNullOrEmpty(servicename))
+            if (string.IsNullOrEmpty(requestname))
             {
-                throw new ArgumentException("参数为空", nameof(servicename));
+                throw new ArgumentException("参数为空", nameof(requestname));
             }
 
             if (config.Type is null)
@@ -36,7 +36,7 @@ namespace EtherealC.RPCRequest
             }
             Request proxy = (Request)(Create<T, Request>() as object);
             proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
-            proxy.servicename = servicename; 
+            proxy.servicename = requestname; 
             proxy.config = config;
             if (config.TokenEnable) proxy.paramStart = 1;
             else proxy.paramStart = 0;
