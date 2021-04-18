@@ -21,7 +21,6 @@ namespace EtherealC.NativeClient
         private ClientConfig config;
         private Tuple<string, string> clientKey;
         private DataToken dataToken;
-        private Random random = new Random();
 
         public DataToken DataToken { get => dataToken; set => dataToken = value; }
         /// <summary>
@@ -113,12 +112,12 @@ namespace EtherealC.NativeClient
                 }
                 else
                 {
-                    Reconnect();
+                    throw new SocketException((int)SocketError.Disconnecting);
                 }
             }
             else
             {
-                Reconnect();
+                throw new SocketException((int)SocketError.Disconnecting);
             }
         }
         public bool Reconnect()
@@ -191,9 +190,8 @@ namespace EtherealC.NativeClient
                 Console.WriteLine($"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}");
                 Console.WriteLine("---------------------------------------------------------");
 #endif
-                int id = random.Next();
                 //构造data数据
-                byte[] bodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
+                byte[] bodyBytes = config.Encoding.GetBytes(JsonConvert.SerializeObject(request));
                 //构造表头数据，固定4个字节的长度，表示内容的长度
                 byte[] headerBytes = BitConverter.GetBytes(bodyBytes.Length);
                 //构造消息类型 0 为Request
@@ -209,6 +207,7 @@ namespace EtherealC.NativeClient
                 Buffer.BlockCopy(bodyBytes, 0, sendBuffer, headerBytes.Length + pattern.Length + future.Length, bodyBytes.Length);
                 SocketAsyncEventArgs sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
+                Console.WriteLine("数据大小：" + sendBuffer.Length);
                 dataToken.SocketArgs.AcceptSocket.SendAsync(sendEventArgs);
             }
         }

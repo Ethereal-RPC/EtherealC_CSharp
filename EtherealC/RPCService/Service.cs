@@ -13,21 +13,24 @@ namespace EtherealC.RPCService
         //string连接的时候使用引用要比tuple慢很多
         private Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         private object instance;
-
+        private string servicename;
+        private Tuple<string, string> clientKey;
         ServiceConfig config;
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public object Instance { get => instance; set => instance = value; }
 
-        public void Register<T>(T instance,ServiceConfig config)
+        public void Register<T>(T instance, Tuple<string, string> clientKey, string servicename, ServiceConfig config)
         {
-            this.Instance = instance;
+            this.instance = instance;
             this.config = config;
+            this.clientKey = clientKey;
+            this.servicename = servicename;
             StringBuilder methodid = new StringBuilder();
-            foreach (MethodInfo method in typeof(T).GetMethods())
+            foreach (MethodInfo method in instance.GetType().GetMethods())
             {
                 Attribute.RPCService rpcAttribute = method.GetCustomAttribute<Attribute.RPCService>();
-                if (rpcAttribute == null)
+                if (rpcAttribute != null)
                 {
                     if (!method.IsAbstract)
                     {

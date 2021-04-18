@@ -75,28 +75,21 @@ namespace EtherealC.NativeClient
                         {
                             throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                         }
-                        try
+                        string data = buffer.GetString(buffer.ReaderIndex + headsize, body_length, config.Encoding);
+                        //0-Request 1-Response
+                        if (pattern == 0)
                         {
-                            string data = buffer.GetString(buffer.ReaderIndex + headsize, body_length, config.Encoding);
-                            //0-Request 1-Response
-                            if (pattern == 0)
-                            {
-                                ServerRequestModel request = JsonConvert.DeserializeObject<ServerRequestModel>(data);
-                                netConfig.ServerRequestReceive(clientKey.Item1, clientKey.Item2, netConfig,
-                                    request);
-                            }
-                            else
-                            {
-                                ClientResponseModel response = JsonConvert.DeserializeObject<ClientResponseModel>(data);
-                                netConfig.ClientResponseReceive(clientKey.Item1, clientKey.Item2, netConfig,
-                                    response);
-                            }
-                            buffer.SetReaderIndex(buffer.ReaderIndex + length);
+                            ServerRequestModel request = JsonConvert.DeserializeObject<ServerRequestModel>(data);
+                            netConfig.ServerRequestReceive(clientKey.Item1, clientKey.Item2, netConfig,
+                                request);
                         }
-                        catch
+                        else
                         {
-                            throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{clientKey}-{SocketArgs.RemoteEndPoint}:用户数据错误，已自动断开连接！");
+                            ClientResponseModel response = JsonConvert.DeserializeObject<ClientResponseModel>(data);
+                            netConfig.ClientResponseReceive(clientKey.Item1, clientKey.Item2, netConfig,
+                                response);
                         }
+                        buffer.SetReaderIndex(buffer.ReaderIndex + length);
                     }
                     else
                     {

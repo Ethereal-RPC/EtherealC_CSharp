@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using EtherealC.Model;
-using EtherealC.NativeClient;
+﻿using EtherealC.Model;
 using EtherealC.RPCNet;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Concurrent;
+using System.Reflection;
+using System.Text;
 
 namespace EtherealC.RPCRequest
 {
@@ -23,11 +20,11 @@ namespace EtherealC.RPCRequest
         {
             return tasks.TryGetValue(id, out model);
         }
-        public static T Register<T>(Tuple<string, string> clientkey,string requestname, RequestConfig config)
+        public static T Register<T>(Tuple<string, string> clientkey,string servicename, RequestConfig config)
         {
-            if (string.IsNullOrEmpty(requestname))
+            if (string.IsNullOrEmpty(servicename))
             {
-                throw new ArgumentException("参数为空", nameof(requestname));
+                throw new ArgumentException("参数为空", nameof(servicename));
             }
 
             if (config.Type is null)
@@ -36,7 +33,7 @@ namespace EtherealC.RPCRequest
             }
             Request proxy = (Request)(Create<T, Request>() as object);
             proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
-            proxy.servicename = requestname; 
+            proxy.servicename = servicename; 
             proxy.config = config;
             if (config.TokenEnable) proxy.paramStart = 1;
             else proxy.paramStart = 0;

@@ -15,15 +15,15 @@ namespace EtherealC.RPCService
 
         public static void Register<T>( string hostname, string port, string servicename, RPCType type) where T : new()
         {
-            Register(new T(), servicename, hostname, port, new ServiceConfig(type));
+            Register(new T(), hostname, port, servicename, new ServiceConfig(type));
         }
         public static void Register<T>(object instance,string hostname, string port, string servicename, RPCType type) where T : new()
         {
-            Register(instance, servicename, hostname, port, new ServiceConfig(type));
+            Register(instance, hostname, port, servicename, new ServiceConfig(type));
         }
         public static void Register<T>( string hostname, string port, string servicename, ServiceConfig config) where T : new()
         {
-            Register(new T(), servicename, hostname, port, config);
+            Register(new T(), hostname, port, servicename, config);
         }
         public static void Register(object instance,string hostname, string port, string servicename, ServiceConfig config)
         {
@@ -55,7 +55,7 @@ namespace EtherealC.RPCService
                 {
                     SocketClient socketClient = ClientCore.Get(hostname, port);
                     service = new Service();
-                    service.Register(instance,config);
+                    service.Register(instance,new Tuple<string, string>(hostname,port),servicename,config);
                     services[key] = service;
                 }
                 catch (SocketException e)
