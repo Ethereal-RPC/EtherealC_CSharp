@@ -8,6 +8,7 @@ using EtherealC.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
+using EtherealS.Model;
 using Newtonsoft.Json;
 
 namespace EtherealC.RPCNet
@@ -55,7 +56,15 @@ namespace EtherealC.RPCNet
                     Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-指令]\n{request}");
                     Console.WriteLine("---------------------------------------------------------");
 #endif
-                    service.ConvertParams(request.MethodId, request.Params);
+                    string[] param_id = request.MethodId.Split('-');
+                    for (int i = 1, j = 0; i < param_id.Length; i++, j++)
+                    {
+                        if (service.Config.Types.TypesByName.TryGetValue(param_id[i], out RPCType type))
+                        {
+                            request.Params[j] = type.Deserialize((string)request.Params[j]);
+                        }
+                        else throw new RPCException($"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
+                    }
                     method.Invoke(service.Instance, request.Params);
                 }
 #if DEBUG

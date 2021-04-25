@@ -1,4 +1,5 @@
 ﻿using EtherealC.Model;
+using EtherealS.Model;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -19,11 +20,12 @@ namespace EtherealC.RPCService
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public object Instance { get => instance; set => instance = value; }
+        public ServiceConfig Config { get => config; set => config = value; }
 
         public void Register<T>(T instance, Tuple<string, string> clientKey, string servicename, ServiceConfig config)
         {
             this.instance = instance;
-            this.config = config;
+            this.Config = config;
             this.clientKey = clientKey;
             this.servicename = servicename;
             StringBuilder methodid = new StringBuilder();
@@ -40,14 +42,11 @@ namespace EtherealC.RPCService
                         {
                             foreach (ParameterInfo param in parameters)
                             {
-                                try
+                                if(config.Types.TypesByType.TryGetValue(param.ParameterType,out RPCType type))
                                 {
-                                    methodid.Append("-" + config.Type.AbstractName[param.ParameterType]);
+                                    methodid.Append("-" + type.Name);
                                 }
-                                catch (Exception)
-                                {
-                                    throw new RPCException($"C#中的{param.ParameterType}类型参数尚未注册");
-                                }
+                                else throw new RPCException($"C#中的{param.ParameterType}类型参数尚未注册");
                             }
                         }
                         else
@@ -57,9 +56,9 @@ namespace EtherealC.RPCService
                             {
                                 foreach (string type_name in types_name)
                                 {
-                                    if (config.Type.AbstractType.ContainsKey(type_name))
+                                    if (config.Types.TypesByName.TryGetValue(type_name, out RPCType type))
                                     {
-                                        methodid.Append("-").Append(types_name);
+                                        methodid.Append("-").Append(type.Name);
                                     }
                                     else throw new RPCException($"C#对应的{types_name}类型参数尚未注册");
                                 }
@@ -68,21 +67,6 @@ namespace EtherealC.RPCService
                         Methods.TryAdd(methodid.ToString(), method);
                         methodid.Length = 0;
                     }
-                }
-            }
-        }
-        public void ConvertParams(string methodId, object[] parameters)
-        {
-            string[] param_id = methodId.Split('-');
-            if (param_id.Length > 1)
-            {
-                for (int i = 1,j=0; i < param_id.Length; i++,j++)
-                {
-                    if (config.Type.TypeConvert.TryGetValue(param_id[i], out RPCType.ConvertDelegage convert))
-                    {
-                        parameters[j] = convert((string)parameters[j]);
-                    }
-                    else throw new RPCException($"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
                 }
             }
         }

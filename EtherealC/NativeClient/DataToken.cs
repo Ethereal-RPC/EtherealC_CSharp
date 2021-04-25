@@ -79,13 +79,13 @@ namespace EtherealC.NativeClient
                         //0-Request 1-Response
                         if (pattern == 0)
                         {
-                            ServerRequestModel request = JsonConvert.DeserializeObject<ServerRequestModel>(data);
+                            ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                             netConfig.ServerRequestReceive(clientKey.Item1, clientKey.Item2, netConfig,
                                 request);
                         }
                         else
                         {
-                            ClientResponseModel response = JsonConvert.DeserializeObject<ClientResponseModel>(data);
+                            ClientResponseModel response = config.ClientResponseModelDeserialize(data);
                             netConfig.ClientResponseReceive(clientKey.Item1, clientKey.Item2, netConfig,
                                 response);
                         }

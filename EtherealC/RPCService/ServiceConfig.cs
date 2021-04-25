@@ -1,4 +1,5 @@
 ﻿using EtherealC.Model;
+using EtherealS.Model;
 
 namespace EtherealC.RPCService
 {
@@ -6,23 +7,23 @@ namespace EtherealC.RPCService
     {
 
         #region --字段--
-        private RPCType type;
+        private RPCTypeConfig types;
         #endregion
 
         #region --属性--
-        public RPCType Type { get => type; set => type = value; }
+        public RPCTypeConfig Types { get => types; set => types = value; }
 
         #endregion
 
         #region --方法--
-        public ServiceConfig(RPCType type)
+        public ServiceConfig(RPCTypeConfig types)
         {
-            this.type = type;
+            this.types = types;
         }
 
-        public ServiceConfig(RPCType type, bool tokenEnable)
+        public ServiceConfig(RPCTypeConfig types, bool tokenEnable)
         {
-            this.type = type;
+            this.types = types;
         }
 
         #endregion

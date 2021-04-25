@@ -5,6 +5,7 @@ using System.Reflection;
 using EtherealC.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCNet;
+using EtherealS.Model;
 using Newtonsoft.Json;
 
 namespace EtherealC.RPCService
@@ -13,11 +14,11 @@ namespace EtherealC.RPCService
     {
         private static Dictionary<Tuple<string, string, string>, Service> services { get; } = new Dictionary<Tuple<string, string, string>, Service>();
 
-        public static void Register<T>( string hostname, string port, string servicename, RPCType type) where T : new()
+        public static void Register<T>( string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
         {
             Register(new T(), hostname, port, servicename, new ServiceConfig(type));
         }
-        public static void Register<T>(object instance,string hostname, string port, string servicename, RPCType type) where T : new()
+        public static void Register<T>(object instance,string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
         {
             Register(instance, hostname, port, servicename, new ServiceConfig(type));
         }
@@ -42,9 +43,9 @@ namespace EtherealC.RPCService
                 throw new ArgumentException("参数为空", nameof(port));
             }
 
-            if (config.Type is null)
+            if (config.Types is null)
             {
-                throw new ArgumentNullException(nameof(config.Type));
+                throw new ArgumentNullException(nameof(config.Types));
             }
             Service service = null;
             Tuple<string, string, string> key = new Tuple<string, string, string>(hostname, port, servicename);

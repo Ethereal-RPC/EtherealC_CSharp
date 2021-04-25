@@ -1,6 +1,7 @@
 ﻿using EtherealC.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCService;
+using EtherealS.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +14,7 @@ namespace EtherealC_Test
         Random random = new Random();
         public bool test()
         {
-            RPCType types = new RPCType();
+            RPCTypeConfig types = new RPCTypeConfig();
             types.Add<string>("String");
             string ip = "127.0.0.1";
             string port = "28014";

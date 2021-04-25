@@ -1,5 +1,6 @@
 ﻿using EtherealC.Model;
 using EtherealC.RPCNet;
+using EtherealS.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -26,9 +27,9 @@ namespace EtherealC.RPCRequest
                 throw new ArgumentException("参数为空", nameof(servicename));
             }
 
-            if (config.Type is null)
+            if (config.Types is null)
             {
-                throw new ArgumentNullException(nameof(config.Type));
+                throw new ArgumentNullException(nameof(config.Types));
             }
             Request proxy = (Request)(Create<T, Request>() as object);
             proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
@@ -53,15 +54,12 @@ namespace EtherealC.RPCRequest
                     ParameterInfo[] parameters = targetMethod.GetParameters();
                     for (int i = 0, j = 1; i < param_count; i++, j++)
                     {
-                        try
+                        if(config.Types.TypesByType.TryGetValue(parameters[i].ParameterType,out RPCType type))
                         {
-                            methodid.Append("-" + config.Type.AbstractName[parameters[i].ParameterType]);
-                            obj[j] = JsonConvert.SerializeObject(args[i]);
+                            methodid.Append("-" + type.Name);
+                            obj[j] = type.Serialize(args[i]);
                         }
-                        catch (Exception)
-                        {
-                            throw new RPCException($"C#中的{args[i].GetType()}类型参数尚未注册");
-                        }
+                        else throw new RPCException($"C#中的{args[i].GetType()}类型参数尚未注册");
                     }
                 }
                 else
@@ -116,9 +114,9 @@ namespace EtherealC.RPCRequest
                                 throw new RPCException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
                         }
-                        else if (config.Type.TypeConvert.TryGetValue(result.ResultType, out RPCType.ConvertDelegage convert))
+                        else if (config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
                         {
-                            return convert((string)result.Result);
+                            return type.Deserialize((string)result.Result);
                         }
                         else throw new RPCException($"C#中的{result.ResultType}类型转换器尚未注册");
                     }

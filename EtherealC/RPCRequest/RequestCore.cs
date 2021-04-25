@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using EtherealC.RPCNet;
+using EtherealS.Model;
 
 namespace EtherealC.RPCRequest
 {
@@ -24,7 +25,7 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string hostname, string port, string requestname,RPCType type) where T : class
+        public static T Register<T>(string hostname, string port, string requestname,RPCTypeConfig type) where T : class
         {
             return Register<T>( hostname, port, requestname, new RequestConfig(type));
         }
