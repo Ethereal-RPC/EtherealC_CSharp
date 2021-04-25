@@ -14,7 +14,6 @@ namespace EtherealC.RPCRequest
         private Tuple<string,string> clientKey;
         private RequestConfig config;
         private ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
-        private int paramStart;
         private Random random = new Random();
         public bool GetTask(int id, out ClientRequestModel model)
         {
@@ -35,8 +34,6 @@ namespace EtherealC.RPCRequest
             proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
             proxy.servicename = servicename; 
             proxy.config = config;
-            if (config.TokenEnable) proxy.paramStart = 1;
-            else proxy.paramStart = 0;
             return (T)(proxy as object);
         }
 
@@ -50,11 +47,11 @@ namespace EtherealC.RPCRequest
                 int param_count;
                 if (args != null) param_count = args.Length;
                 else param_count = 0;
-                object[] obj = new object[param_count + paramStart];
+                object[] obj = new object[param_count + 1];
                 if (rpcAttribute.Paramters == null)
                 {
                     ParameterInfo[] parameters = targetMethod.GetParameters();
-                    for (int i = 0, j = paramStart; i < param_count; i++, j++)
+                    for (int i = 0, j = 1; i < param_count; i++, j++)
                     {
                         try
                         {
@@ -72,7 +69,7 @@ namespace EtherealC.RPCRequest
                     string[] types_name = rpcAttribute.Paramters;
                     if (types_name.Length == param_count)
                     {
-                        for (int i = 0, j = paramStart; i < param_count; i++, j++)
+                        for (int i = 0, j = 1; i < param_count; i++, j++)
                         {
                             try
                             {

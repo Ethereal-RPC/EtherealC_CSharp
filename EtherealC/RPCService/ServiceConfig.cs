@@ -6,12 +6,10 @@ namespace EtherealC.RPCService
     {
 
         #region --字段--
-        private bool tokenEnable;
         private RPCType type;
         #endregion
 
         #region --属性--
-        public bool TokenEnable { get => tokenEnable; set => tokenEnable = value; }
         public RPCType Type { get => type; set => type = value; }
 
         #endregion
@@ -25,7 +23,6 @@ namespace EtherealC.RPCService
         public ServiceConfig(RPCType type, bool tokenEnable)
         {
             this.type = type;
-            this.tokenEnable = tokenEnable;
         }
 
         #endregion
