@@ -5,11 +5,8 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using EtherealC.Model;
-using EtherealC.NativeClient;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
-using EtherealS.Model;
-using Newtonsoft.Json;
 
 namespace EtherealC.RPCNet
 {
@@ -23,11 +20,11 @@ namespace EtherealC.RPCNet
         {
             return configs.TryGetValue(key, out config);
         }
-        public static void Register(string ip, string port)
+        public static NetConfig Register(string ip, string port)
         {
-            Register(ip, port, new NetConfig());
+            return Register(ip, port, new NetConfig());
         }
-        public static void Register(string ip, string port, NetConfig config)
+        public static NetConfig Register(string ip, string port, NetConfig config)
         {
             if (config is null)
             {
@@ -38,8 +35,10 @@ namespace EtherealC.RPCNet
                 if (config.ServerRequestReceive == null) config.ServerRequestReceive = ServerRequestReceive;
                 if (config.ClientResponseReceive == null) config.ClientResponseReceive = ClientResponseReceive;
                 configs.Add(new Tuple<string, string>(ip, port), config);
+                return config;
             }
             else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}服务的NetConfig已经注册");
+            return config;
         }
         public static bool UnRegister(string ip, string port)
         {

@@ -1,5 +1,4 @@
 ﻿using EtherealC.Model;
-using EtherealS.Model;
 
 namespace EtherealC.RPCService
 {

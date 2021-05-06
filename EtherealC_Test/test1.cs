@@ -1,11 +1,7 @@
 ﻿using EtherealC.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCService;
-using EtherealS.Model;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace EtherealC_Test
 {
@@ -23,7 +19,7 @@ namespace EtherealC_Test
             ServiceCore.Register(new UserService(), ip, port, "UserService", new ServiceConfig(types));
             ClientConfig config = new ClientConfig();
             ClientCore.Register(ip, port,config).Start();
-            Console.WriteLine(request.Hello("s" + Encoding.Default.GetString(new byte[10000])));
+            Console.WriteLine(request.Hello("s"));
             return true;
         }
     }

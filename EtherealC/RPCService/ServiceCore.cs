@@ -1,12 +1,8 @@
-﻿using System;
+﻿using EtherealC.Model;
+using EtherealC.NativeClient;
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Reflection;
-using EtherealC.Model;
-using EtherealC.NativeClient;
-using EtherealC.RPCNet;
-using EtherealS.Model;
-using Newtonsoft.Json;
 
 namespace EtherealC.RPCService
 {
@@ -14,19 +10,19 @@ namespace EtherealC.RPCService
     {
         private static Dictionary<Tuple<string, string, string>, Service> services { get; } = new Dictionary<Tuple<string, string, string>, Service>();
 
-        public static void Register<T>( string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
+        public static Service Register<T>( string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
         {
-            Register(new T(), hostname, port, servicename, new ServiceConfig(type));
+            return Register(new T(), hostname, port, servicename, new ServiceConfig(type));
         }
-        public static void Register<T>(object instance,string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
+        public static Service Register<T>(object instance,string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
         {
-            Register(instance, hostname, port, servicename, new ServiceConfig(type));
+            return Register(instance, hostname, port, servicename, new ServiceConfig(type));
         }
-        public static void Register<T>( string hostname, string port, string servicename, ServiceConfig config) where T : new()
+        public static Service Register<T>( string hostname, string port, string servicename, ServiceConfig config) where T : new()
         {
-            Register(new T(), hostname, port, servicename, config);
+            return Register(new T(), hostname, port, servicename, config);
         }
-        public static void Register(object instance,string hostname, string port, string servicename, ServiceConfig config)
+        public static Service Register(object instance,string hostname, string port, string servicename, ServiceConfig config)
         {
             if (string.IsNullOrEmpty(servicename))
             {
@@ -58,6 +54,7 @@ namespace EtherealC.RPCService
                     service = new Service();
                     service.Register(instance,new Tuple<string, string>(hostname,port),servicename,config);
                     services[key] = service;
+                    return service;
                 }
                 catch (SocketException e)
                 {
@@ -65,6 +62,7 @@ namespace EtherealC.RPCService
                     UnRegister(servicename, hostname, port);
                 }
             }
+            return null;
         }
 
         public static void UnRegister( string hostname, string port, string servicename)
