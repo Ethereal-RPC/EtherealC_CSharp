@@ -1,8 +1,6 @@
 ﻿using EtherealC.Model;
 using System;
 using System.Collections.Generic;
-using EtherealC.RPCNet;
-using EtherealS.Model;
 
 namespace EtherealC.RPCRequest
 {

@@ -57,7 +57,7 @@ namespace EtherealC.NativeClient
                 //数据包大小
                 int count = buffer.WriterIndex - buffer.ReaderIndex;
                 //凑够头包
-                if (headsize < count)
+                if (headsize <= count)
                 {
                     //Body数据长度 4 字节
                     int body_length = BitConverter.ToInt32(buffer.Array, buffer.ReaderIndex);
@@ -96,7 +96,7 @@ namespace EtherealC.NativeClient
                         //迁移数据至缓冲区头
                         if (buffer.ReaderIndex != 0)
                         {
-                            Buffer.BlockCopy(buffer.Array, 0, buffer.Array, buffer.ReaderIndex, count);
+                            Buffer.BlockCopy(buffer.Array, buffer.ReaderIndex, buffer.Array, 0, count);
                             buffer.ResetReaderIndex();
                             buffer.SetWriterIndex(count);
                         }   
@@ -124,7 +124,7 @@ namespace EtherealC.NativeClient
                     //头包凑不够，迁移数据至缓冲区头
                     if (buffer.ReaderIndex != 0)
                     {
-                        Buffer.BlockCopy(buffer.Array, 0, buffer.Array, buffer.ReaderIndex, count);
+                        Buffer.BlockCopy(buffer.Array, buffer.ReaderIndex, buffer.Array, 0, count);
                         buffer.ResetReaderIndex();
                         buffer.SetWriterIndex(count);
                     }

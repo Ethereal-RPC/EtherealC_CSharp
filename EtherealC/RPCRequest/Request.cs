@@ -1,6 +1,5 @@
 ﻿using EtherealC.Model;
 using EtherealC.RPCNet;
-using EtherealS.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;

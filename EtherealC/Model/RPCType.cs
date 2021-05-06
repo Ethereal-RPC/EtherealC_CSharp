@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EtherealS.Model
+namespace EtherealC.Model
 {
     public class RPCType
     {
