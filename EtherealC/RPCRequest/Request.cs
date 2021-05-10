@@ -19,7 +19,7 @@ namespace EtherealC.RPCRequest
         {
             return tasks.TryGetValue(id, out model);
         }
-        public static T Register<T>(Tuple<string, string> clientkey,string servicename, RequestConfig config)
+        public static Request Register<T>(Tuple<string, string> clientkey,string servicename, RequestConfig config)
         {
             if (string.IsNullOrEmpty(servicename))
             {
@@ -34,7 +34,7 @@ namespace EtherealC.RPCRequest
             proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
             proxy.servicename = servicename; 
             proxy.config = config;
-            return (T)(proxy as object);
+            return proxy;
         }
 
         protected override object Invoke(MethodInfo targetMethod, object[] args)
@@ -82,13 +82,13 @@ namespace EtherealC.RPCRequest
                     else throw new RPCException($"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
                 ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
-                if (!NetCore.Get(clientKey, out NetConfig netConfig))
+                if (!NetCore.Get(clientKey, out Net net))
                 {
                     throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                 }
                 if (targetMethod.ReturnType == typeof(void))
                 {
-                    netConfig.ClientRequestSend(request);
+                    net.ClientRequestSend(request);
                     return null;
                 }
                 else
@@ -102,7 +102,7 @@ namespace EtherealC.RPCRequest
                     request.Id = id.ToString();
                     int timeout = config.Timeout;
                     if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
-                    netConfig.ClientRequestSend(request);
+                    net.ClientRequestSend(request);
                     ClientResponseModel result = request.Get(timeout);
                     if (result != null)
                     {

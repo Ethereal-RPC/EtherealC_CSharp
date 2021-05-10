@@ -71,7 +71,7 @@ namespace EtherealC.NativeClient
                     //判断Body数据是否足够
                     if (length <= count)
                     {
-                        if (!NetCore.Get(clientKey, out NetConfig netConfig))
+                        if (!NetCore.Get(clientKey, out Net net))
                         {
                             throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                         }
@@ -80,14 +80,12 @@ namespace EtherealC.NativeClient
                         if (pattern == 0)
                         {
                             ServerRequestModel request = config.ServerRequestModelDeserialize(data);
-                            netConfig.ServerRequestReceive(clientKey.Item1, clientKey.Item2, netConfig,
-                                request);
+                            net.ServerRequestReceive(request);
                         }
                         else
                         {
                             ClientResponseModel response = config.ClientResponseModelDeserialize(data);
-                            netConfig.ClientResponseReceive(clientKey.Item1, clientKey.Item2, netConfig,
-                                response);
+                            net.ClientResponseReceive(response);
                         }
                         buffer.SetReaderIndex(buffer.ReaderIndex + length);
                     }

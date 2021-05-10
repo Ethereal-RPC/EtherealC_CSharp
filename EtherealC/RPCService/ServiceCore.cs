@@ -1,5 +1,6 @@
 ﻿using EtherealC.Model;
 using EtherealC.NativeClient;
+using EtherealC.RPCNet;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -8,30 +9,28 @@ namespace EtherealC.RPCService
 {
     public class ServiceCore
     {
-        private static Dictionary<Tuple<string, string, string>, Service> services { get; } = new Dictionary<Tuple<string, string, string>, Service>();
-
-        public static Service Register<T>( string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
+        public static Service Register(object instance, string ip, string port, string servicename, RPCTypeConfig type)
         {
-            return Register(new T(), hostname, port, servicename, new ServiceConfig(type));
+            return Register(instance, ip, port, servicename, new ServiceConfig(type));
         }
-        public static Service Register<T>(object instance,string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
-        {
-            return Register(instance, hostname, port, servicename, new ServiceConfig(type));
-        }
-        public static Service Register<T>( string hostname, string port, string servicename, ServiceConfig config) where T : new()
+        public static Service Register<T>(string hostname, string port, string servicename, ServiceConfig config) where T : new()
         {
             return Register(new T(), hostname, port, servicename, config);
         }
-        public static Service Register(object instance,string hostname, string port, string servicename, ServiceConfig config)
+        public static Service Register<T>(string hostname, string port, string servicename, RPCTypeConfig type) where T : new()
+        {
+            return Register(new T(), hostname, port, servicename, new ServiceConfig(type));
+        }
+        public static Service Register(object instance,string ip, string port, string servicename, ServiceConfig config)
         {
             if (string.IsNullOrEmpty(servicename))
             {
                 throw new ArgumentException("参数为空", nameof(servicename));
             }
 
-            if (string.IsNullOrEmpty(hostname))
+            if (string.IsNullOrEmpty(ip))
             {
-                throw new ArgumentException("参数为空", nameof(hostname));
+                throw new ArgumentException("参数为空", nameof(ip));
             }
 
             if (string.IsNullOrEmpty(port))
@@ -43,39 +42,45 @@ namespace EtherealC.RPCService
             {
                 throw new ArgumentNullException(nameof(config.Types));
             }
-            Service service = null;
-            Tuple<string, string, string> key = new Tuple<string, string, string>(hostname, port, servicename);
-            services.TryGetValue(key,out service);
+            if (!NetCore.Get(new Tuple<string, string>(ip, port), out Net net))
+            {
+                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}Net未找到");
+            }
+            net.Services.TryGetValue(servicename, out Service service);
             if(service == null)
             {
                 try
                 {
-                    SocketClient socketClient = ClientCore.Get(hostname, port);
+                    SocketClient socketClient = ClientCore.Get(ip, port);
                     service = new Service();
-                    service.Register(instance,new Tuple<string, string>(hostname,port),servicename,config);
-                    services[key] = service;
+                    service.Register(instance,new Tuple<string, string>(ip,port),servicename,config);
+                    net.Services[servicename] = service;
                     return service;
                 }
                 catch (SocketException e)
                 {
                     Console.WriteLine("发生异常报错,销毁注册\n" + e.StackTrace);
-                    UnRegister(servicename, hostname, port);
+                    UnRegister(new Tuple<string, string, string>(servicename, ip, port));
                 }
             }
             return null;
         }
+        public static bool UnRegister(Tuple<string, string, string> key)
+        {
+            if (!NetCore.Get(new Tuple<string, string>(key.Item1, key.Item2), out Net net))
+            {
+                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{key.Item1}-{key.Item2}Net未找到");
+            }
+            return net.Services.TryRemove(key.Item3, out Service value);
+        }
 
-        public static void UnRegister( string hostname, string port, string servicename)
+        public static bool Get(string ip, string port, string servicename, out Service proxy)
         {
-            services.Remove(new Tuple<string, string, string>(hostname,port,servicename), out Service value);
-        }
-        public static bool Get(string hostname, string port, string servicename, out Service service)
-        {
-            return services.TryGetValue(new Tuple<string, string, string>( hostname, port, servicename), out service);
-        }
-        public static bool Get(Tuple<string, string, string> key, out Service service)
-        {
-            return services.TryGetValue(key, out service);
+            if (!NetCore.Get(new Tuple<string, string>(ip, port), out Net net))
+            {
+                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}Net未找到");
+            }
+            return net.Services.TryGetValue(servicename, out proxy);
         }
     }
 }

@@ -15,82 +15,33 @@ namespace EtherealC.RPCNet
     /// </summary>
     public class NetCore
     {
-        private static Dictionary<Tuple<string, string>, NetConfig> configs { get; } = new Dictionary<Tuple<string, string>, NetConfig>();
-        public static bool Get(Tuple<string, string> key, out NetConfig config)
+        private static Dictionary<Tuple<string, string>, Net> nets { get; } = new Dictionary<Tuple<string, string>, Net>();
+        public static bool Get(Tuple<string, string> key, out Net net)
         {
-            return configs.TryGetValue(key, out config);
+            return nets.TryGetValue(key, out net);
         }
-        public static NetConfig Register(string ip, string port)
+        public static Net Register(string ip, string port)
         {
             return Register(ip, port, new NetConfig());
         }
-        public static NetConfig Register(string ip, string port, NetConfig config)
+        public static Net Register(string ip, string port, NetConfig config)
         {
             if (config is null)
             {
                 throw new ArgumentNullException(nameof(config));
             }
-            if (!configs.TryGetValue(new Tuple<string, string>(ip, port), out NetConfig value))
+            if (!nets.TryGetValue(new Tuple<string, string>(ip, port), out Net net))
             {
-                if (config.ServerRequestReceive == null) config.ServerRequestReceive = ServerRequestReceive;
-                if (config.ClientResponseReceive == null) config.ClientResponseReceive = ClientResponseReceive;
-                configs.Add(new Tuple<string, string>(ip, port), config);
-                return config;
+                net = new Net();
+                net.Config = config;
+                nets.Add(new Tuple<string, string>(ip, port), net);
+                return net;
             }
             else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}服务的NetConfig已经注册");
-            return config;
         }
         public static bool UnRegister(string ip, string port)
         {
-            return configs.Remove(new Tuple<string, string>(ip, port));
-        }
-        private static void ServerRequestReceive(string ip, string port, NetConfig config, ServerRequestModel request)
-        {
-            if (ServiceCore.Get(new Tuple<string, string, string>(ip, port,request.Service), out Service service))
-            {
-                if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
-                {
-#if DEBUG
-                    Console.WriteLine("---------------------------------------------------------");
-                    Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-指令]\n{request}");
-                    Console.WriteLine("---------------------------------------------------------");
-#endif
-                    string[] param_id = request.MethodId.Split('-');
-                    for (int i = 1, j = 0; i < param_id.Length; i++, j++)
-                    {
-                        if (service.Config.Types.TypesByName.TryGetValue(param_id[i], out RPCType type))
-                        {
-                            request.Params[j] = type.Deserialize((string)request.Params[j]);
-                        }
-                        else throw new RPCException($"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
-                    }
-                    method.Invoke(service.Instance, request.Params);
-                }
-#if DEBUG
-                else throw new RPCException(RPCException.ErrorCode.RuntimeError, $" {ip}-{port}-{request.Service}-{request.MethodId}未找到!");
-#endif
-            }
-#if DEBUG
-            else throw new RPCException(RPCException.ErrorCode.RuntimeError, $" {ip}-{port}-{request.Service} 未找到!");
-#endif
-        }
-        private static void ClientResponseReceive(string ip, string port, NetConfig netConfig, ClientResponseModel response)
-        {
-#if DEBUG
-            Console.WriteLine("---------------------------------------------------------");
-            Console.WriteLine($"{DateTime.Now}::{ip}:{port}::[服-返回]\n{response}");
-            Console.WriteLine("---------------------------------------------------------");
-#endif
-            if (int.TryParse(response.Id, out int id) && RequestCore.Get(new Tuple<string, string, string>(ip, port, response.Service), out Request request))
-            {
-                if (request.GetTask(id, out ClientRequestModel model))
-                {
-                    model.Set(response);
-                }
-            }
-#if DEBUG
-            else throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{ip}-{port}-{response.Service}未找到!");
-#endif
+            return nets.Remove(new Tuple<string, string>(ip, port));
         }
     }
 }

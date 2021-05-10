@@ -35,9 +35,9 @@ namespace EtherealC.NativeClient
             // Instantiates the endpoint and socket.
             hostEndPoint = new IPEndPoint(addressList[addressList.Length - 1], int.Parse(clientKey.Item2));
 
-            if (NetCore.Get(clientKey, out NetConfig netConfig))
+            if (NetCore.Get(clientKey, out Net net))
             {
-                netConfig.ClientRequestSend = Send;
+                net.ClientRequestSend = Send;
             }
             else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{clientKey.Item1}-{clientKey.Item2}µÄNetConfigÎ´ÕÒµ½");
         }
