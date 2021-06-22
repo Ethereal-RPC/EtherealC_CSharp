@@ -1,4 +1,5 @@
 ﻿using EtherealC.Model;
+using EtherealC.NativeClient;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
 using System;
@@ -24,6 +25,14 @@ namespace EtherealC.RPCNet
         private ClientRequestSendDelegate clientRequestSend;
         private NetConfig config;
         /// <summary>
+        /// Server
+        /// </summary>
+        private SocketClient client;
+        /// <summary>
+        /// Net网关名
+        /// </summary>
+        private string name;
+        /// <summary>
         /// Service映射表
         /// </summary>
         private ConcurrentDictionary<string, Service> services = new ConcurrentDictionary<string, Service>();
@@ -41,6 +50,8 @@ namespace EtherealC.RPCNet
         public Dictionary<string, Request> Requests { get => requests; set => requests = value; }
         public NetConfig Config { get => config; set => config = value; }
         public Tuple<string, string> ClientKey { get => clientKey; set => clientKey = value; }
+        public SocketClient Client { get => client; set => client = value; }
+        public string Name { get => name; set => name = value; }
 
         #endregion
         public Net()

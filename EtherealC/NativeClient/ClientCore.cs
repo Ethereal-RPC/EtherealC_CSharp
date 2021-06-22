@@ -9,19 +9,32 @@ namespace EtherealC.NativeClient
 {
     public class ClientCore
     {
-        private static Dictionary<Tuple<string, string>, SocketClient> SocketClients { get; } = new Dictionary<Tuple<string, string>, SocketClient>();
+        public static bool Get(string netName, out SocketClient client)
+        {
+            if (NetCore.Get(netName, out Net net))
+            {
+                return Get(net, out client);
+            }
+            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
+        }
+        public static bool Get(Net net, out SocketClient client)
+        {
+            client = net.Client;
+            if (net.Client != null) return true;
+            else return false;
+        }
 
-        public static SocketClient Register(string ip, string port)
+        public static SocketClient Register(string ip, Net net, string port)
         {
-            return Register(ip, port, new ClientConfig(), null);
+            return Register(ip, port,net, new ClientConfig(), null);
         }
-        public static SocketClient Register(string ip, string port, ClientConfig config)
+        public static SocketClient Register(string ip, Net net, string port, ClientConfig config)
         {
-            return Register(ip, port, config, null);
+            return Register(ip, port,net, config, null);
         }
-        public static SocketClient Register(string ip, string port, SocketClient client)
+        public static SocketClient Register(string ip, Net net, string port, SocketClient client)
         {
-            return Register(ip, port, new ClientConfig(), client);
+            return Register(ip, port,net, new ClientConfig(), client);
         }
         /// <summary>
         /// 获取客户端
@@ -29,26 +42,31 @@ namespace EtherealC.NativeClient
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static SocketClient Register(string ip, string port, ClientConfig config, SocketClient socketserver)
+        public static SocketClient Register(string ip, string port,Net net, ClientConfig config, SocketClient socketserver)
         {
             Tuple<string, string> key = new Tuple<string, string>(ip, port);
-            if (!SocketClients.TryGetValue(key, out socketserver))
+            if (net.Client == null)
             {
-                if (socketserver == null) socketserver = new SocketClient(key, config);
-                SocketClients[key] = socketserver;
+                if (socketserver == null) socketserver = new SocketClient(net,key, config);
+                net.Client = socketserver;
             }
             return socketserver;
         }
-        public static SocketClient Get(string ip, string port)
+
+        public static bool UnRegister(string netName)
         {
-            return Get(new Tuple<string, string>(ip, port));
+            if (NetCore.Get(netName, out Net net))
+            {
+                return UnRegister(net);
+            }
+            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
         }
-
-
-        public static SocketClient Get(Tuple<string, string> key)
+        public static bool UnRegister(Net net)
         {
-            SocketClients.TryGetValue(key, out SocketClient socketserver);
-            return socketserver;
+            net.Client.Dispose();
+            net.Client = null;
+            net.ClientRequestSend = null;
+            return true;
         }
     }
 }

@@ -12,6 +12,17 @@ namespace EtherealC.NativeClient
         public delegate string ClientRequestModelSerializeDelegate(ClientRequestModel requestModel);
         public delegate ServerRequestModel ServerRequestModelDeserializeDelegate(string json);
         public delegate ClientResponseModel ClientResponseModelDeserializeDelegate (string json);
+        public delegate void OnExceptionDelegate(Exception exception);
+
+        public delegate void OnLogDelegate(RPCLog log);
+        #endregion
+
+        #region --事件--
+        public event OnLogDelegate LogEvent;
+        /// <summary>
+        /// 抛出异常事件
+        /// </summary>
+        public event OnExceptionDelegate ExceptionEvent;
         #endregion
 
         #region --字段--
@@ -33,11 +44,41 @@ namespace EtherealC.NativeClient
         public ServerRequestModelDeserializeDelegate ServerRequestModelDeserialize { get => serverRequestModelDeserialize; set => serverRequestModelDeserialize = value; }
         public ClientResponseModelDeserializeDelegate ClientResponseModelDeserialize { get => clientResponseModelDeserialize; set => clientResponseModelDeserialize = value; }
         #endregion
+
+        #region --方法--
         public ClientConfig()
         {
             clientRequestModelSerialize = (obj) => JsonConvert.SerializeObject(obj);
             serverRequestModelDeserialize = (obj) => JsonConvert.DeserializeObject<ServerRequestModel>(obj);
             clientResponseModelDeserialize = (obj) => JsonConvert.DeserializeObject<ClientResponseModel>(obj);
         }
+
+        internal void OnException(RPCException.ErrorCode code, string message)
+        {
+            OnException(new RPCException(code, message));
+        }
+        internal void OnException(Exception e)
+        {
+            if (ExceptionEvent != null)
+            {
+                ExceptionEvent(e);
+            }
+            throw e;
+        }
+
+        internal void OnLog(RPCLog.LogCode code, string message)
+        {
+            OnLog(new RPCLog(code, message));
+        }
+        internal void OnLog(RPCLog log)
+        {
+            if (LogEvent != null)
+            {
+                LogEvent(log);
+            }
+        }
+        #endregion
+
+
     }
 }

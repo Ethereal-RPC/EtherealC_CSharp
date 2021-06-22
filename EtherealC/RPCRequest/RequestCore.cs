@@ -8,6 +8,20 @@ namespace EtherealC.RPCRequest
     public class RequestCore
     {
         #region --方法--
+
+        public static bool Get(string netName, string servicename, out Request reqeust)
+        {
+            if (NetCore.Get(netName, out Net net))
+            {
+                return Get(net, servicename, out reqeust);
+            }
+            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
+        }
+        public static bool Get(Net net, string servicename, out Request reqeust)
+        {
+            return net.Requests.TryGetValue(servicename, out reqeust);
+        }
+
         /// <summary>
         /// 获取RPC代理
         /// </summary>
@@ -15,9 +29,9 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string hostname, string port, string requestname,RPCTypeConfig type) where T : class
+        public static T Register<T>(string netName, string requestname,RPCTypeConfig type) where T : class
         {
-            return Register<T>( hostname, port, requestname, new RequestConfig(type));
+            return Register<T>(netName, requestname, new RequestConfig(type));
         }
         /// <summary>
         /// 获取RPC代理
@@ -26,44 +40,32 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string ip, string port, string servicename, RequestConfig config) where T : class
+        public static T Register<T>(string netName, string servicename, RequestConfig config) where T : class
         {
-            if (!NetCore.Get(new Tuple<string, string>(ip, port), out Net net))
+            if (!NetCore.Get(netName, out Net net))
             {
-                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}Net未找到");
+                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName} Net未找到");
             }
             net.Requests.TryGetValue(servicename, out Request request);
             if (request == null)
             {
-                Tuple<string, string> clientkey = new Tuple<string, string>(ip, port);
-                request = Request.Register<T>(clientkey, servicename,config);
+                request = Request.Register<T>(netName, servicename,config);
                 net.Requests[servicename] = request;
             }
             return (T)(request as object);
         }
-        public static bool Get(string ip, string port, string servicename, out Request reqeust)
+
+        public static bool UnRegister(string netName, string serviceName)
         {
-            if (NetCore.Get(new Tuple<string, string>(ip, port), out Net net))
+            if (NetCore.Get(netName, out Net net))
             {
-                return net.Requests.TryGetValue(servicename, out reqeust);
+                return UnRegister(net, serviceName);
             }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{ip}-{port}Net未找到");
+            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
         }
-        public static bool Get(Tuple<string, string, string> key, out Request reqeust)
+        public static bool UnRegister(Net net, string serviceName)
         {
-            if (NetCore.Get(new Tuple<string, string>(key.Item1, key.Item2), out Net net))
-            {
-                return net.Requests.TryGetValue(key.Item3, out reqeust);
-            }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{key.Item1}-{key.Item2}Net未找到");
-        }
-        public static bool UnRegister(Tuple<string, string, string> key)
-        {
-            if (NetCore.Get(new Tuple<string, string>(key.Item1, key.Item2), out Net net))
-            {
-                return net.Requests.Remove(key.Item3, out Request value);
-            }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{key.Item1}-{key.Item2}Net未找到");
+            return net.Requests.Remove(serviceName, out Request value);
         }
         #endregion
     }

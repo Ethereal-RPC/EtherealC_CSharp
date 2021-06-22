@@ -11,27 +11,20 @@ namespace EtherealC.RPCRequest
     public class Request : DispatchProxy
     {
         private string servicename;
-        private Tuple<string,string> clientKey;
+        private string netName;
         private RequestConfig config;
         private ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
         private Random random = new Random();
+
         public bool GetTask(int id, out ClientRequestModel model)
         {
             return tasks.TryGetValue(id, out model);
         }
-        public static Request Register<T>(Tuple<string, string> clientkey,string servicename, RequestConfig config)
-        {
-            if (string.IsNullOrEmpty(servicename))
-            {
-                throw new ArgumentException("参数为空", nameof(servicename));
-            }
 
-            if (config.Types is null)
-            {
-                throw new ArgumentNullException(nameof(config.Types));
-            }
+        public static Request Register<T>(string netName,string servicename, RequestConfig config)
+        {
             Request proxy = (Request)(Create<T, Request>() as object);
-            proxy.clientKey = clientkey ?? throw new ArgumentNullException(nameof(clientkey));
+            proxy.netName = netName;
             proxy.servicename = servicename; 
             proxy.config = config;
             return proxy;
@@ -58,7 +51,7 @@ namespace EtherealC.RPCRequest
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
                         }
-                        else throw new RPCException($"C#中的{args[i].GetType()}类型参数尚未注册");
+                        else config.OnException(RPCException.ErrorCode.RuntimeError,$"C#中的{args[i].GetType()}类型参数尚未注册");
                     }
                 }
                 else
@@ -75,16 +68,16 @@ namespace EtherealC.RPCRequest
                             }
                             catch (Exception)
                             {
-                                throw new RPCException($"C#中的{args[i].GetType()}类型参数尚未注册");
+                                config.OnException(RPCException.ErrorCode.RuntimeError, $"C#中的{args[i].GetType()}类型参数尚未注册");
                             }
                         }
                     }
-                    else throw new RPCException($"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
+                    else config.OnException(RPCException.ErrorCode.RuntimeError,$"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
                 ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
-                if (!NetCore.Get(clientKey, out Net net))
+                if (!NetCore.Get(netName, out Net net))
                 {
-                    throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
+                    config.OnException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                 }
                 if (targetMethod.ReturnType == typeof(void))
                 {
@@ -110,14 +103,14 @@ namespace EtherealC.RPCRequest
                         {
                             if (result.Error.Code == 0)
                             {
-                                throw new RPCException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                config.OnException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
                         }
                         else if (config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
                         {
                             return type.Deserialize((string)result.Result);
                         }
-                        else throw new RPCException($"C#中的{result.ResultType}类型转换器尚未注册");
+                        else config.OnException(RPCException.ErrorCode.RuntimeError,$"C#中的{result.ResultType}类型转换器尚未注册");
                     }
                     return null;
                 }

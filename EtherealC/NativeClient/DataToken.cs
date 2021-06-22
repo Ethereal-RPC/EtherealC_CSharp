@@ -20,6 +20,7 @@ namespace EtherealC.NativeClient
         private static int patternsize = 1;//消息类型长度
         private static int futuresize = 27;//后期看情况加
         private Tuple<string, string> clientKey;
+        private string netName;
         private SocketAsyncEventArgs socketArgs;
         private DotNetty.Buffers.IByteBuffer buffer;
         private ClientConfig config;
@@ -28,12 +29,13 @@ namespace EtherealC.NativeClient
         public SocketAsyncEventArgs SocketArgs { get => socketArgs; set => socketArgs = value; }
 
 
-        public DataToken(Tuple<string, string> clientKey, ClientConfig config)
+        public DataToken(string netName,Tuple<string, string> clientKey, ClientConfig config)
         {
             this.SocketArgs = new SocketAsyncEventArgs();
             dynamicAdjustBufferCount = config.DynamicAdjustBufferCount;
             this.clientKey = clientKey;
             this.config = config;
+            this.netName = netName;
         }
         public void Connect(Socket socket)
         {
@@ -71,9 +73,9 @@ namespace EtherealC.NativeClient
                     //判断Body数据是否足够
                     if (length <= count)
                     {
-                        if (!NetCore.Get(clientKey, out Net net))
+                        if (!NetCore.Get(netName, out Net net))
                         {
-                            throw new RPCException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
+                            config.OnException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
                         }
                         string data = buffer.GetString(buffer.ReaderIndex + headsize, body_length, config.Encoding);
                         //0-Request 1-Response
@@ -110,7 +112,7 @@ namespace EtherealC.NativeClient
                             }
                             else
                             {
-                                throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{clientKey}-{SocketArgs.RemoteEndPoint}:用户请求数据量太大，中止接收！");
+                                config.OnException(RPCException.ErrorCode.RuntimeError, $"{clientKey}-{SocketArgs.RemoteEndPoint}:用户请求数据量太大，中止接收！");
                             }
                         }
                         SocketArgs.SetBuffer(buffer.WriterIndex, buffer.Capacity - count);

@@ -21,12 +21,12 @@ namespace EtherealC.NativeClient
         private ClientConfig config;
         private Tuple<string, string> clientKey;
         private DataToken dataToken;
-
+        private string netName;
         public DataToken DataToken { get => dataToken; set => dataToken = value; }
         /// <summary>
         /// Token
         /// </summary>
-        public SocketClient(Tuple<string,string> clientKey, ClientConfig config)
+        public SocketClient(Net net, Tuple<string,string> clientKey, ClientConfig config)
         {
             this.clientKey = clientKey;
             this.config = config;
@@ -34,12 +34,8 @@ namespace EtherealC.NativeClient
             IPAddress[] addressList = Dns.GetHostEntry(clientKey.Item1).AddressList;
             // Instantiates the endpoint and socket.
             hostEndPoint = new IPEndPoint(addressList[addressList.Length - 1], int.Parse(clientKey.Item2));
-
-            if (NetCore.Get(clientKey, out Net net))
-            {
-                net.ClientRequestSend = Send;
-            }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{clientKey.Item1}-{clientKey.Item2}的NetConfig未找到");
+            net.ClientRequestSend = Send;
+            this.netName = net.Name;
         }
 
         public void Start()
@@ -56,7 +52,7 @@ namespace EtherealC.NativeClient
                 SocketError errorCode = acceptArgs.SocketError;
                 if (errorCode == SocketError.Success)
                 {
-                    dataToken = new DataToken(clientKey, config);
+                    dataToken = new DataToken(netName,clientKey, config);
                     SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
                     SocketArgs.Completed += OnReceiveCompleted;
                     SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
@@ -76,7 +72,7 @@ namespace EtherealC.NativeClient
             }
             catch(SocketException e)
             {
-                Console.WriteLine("连接服务器失败，尝试重连" + e.StackTrace);
+                config.OnException(RPCException.ErrorCode.RuntimeError,$"{netName}-{clientKey}连接服务器失败，尝试重连" + e.StackTrace);
                 Reconnect();
             }
         }
@@ -122,19 +118,19 @@ namespace EtherealC.NativeClient
         }
         public bool Reconnect()
         {
-            Debug.WriteLine("与服务器连接异常,开始尝试重连！");
+            config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}与服务器连接异常,开始尝试重连！");
             Socket clientSocket = null;
             if (dataToken != null)clientSocket = dataToken.SocketArgs.AcceptSocket;
             for (int i = 1; i <= 10; i++)
             {
                 if (clientSocket != null)
                 {
-                    Debug.WriteLine("开始销毁历史Socket");
+                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}开始销毁历史Socket");
                     clientSocket.Close();
                     clientSocket.Dispose();
-                    Debug.WriteLine("历史Socket销毁完成！");
+                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}历史Socket销毁完成！");
                 }
-                Debug.WriteLine($"开始进行第{i}次尝试");
+                config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}开始进行第{i}次尝试");
                 clientSocket = new Socket(this.hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
                 acceptArgs.Completed += OnConnect;
@@ -147,7 +143,7 @@ namespace EtherealC.NativeClient
                     SocketError errorCode = acceptArgs.SocketError;
                     if (errorCode == SocketError.Success)
                     {
-                        dataToken = new DataToken(clientKey, config);
+                        dataToken = new DataToken(netName,clientKey, config);
                         SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
                         SocketArgs.Completed += OnReceiveCompleted;
                         SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
@@ -159,24 +155,24 @@ namespace EtherealC.NativeClient
                         {
                             ProcessReceive(SocketArgs);
                         }
-                        Debug.WriteLine("重连成功！");
+                        config.OnException(RPCException.ErrorCode.RuntimeError,$"{netName}-{clientKey}重连成功！");
                         break;
                     }
                     else
                     {
-                        Debug.WriteLine("重连失败，5秒后重试！");
+                        config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败，5秒后重试！");
                         Thread.Sleep(5000);
                     }
                 }
                 catch (SocketException e)
                 {
-                    Debug.WriteLine("重连失败，5秒后重试！" + e.StackTrace);
+                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败，5秒后重试！" + e.StackTrace);
                     Thread.Sleep(5000);
                 }
             }
             if (!clientSocket.Connected)
             {
-                Debug.WriteLine($"重连失败！");
+                config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败！");
                 return false;
             }
             else return true;
@@ -186,9 +182,9 @@ namespace EtherealC.NativeClient
             if (dataToken.SocketArgs.AcceptSocket != null && dataToken.SocketArgs.AcceptSocket.Connected)
             {
 #if DEBUG
-                Console.WriteLine("---------------------------------------------------------");
-                Console.WriteLine($"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}");
-                Console.WriteLine("---------------------------------------------------------");
+                config.OnLog(RPCLog.LogCode.Runtime,"---------------------------------------------------------");
+                config.OnLog(RPCLog.LogCode.Runtime, $"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}");
+                config.OnLog(RPCLog.LogCode.Runtime, "---------------------------------------------------------");
 #endif
                 //构造data数据
                 byte[] bodyBytes = config.Encoding.GetBytes(config.ClientRequestModelSerialize(request));
@@ -207,7 +203,6 @@ namespace EtherealC.NativeClient
                 Buffer.BlockCopy(bodyBytes, 0, sendBuffer, headerBytes.Length + pattern.Length + future.Length, bodyBytes.Length);
                 SocketAsyncEventArgs sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
-                Console.WriteLine("数据大小：" + sendBuffer.Length);
                 dataToken.SocketArgs.AcceptSocket.SendAsync(sendEventArgs);
             }
         }
