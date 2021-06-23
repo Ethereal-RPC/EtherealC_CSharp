@@ -7,8 +7,8 @@ namespace EtherealC.RPCRequest
     {
 
         #region --委托--
-        public delegate void OnExceptionDelegate(Exception exception);
-        public delegate void OnLogDelegate(RPCLog log);
+        public delegate void OnExceptionDelegate(Exception exception,Request request);
+        public delegate void OnLogDelegate(RPCLog log,Request request);
         #endregion
 
         #region --事件--
@@ -38,28 +38,28 @@ namespace EtherealC.RPCRequest
         {
             this.types = types;
         }
-        internal void OnException(RPCException.ErrorCode code, string message)
+        internal void OnException(RPCException.ErrorCode code, string message, Request request)
         {
-            OnException(new RPCException(code, message));
+            OnException(new RPCException(code, message), request);
         }
-        internal void OnException(Exception e)
+        internal void OnException(Exception e, Request request)
         {
             if (ExceptionEvent != null)
             {
-                ExceptionEvent(e);
+                ExceptionEvent(e, request);
             }
             throw e;
         }
 
-        internal void OnLog(RPCLog.LogCode code, string message)
+        internal void OnLog(RPCLog.LogCode code, string message, Request request)
         {
-            OnLog(new RPCLog(code, message));
+            OnLog(new RPCLog(code, message),request);
         }
-        internal void OnLog(RPCLog log)
+        internal void OnLog(RPCLog log, Request request)
         {
             if (LogEvent != null)
             {
-                LogEvent(log);
+                LogEvent(log,request);
             }
         }
         #endregion

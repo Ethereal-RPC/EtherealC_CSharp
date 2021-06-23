@@ -12,9 +12,9 @@ namespace EtherealC.NativeClient
         public delegate string ClientRequestModelSerializeDelegate(ClientRequestModel requestModel);
         public delegate ServerRequestModel ServerRequestModelDeserializeDelegate(string json);
         public delegate ClientResponseModel ClientResponseModelDeserializeDelegate (string json);
-        public delegate void OnExceptionDelegate(Exception exception);
+        public delegate void OnExceptionDelegate(Exception exception,SocketClient client);
 
-        public delegate void OnLogDelegate(RPCLog log);
+        public delegate void OnLogDelegate(RPCLog log, SocketClient client);
         #endregion
 
         #region --事件--
@@ -53,28 +53,28 @@ namespace EtherealC.NativeClient
             clientResponseModelDeserialize = (obj) => JsonConvert.DeserializeObject<ClientResponseModel>(obj);
         }
 
-        internal void OnException(RPCException.ErrorCode code, string message)
+        internal void OnException(RPCException.ErrorCode code, string message, SocketClient client)
         {
-            OnException(new RPCException(code, message));
+            OnException(new RPCException(code, message),client);
         }
-        internal void OnException(Exception e)
+        internal void OnException(Exception e, SocketClient client)
         {
             if (ExceptionEvent != null)
             {
-                ExceptionEvent(e);
+                ExceptionEvent(e,client);
             }
             throw e;
         }
 
-        internal void OnLog(RPCLog.LogCode code, string message)
+        internal void OnLog(RPCLog.LogCode code, string message, SocketClient client)
         {
-            OnLog(new RPCLog(code, message));
+            OnLog(new RPCLog(code, message), client);
         }
-        internal void OnLog(RPCLog log)
+        internal void OnLog(RPCLog log, SocketClient client)
         {
             if (LogEvent != null)
             {
-                LogEvent(log);
+                LogEvent(log,client);
             }
         }
         #endregion

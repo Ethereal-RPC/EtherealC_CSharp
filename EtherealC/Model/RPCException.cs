@@ -7,7 +7,7 @@ namespace EtherealC.Model
     /// </summary>
     public class RPCException : Exception
     {
-        public enum ErrorCode { RegisterError, RuntimeError, Intercepted }
+        public enum ErrorCode { Core, Runtime, Intercepted }
         /// <summary>
         /// 错误代码
         /// </summary>

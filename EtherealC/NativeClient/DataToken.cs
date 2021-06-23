@@ -75,7 +75,8 @@ namespace EtherealC.NativeClient
                     {
                         if (!NetCore.Get(netName, out Net net))
                         {
-                            config.OnException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
+                            config.OnException(RPCException.ErrorCode.Runtime, "未找到NetConfig",net.Client);
+                            throw new RPCException("未找到NetConfig");
                         }
                         string data = buffer.GetString(buffer.ReaderIndex + headsize, body_length, config.Encoding);
                         //0-Request 1-Response
@@ -112,7 +113,7 @@ namespace EtherealC.NativeClient
                             }
                             else
                             {
-                                config.OnException(RPCException.ErrorCode.RuntimeError, $"{clientKey}-{SocketArgs.RemoteEndPoint}:用户请求数据量太大，中止接收！");
+                                config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{SocketArgs.RemoteEndPoint}:用户请求数据量太大，中止接收！",null);
                             }
                         }
                         SocketArgs.SetBuffer(buffer.WriterIndex, buffer.Capacity - count);

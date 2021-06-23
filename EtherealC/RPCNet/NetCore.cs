@@ -39,15 +39,15 @@ namespace EtherealC.RPCNet
                 nets.Add(name, net);
                 return net;
             }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{name} Net已经注册");
+            else throw new RPCException(RPCException.ErrorCode.Core, $"{name} Net已经注册");
         }
         public static bool UnRegister(string name)
         {
-            if (NetCore.Get(name, out Net net))
+            if (Get(name, out Net net))
             {
                 return UnRegister(net);
             }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{name} Net未找到");
+            else throw new RPCException(RPCException.ErrorCode.Core, $"{name} Net未找到");
 
         }
         public static bool UnRegister(Net net)

@@ -19,7 +19,6 @@ namespace EtherealC.RPCNet
         #endregion
 
         #region --字段--
-        private Tuple<string, string> clientKey;
         private ServerRequestReceiveDelegate serverRequestReceive;
         private ClientResponseReceiveDelegate clientResponseReceive;
         private ClientRequestSendDelegate clientRequestSend;
@@ -49,7 +48,6 @@ namespace EtherealC.RPCNet
         public ConcurrentDictionary<string, Service> Services { get => services; set => services = value; }
         public Dictionary<string, Request> Requests { get => requests; set => requests = value; }
         public NetConfig Config { get => config; set => config = value; }
-        public Tuple<string, string> ClientKey { get => clientKey; set => clientKey = value; }
         public SocketClient Client { get => client; set => client = value; }
         public string Name { get => name; set => name = value; }
 
@@ -66,11 +64,11 @@ namespace EtherealC.RPCNet
             {
                 if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
                 {
-#if DEBUG
-                    Console.WriteLine("---------------------------------------------------------");
-                    Console.WriteLine($"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[服-指令]\n{request}");
-                    Console.WriteLine("---------------------------------------------------------");
-#endif
+                    string log = "";
+                    log += "---------------------------------------------------------\n";
+                    log += $"{DateTime.Now}::{name}::[服-指令]\n{request}\n";
+                    log += "---------------------------------------------------------\n";
+                    config.OnLog(RPCLog.LogCode.Runtime,log,this);
                     string[] param_id = request.MethodId.Split('-');
                     for (int i = 1, j = 0; i < param_id.Length; i++, j++)
                     {
@@ -78,21 +76,21 @@ namespace EtherealC.RPCNet
                         {
                             request.Params[j] = type.Deserialize((string)request.Params[j]);
                         }
-                        else throw new RPCException($"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
+                        else service.Config.OnException(RPCException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册",service);
                     }
                     method.Invoke(service.Instance, request.Params);
                 }
-                else throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{clientKey.Item1}:{clientKey.Item2}-{request.Service}-{request.MethodId}未找到!");
+                else service.Config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!",service);
             }
-            else throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{clientKey.Item1}:{clientKey.Item2}-{request.Service} 未找到!");
+            else config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!",this);
         }
         private void ClientResponseReceiveProcess(ClientResponseModel response)
         {
-#if DEBUG
-            Console.WriteLine("---------------------------------------------------------");
-            Console.WriteLine($"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[服-返回]\n{response}");
-            Console.WriteLine("---------------------------------------------------------");
-#endif
+            string log = "";
+            log += "---------------------------------------------------------\n";
+            log += $"{DateTime.Now}::{name}::[服-返回]\n{response}\n";
+            log += "---------------------------------------------------------\n";
+            config.OnLog(RPCLog.LogCode.Runtime, log,this);
             if (int.TryParse(response.Id, out int id) && Requests.TryGetValue(response.Service, out Request request))
             {
                 if (request.GetTask(id, out ClientRequestModel model))
@@ -100,7 +98,7 @@ namespace EtherealC.RPCNet
                     model.Set(response);
                 }
             }
-            else throw new RPCException(RPCException.ErrorCode.RuntimeError, $"{clientKey.Item1}:{clientKey.Item2}-{response.Service}未找到!");
+            config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!",this);
         }
         #endregion
     }

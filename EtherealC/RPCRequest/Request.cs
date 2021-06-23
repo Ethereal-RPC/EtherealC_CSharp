@@ -51,7 +51,7 @@ namespace EtherealC.RPCRequest
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
                         }
-                        else config.OnException(RPCException.ErrorCode.RuntimeError,$"C#中的{args[i].GetType()}类型参数尚未注册");
+                        else config.OnException(RPCException.ErrorCode.Runtime,$"C#中的{args[i].GetType()}类型参数尚未注册",this);
                     }
                 }
                 else
@@ -68,16 +68,16 @@ namespace EtherealC.RPCRequest
                             }
                             catch (Exception)
                             {
-                                config.OnException(RPCException.ErrorCode.RuntimeError, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                                config.OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册", this);
                             }
                         }
                     }
-                    else config.OnException(RPCException.ErrorCode.RuntimeError,$"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
+                    else config.OnException(RPCException.ErrorCode.Runtime,$"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个", this);
                 }
                 ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
                 if (!NetCore.Get(netName, out Net net))
                 {
-                    config.OnException(RPCException.ErrorCode.RuntimeError, "未找到NetConfig");
+                    config.OnException(RPCException.ErrorCode.Runtime, "未找到NetConfig", this);
                 }
                 if (targetMethod.ReturnType == typeof(void))
                 {
@@ -103,14 +103,14 @@ namespace EtherealC.RPCRequest
                         {
                             if (result.Error.Code == 0)
                             {
-                                config.OnException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                config.OnException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}", this);
                             }
                         }
                         else if (config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
                         {
                             return type.Deserialize((string)result.Result);
                         }
-                        else config.OnException(RPCException.ErrorCode.RuntimeError,$"C#中的{result.ResultType}类型转换器尚未注册");
+                        else config.OnException(RPCException.ErrorCode.Runtime,$"C#中的{result.ResultType}类型转换器尚未注册", this);
                     }
                     return null;
                 }

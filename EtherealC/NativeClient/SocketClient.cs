@@ -72,7 +72,7 @@ namespace EtherealC.NativeClient
             }
             catch(SocketException e)
             {
-                config.OnException(RPCException.ErrorCode.RuntimeError,$"{netName}-{clientKey}连接服务器失败，尝试重连" + e.StackTrace);
+                config.OnException(RPCException.ErrorCode.Runtime,$"{netName}-{clientKey}连接服务器失败，尝试重连" + e.StackTrace,this);
                 Reconnect();
             }
         }
@@ -118,19 +118,19 @@ namespace EtherealC.NativeClient
         }
         public bool Reconnect()
         {
-            config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}与服务器连接异常,开始尝试重连！");
+            config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}与服务器连接异常,开始尝试重连！",this);
             Socket clientSocket = null;
             if (dataToken != null)clientSocket = dataToken.SocketArgs.AcceptSocket;
             for (int i = 1; i <= 10; i++)
             {
                 if (clientSocket != null)
                 {
-                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}开始销毁历史Socket");
+                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}开始销毁历史Socket", this);
                     clientSocket.Close();
                     clientSocket.Dispose();
-                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}历史Socket销毁完成！");
+                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}历史Socket销毁完成！", this);
                 }
-                config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}开始进行第{i}次尝试");
+                config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}开始进行第{i}次尝试", this);
                 clientSocket = new Socket(this.hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
                 acceptArgs.Completed += OnConnect;
@@ -155,24 +155,24 @@ namespace EtherealC.NativeClient
                         {
                             ProcessReceive(SocketArgs);
                         }
-                        config.OnException(RPCException.ErrorCode.RuntimeError,$"{netName}-{clientKey}重连成功！");
+                        config.OnException(RPCException.ErrorCode.Runtime,$"{netName}-{clientKey}重连成功！", this);
                         break;
                     }
                     else
                     {
-                        config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败，5秒后重试！");
+                        config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败，5秒后重试！", this);
                         Thread.Sleep(5000);
                     }
                 }
                 catch (SocketException e)
                 {
-                    config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败，5秒后重试！" + e.StackTrace);
+                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败，5秒后重试！" + e.StackTrace, this);
                     Thread.Sleep(5000);
                 }
             }
             if (!clientSocket.Connected)
             {
-                config.OnException(RPCException.ErrorCode.RuntimeError, $"{netName}-{clientKey}重连失败！");
+                config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败！", this);
                 return false;
             }
             else return true;
@@ -181,11 +181,11 @@ namespace EtherealC.NativeClient
         {
             if (dataToken.SocketArgs.AcceptSocket != null && dataToken.SocketArgs.AcceptSocket.Connected)
             {
-#if DEBUG
-                config.OnLog(RPCLog.LogCode.Runtime,"---------------------------------------------------------");
-                config.OnLog(RPCLog.LogCode.Runtime, $"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}");
-                config.OnLog(RPCLog.LogCode.Runtime, "---------------------------------------------------------");
-#endif
+                string log = "";
+                log += "---------------------------------------------------------\n";
+                log += $"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}\n";
+                log += "---------------------------------------------------------\n";
+                config.OnLog(RPCLog.LogCode.Runtime,log, this);
                 //构造data数据
                 byte[] bodyBytes = config.Encoding.GetBytes(config.ClientRequestModelSerialize(request));
                 //构造表头数据，固定4个字节的长度，表示内容的长度

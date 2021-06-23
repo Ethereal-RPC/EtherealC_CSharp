@@ -15,7 +15,7 @@ namespace EtherealC.RPCRequest
             {
                 return Get(net, servicename, out reqeust);
             }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
+            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
         }
         public static bool Get(Net net, string servicename, out Request reqeust)
         {
@@ -44,7 +44,7 @@ namespace EtherealC.RPCRequest
         {
             if (!NetCore.Get(netName, out Net net))
             {
-                throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName} Net未找到");
+                throw new RPCException(RPCException.ErrorCode.Core, $"{netName} Net未找到");
             }
             net.Requests.TryGetValue(servicename, out Request request);
             if (request == null)
@@ -61,7 +61,7 @@ namespace EtherealC.RPCRequest
             {
                 return UnRegister(net, serviceName);
             }
-            else throw new RPCException(RPCException.ErrorCode.RegisterError, $"{netName}Net未找到");
+            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
         }
         public static bool UnRegister(Net net, string serviceName)
         {
