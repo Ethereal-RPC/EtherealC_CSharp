@@ -29,9 +29,9 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string netName, string requestname,RPCTypeConfig type) where T : class
+        public static T Register<T>(Net net, string requestname,RPCTypeConfig type) where T : class
         {
-            return Register<T>(netName, requestname, new RequestConfig(type));
+            return Register<T>(net, requestname, new RequestConfig(type));
         }
         /// <summary>
         /// 获取RPC代理
@@ -40,16 +40,12 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(string netName, string servicename, RequestConfig config) where T : class
+        public static T Register<T>(Net net, string servicename, RequestConfig config) where T : class
         {
-            if (!NetCore.Get(netName, out Net net))
-            {
-                throw new RPCException(RPCException.ErrorCode.Core, $"{netName} Net未找到");
-            }
             net.Requests.TryGetValue(servicename, out Request request);
             if (request == null)
             {
-                request = Request.Register<T>(netName, servicename,config);
+                request = Request.Register<T>(net.Name, servicename,config);
                 net.Requests[servicename] = request;
             }
             return (T)(request as object);

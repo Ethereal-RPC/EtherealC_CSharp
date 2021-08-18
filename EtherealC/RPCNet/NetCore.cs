@@ -36,6 +36,7 @@ namespace EtherealC.RPCNet
             {
                 net = new Net();
                 net.Config = config;
+                net.Name = name;
                 nets.Add(name, net);
                 return net;
             }

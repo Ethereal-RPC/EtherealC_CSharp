@@ -97,8 +97,9 @@ namespace EtherealC.RPCNet
                 {
                     model.Set(response);
                 }
+                else config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!", this);
             }
-            config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!",this);
+            else config.OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!",this);
         }
         #endregion
     }
