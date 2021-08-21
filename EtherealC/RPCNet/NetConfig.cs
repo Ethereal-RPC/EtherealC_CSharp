@@ -1,59 +1,38 @@
 ﻿using EtherealC.Model;
+using EtherealC.NativeClient;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
 using System;
+using System.Collections.Generic;
 
 namespace EtherealC.RPCNet
 {
     public class NetConfig
     {
-        #region --委托--
-        public delegate void OnLogDelegate(RPCLog log,Net net);
-        public delegate void OnExceptionDelegate(Exception exception,Net net);
-
-        #endregion
-
-        #region --事件--
-        public event OnLogDelegate LogEvent;
-        /// <summary>
-        /// 抛出异常事件
-        /// </summary>
-        public event OnExceptionDelegate ExceptionEvent;
-        #endregion
-
         #region --字段--
+        /// <summary>
+        /// 分布式模式是否开启
+        /// </summary>
+        private bool netNodeMode = false;
+        /// <summary>
+        /// 分布式IP组
+        /// </summary>
+        private List<Tuple<string, string, ClientConfig>> netNodeIps;
+        /// <summary>
+        /// 服务注册心跳间隔
+        /// </summary>
+        private int netNodeHeartInterval = 6000;
 
         #endregion
 
         #region --属性--
+        public bool NetNodeMode { get => netNodeMode; set => netNodeMode = value; }
+        public List<Tuple<string, string, ClientConfig>> NetNodeIps { get => netNodeIps; set => netNodeIps = value; }
+        public int NetNodeHeartInterval { get => netNodeHeartInterval; set => netNodeHeartInterval = value; }
 
         #endregion
 
         #region --方法--
-        internal void OnException(RPCException.ErrorCode code, string message, Net net)
-        {
-            OnException(new RPCException(code, message), net);
-        }
-        internal void OnException(Exception e, Net net)
-        {
-            if (ExceptionEvent != null)
-            {
-                ExceptionEvent(e, net);
-            }
-            throw e;
-        }
-
-        internal void OnLog(RPCLog.LogCode code, string message, Net net)
-        {
-            OnLog(new RPCLog(code, message), net);
-        }
-        internal void OnLog(RPCLog log, Net net)
-        {
-            if (LogEvent != null)
-            {
-                LogEvent(log, net);
-            }
-        }
 
         #endregion
     }

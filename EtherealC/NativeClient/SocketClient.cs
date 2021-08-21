@@ -17,75 +17,156 @@ namespace EtherealC.NativeClient
         /// <summary>
         /// 信号量,控制线程进行连接等待
         /// </summary>
-        private static AutoResetEvent autoConnectEvent = new AutoResetEvent(false);
+        private AutoResetEvent autoConnectEvent = new AutoResetEvent(false);
         private ClientConfig config;
         private Tuple<string, string> clientKey;
         private DataToken dataToken;
         private string netName;
+        private string serviceName;
+        private bool isReconnect = true;
+        private bool isDispose = false;
         public DataToken DataToken { get => dataToken; set => dataToken = value; }
+        public ClientConfig Config { get => config; set => config = value; }
+        public string NetName { get => netName; set => netName = value; }
+        public Tuple<string, string> ClientKey { get => clientKey; set => clientKey = value; }
+        public string ServiceName { get => serviceName; set => serviceName = value; }
+        #region --委托--
+        public delegate void OnExceptionDelegate(Exception exception, SocketClient client);
+        public delegate void OnLogDelegate(RPCLog log, SocketClient client);
+        /// <summary>
+        /// 连接成功委托
+        /// </summary>
+        /// <param name="client">连接体</param>
+        public delegate void OnConnectSuccessDelegate(SocketClient client);
+        /// <summary>
+        /// 连接失败委托
+        /// </summary>
+        /// <param name="client">连接体</param>
+        public delegate void OnConnectFailDelegate(SocketClient client);
+        #endregion
+
+        #region --事件字段--
+        private OnLogDelegate logEvent;
+        private OnExceptionDelegate exceptionEvent;
+        #endregion
+
+        #region --事件属性--
+        /// <summary>
+        /// 连接成功事件
+        /// </summary>
+        public event OnConnectSuccessDelegate ConnectSuccessEvent;
+        /// <summary>
+        /// 连接失败事件
+        /// </summary>
+        public event OnConnectFailDelegate ConnectFailEvent;
+        /// <summary>
+        /// 日志输出事件
+        /// </summary>
+        public event OnLogDelegate LogEvent
+        {
+            add
+            {
+                logEvent -= value;
+                logEvent += value;
+            }
+            remove
+            {
+                logEvent -= value;
+            }
+        }
+        /// <summary>
+        /// 抛出异常事件
+        /// </summary>
+        public event OnExceptionDelegate ExceptionEvent
+        {
+            add
+            {
+                exceptionEvent -= value;
+                exceptionEvent += value;
+            }
+            remove
+            {
+                exceptionEvent -= value;
+            }
+
+        }
+        #endregion
         /// <summary>
         /// Token
         /// </summary>
-        public SocketClient(Net net, Tuple<string,string> clientKey, ClientConfig config)
+        public SocketClient(string netName,string serviceName, Tuple<string,string> clientKey, ClientConfig config)
         {
-            this.clientKey = clientKey;
-            this.config = config;
-            // Get host related information.
+            this.ClientKey = clientKey;
+            this.Config = config;
             IPAddress[] addressList = Dns.GetHostEntry(clientKey.Item1).AddressList;
             // Instantiates the endpoint and socket.
             hostEndPoint = new IPEndPoint(addressList[addressList.Length - 1], int.Parse(clientKey.Item2));
-            net.ClientRequestSend = Send;
-            this.netName = net.Name;
+            this.netName = netName;
+            this.serviceName = serviceName;
+
         }
 
-        public void Start()
+        internal void Start()
         {
-            try
+            Thread thread = new Thread(() =>
             {
-                SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
-                acceptArgs.Completed += OnConnect;
-                Socket socket = new Socket(hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                acceptArgs.RemoteEndPoint = hostEndPoint;
-                acceptArgs.AcceptSocket = socket;
-                socket.ConnectAsync(acceptArgs);
-                autoConnectEvent.WaitOne();
-                SocketError errorCode = acceptArgs.SocketError;
-                if (errorCode == SocketError.Success)
+                try
                 {
-                    dataToken = new DataToken(netName,clientKey, config);
-                    SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
-                    SocketArgs.Completed += OnReceiveCompleted;
-                    SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
-                    SocketArgs.UserToken = dataToken;
-                    SocketArgs.RemoteEndPoint = hostEndPoint;
-                    SocketArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnConnect);
-                    dataToken.Connect(socket);
-                    if (!SocketArgs.AcceptSocket.ReceiveAsync(SocketArgs))
+                    SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
+                    acceptArgs.Completed += OnConnect;
+                    Socket socket = new Socket(hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    acceptArgs.RemoteEndPoint = hostEndPoint;
+                    acceptArgs.AcceptSocket = socket;
+                    socket.ConnectAsync(acceptArgs);
+                    autoConnectEvent.WaitOne();
+                    SocketError errorCode = acceptArgs.SocketError;
+                    if (errorCode == SocketError.Success)
                     {
-                        ProcessReceive(SocketArgs);
+                        dataToken = new DataToken(NetName, ClientKey, Config);
+                        SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
+                        SocketArgs.Completed += OnReceiveCompleted;
+                        SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
+                        SocketArgs.UserToken = dataToken;
+                        SocketArgs.RemoteEndPoint = hostEndPoint;
+                        SocketArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnConnect);
+                        dataToken.Connect(socket);
+                        if (!SocketArgs.AcceptSocket.ReceiveAsync(SocketArgs))
+                        {
+                            ProcessReceive(SocketArgs);
+                        }
+                        OnConnectSuccess(this);
+                    }
+                    else
+                    {
+                        if(isReconnect)Reconnect();
                     }
                 }
-                else
+                catch (SocketException e)
                 {
-                    Reconnect();
+                    if (isReconnect)
+                    {
+                        OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}连接服务器失败，尝试重连" + e.StackTrace);
+                        Reconnect();
+                    }
                 }
-            }
-            catch(SocketException e)
-            {
-                config.OnException(RPCException.ErrorCode.Runtime,$"{netName}-{clientKey}连接服务器失败，尝试重连" + e.StackTrace,this);
-                Reconnect();
-            }
+            });
+            thread.Start();
         }
 
         private void OnConnect(object sender, SocketAsyncEventArgs e)
         {
-            autoConnectEvent.Set();
+            autoConnectEvent?.Set();
         }
-
-        public void Disconnect()
+        internal void Disconnect()
         {
-            dataToken.DisConnect();
-            dataToken.SocketArgs.AcceptSocket.Disconnect(false);
+            if (isDispose == false)
+            {
+                OnConnectFail(this);
+                isReconnect = false;
+                dataToken?.DisConnect();
+                Dispose();
+                isDispose = true;
+            }
         }
 
         private void OnReceiveCompleted(object sender, SocketAsyncEventArgs e)
@@ -94,16 +175,23 @@ namespace EtherealC.NativeClient
         }
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
-            // Check if the remote host closed the connection.
-            if (e.BytesTransferred > 0)
+            try
             {
-                if (e.SocketError == SocketError.Success)
+                // Check if the remote host closed the connection.
+                if (e.BytesTransferred > 0)
                 {
-                    (e.UserToken as DataToken).ProcessData();
-                    if (!e.AcceptSocket.ReceiveAsync(e))
+                    if (e.SocketError == SocketError.Success)
                     {
-                        // Read the next block of data sent by client.
-                        this.ProcessReceive(e);
+                        (e.UserToken as DataToken).ProcessData();
+                        if (!e.AcceptSocket.ReceiveAsync(e))
+                        {
+                            // Read the next block of data sent by client.
+                            this.ProcessReceive(e);
+                        }
+                    }
+                    else
+                    {
+                        throw new SocketException((int)SocketError.Disconnecting);
                     }
                 }
                 else
@@ -111,27 +199,28 @@ namespace EtherealC.NativeClient
                     throw new SocketException((int)SocketError.Disconnecting);
                 }
             }
-            else
+            catch(Exception exception)
             {
-                throw new SocketException((int)SocketError.Disconnecting);
+                Disconnect();
+                OnException(exception);
             }
         }
-        public bool Reconnect()
+        internal bool Reconnect()
         {
-            config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}与服务器连接异常,开始尝试重连！",this);
+            OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}与服务器连接异常,开始尝试重连！");
             Socket clientSocket = null;
             if (dataToken != null)clientSocket = dataToken.SocketArgs.AcceptSocket;
             for (int i = 1; i <= 10; i++)
             {
                 if (clientSocket != null)
                 {
-                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}开始销毁历史Socket", this);
+                    OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}开始销毁历史Socket");
                     clientSocket.Close();
                     clientSocket.Dispose();
-                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}历史Socket销毁完成！", this);
+                    OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}历史Socket销毁完成！");
                 }
-                config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}开始进行第{i}次尝试", this);
-                clientSocket = new Socket(this.hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}开始进行第{i}次尝试");
+                clientSocket = new Socket(hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
                 acceptArgs.Completed += OnConnect;
                 acceptArgs.AcceptSocket = clientSocket;
@@ -141,9 +230,9 @@ namespace EtherealC.NativeClient
                     clientSocket.ConnectAsync(acceptArgs);
                     autoConnectEvent.WaitOne();
                     SocketError errorCode = acceptArgs.SocketError;
-                    if (errorCode == SocketError.Success)
+                    if (errorCode  == SocketError.Success)
                     {
-                        dataToken = new DataToken(netName,clientKey, config);
+                        dataToken = new DataToken(NetName,ClientKey, Config);
                         SocketAsyncEventArgs SocketArgs = dataToken.SocketArgs;
                         SocketArgs.Completed += OnReceiveCompleted;
                         SocketArgs.AcceptSocket = acceptArgs.AcceptSocket;
@@ -155,39 +244,42 @@ namespace EtherealC.NativeClient
                         {
                             ProcessReceive(SocketArgs);
                         }
-                        config.OnException(RPCException.ErrorCode.Runtime,$"{netName}-{clientKey}重连成功！", this);
+                        OnConnectSuccess(this);
+                        OnException(RPCException.ErrorCode.Runtime,$"{NetName}-{ClientKey}重连成功！");
                         break;
                     }
                     else
                     {
-                        config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败，5秒后重试！", this);
+                        OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}重连失败，5秒后重试！");
                         Thread.Sleep(5000);
                     }
                 }
                 catch (SocketException e)
                 {
-                    config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败，5秒后重试！" + e.StackTrace, this);
+                    OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}重连失败，5秒后重试！" + e.StackTrace);
                     Thread.Sleep(5000);
                 }
+
             }
             if (!clientSocket.Connected)
             {
-                config.OnException(RPCException.ErrorCode.Runtime, $"{netName}-{clientKey}重连失败！", this);
+                OnException(RPCException.ErrorCode.Runtime, $"{NetName}-{ClientKey}重连失败！");
+                Disconnect();
                 return false;
             }
             else return true;
         }
-        private void Send(ClientRequestModel request)
+        public bool Send(ClientRequestModel request)
         {
-            if (dataToken.SocketArgs.AcceptSocket != null && dataToken.SocketArgs.AcceptSocket.Connected)
+            if (dataToken?.SocketArgs?.AcceptSocket?.Connected == true)
             {
                 string log = "";
                 log += "---------------------------------------------------------\n";
-                log += $"{DateTime.Now}::{clientKey.Item1}:{clientKey.Item2}::[客-请求]\n{request}\n";
+                log += $"{DateTime.Now}::{ClientKey.Item1}:{ClientKey.Item2}::[客-请求]\n{request}\n";
                 log += "---------------------------------------------------------\n";
-                config.OnLog(RPCLog.LogCode.Runtime,log, this);
+                OnLog(RPCLog.LogCode.Runtime, log);
                 //构造data数据
-                byte[] bodyBytes = config.Encoding.GetBytes(config.ClientRequestModelSerialize(request));
+                byte[] bodyBytes = Config.Encoding.GetBytes(Config.ClientRequestModelSerialize(request));
                 //构造表头数据，固定4个字节的长度，表示内容的长度
                 byte[] headerBytes = BitConverter.GetBytes(bodyBytes.Length);
                 //构造消息类型 0 为Request
@@ -204,10 +296,49 @@ namespace EtherealC.NativeClient
                 SocketAsyncEventArgs sendEventArgs = new SocketAsyncEventArgs();
                 sendEventArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
                 dataToken.SocketArgs.AcceptSocket.SendAsync(sendEventArgs);
+                return true;
+            }
+            else return false;
+        }
+
+        public void OnException(RPCException.ErrorCode code, string message)
+        {
+            OnException(new RPCException(code, message));
+        }
+        public void OnException(Exception e)
+        {
+            if (exceptionEvent != null)
+            {
+                exceptionEvent(e, this);
+            }
+        }
+
+        public void OnLog(RPCLog.LogCode code, string message)
+        {
+            OnLog(new RPCLog(code, message));
+        }
+        public void OnLog(RPCLog log)
+        {
+            if (logEvent != null)
+            {
+                logEvent(log,this);
+            }
+        }
+        public void OnConnectSuccess(SocketClient client)
+        {
+            if (ConnectSuccessEvent != null)
+            {
+                ConnectSuccessEvent(client);
+            }
+        }
+        public void OnConnectFail(SocketClient client)
+        {
+            if (ConnectFailEvent != null)
+            {
+                ConnectFailEvent(client);
             }
         }
         #region IDisposable Members
-        bool isDipose = false;
 
         ~SocketClient()
         {
@@ -215,36 +346,43 @@ namespace EtherealC.NativeClient
         }
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if(isDispose == false)
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         private void Dispose(bool disposing)
         {
-            Socket clientSocket = dataToken.SocketArgs.AcceptSocket;
-            if (isDipose) return;
+            if (isDispose) return;
             if (disposing)
             {
-                hostEndPoint = null;
                 autoConnectEvent.Close();
                 autoConnectEvent = null;
+                hostEndPoint = null;
             }
-            //处理非托管资源
-            try
+            if (dataToken != null)
             {
-                clientSocket.Shutdown(SocketShutdown.Both);
-                dataToken = null;
+                Socket clientSocket = dataToken.SocketArgs.AcceptSocket;
+
+                //处理非托管资源
+                try
+                {
+                    clientSocket.Shutdown(SocketShutdown.Both);
+                    dataToken = null;
+                }
+                catch (Exception)
+                {
+                    // Throw if client has closed, so it is not necessary to catch.
+                }
+                finally
+                {
+                    clientSocket.Close();
+                    clientSocket = null;
+                }
             }
-            catch (Exception)
-            {
-                // Throw if client has closed, so it is not necessary to catch.
-            }
-            finally
-            {
-                clientSocket.Close();
-                clientSocket = null;
-            }
-            isDipose = true;
+            isDispose = true;
         }
 
         #endregion

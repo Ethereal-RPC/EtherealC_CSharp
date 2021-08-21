@@ -48,8 +48,7 @@ namespace EtherealC.RPCNet
             {
                 return UnRegister(net);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{name} Net未找到");
-
+            else return true;
         }
         public static bool UnRegister(Net net)
         {

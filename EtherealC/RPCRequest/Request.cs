@@ -1,4 +1,5 @@
 ﻿using EtherealC.Model;
+using EtherealC.NativeClient;
 using EtherealC.RPCNet;
 using Newtonsoft.Json;
 using System;
@@ -10,30 +11,88 @@ namespace EtherealC.RPCRequest
 {
     public class Request : DispatchProxy
     {
-        private string servicename;
+        #region --委托--
+        public delegate void OnExceptionDelegate(Exception exception, Request request);
+        public delegate void OnLogDelegate(RPCLog log, Request request);
+        public delegate void OnConnnectSuccessDelegate(Request request);
+        #endregion
+
+        #region --事件字段--
+        private OnLogDelegate logEvent;
+        private OnExceptionDelegate exceptionEvent;
+        #endregion
+
+        #region --事件属性--
+        public event OnConnnectSuccessDelegate ConnectSuccessEvent;
+        /// <summary>
+        /// 日志输出事件
+        /// </summary>
+        public event OnLogDelegate LogEvent
+        {
+            add
+            {
+                logEvent -= value;
+                logEvent += value;
+            }
+            remove
+            {
+                logEvent -= value;
+            }
+        }
+        /// <summary>
+        /// 抛出异常事件
+        /// </summary>
+        public event OnExceptionDelegate ExceptionEvent
+        {
+            add
+            {
+                exceptionEvent -= value;
+                exceptionEvent += value;
+            }
+            remove
+            {
+                exceptionEvent -= value;
+            }
+
+        }
+        #endregion
+
+        #region --字段--
+        private SocketClient client;
+        private string name;
         private string netName;
         private RequestConfig config;
         private ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
         private Random random = new Random();
+        #endregion
+
+        #region --属性--
+        public RequestConfig Config { get => config; set => config = value; }
+        public SocketClient Client { get => client; set => client = value; }
+        public string NetName { get => netName; set => netName = value; }
+        public string Name { get => name; set => name = value; }
+        #endregion
+
+        #region --方法--
 
         public bool GetTask(int id, out ClientRequestModel model)
         {
             return tasks.TryGetValue(id, out model);
         }
 
-        public static Request Register<T>(string netName,string servicename, RequestConfig config)
+        public static Request Register<T>(string netName, string servicename, RequestConfig config)
         {
             Request proxy = (Request)(Create<T, Request>() as object);
-            proxy.netName = netName;
-            proxy.servicename = servicename; 
-            proxy.config = config;
+            proxy.NetName = netName;
+            proxy.Name = servicename;
+            proxy.Config = config;
             return proxy;
         }
 
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             Attribute.RPCRequest rpcAttribute = targetMethod.GetCustomAttribute<Attribute.RPCRequest>();
-            if(rpcAttribute != null)
+            if (rpcAttribute != null)
             {
                 //这里要连接字符串，发现StringBuilder效率高一些.
                 StringBuilder methodid = new StringBuilder(targetMethod.Name);
@@ -46,12 +105,12 @@ namespace EtherealC.RPCRequest
                     ParameterInfo[] parameters = targetMethod.GetParameters();
                     for (int i = 0, j = 1; i < param_count; i++, j++)
                     {
-                        if(config.Types.TypesByType.TryGetValue(parameters[i].ParameterType,out RPCType type))
+                        if (Config.Types.TypesByType.TryGetValue(parameters[i].ParameterType, out RPCType type))
                         {
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
                         }
-                        else config.OnException(RPCException.ErrorCode.Runtime,$"C#中的{args[i].GetType()}类型参数尚未注册",this);
+                        else OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                     }
                 }
                 else
@@ -68,20 +127,16 @@ namespace EtherealC.RPCRequest
                             }
                             catch (Exception)
                             {
-                                config.OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册", this);
+                                OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                             }
                         }
                     }
-                    else config.OnException(RPCException.ErrorCode.Runtime,$"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个", this);
+                    else OnException(RPCException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
-                ClientRequestModel request = new ClientRequestModel("2.0", servicename, methodid.ToString(), obj);
-                if (!NetCore.Get(netName, out Net net))
-                {
-                    config.OnException(RPCException.ErrorCode.Runtime, "未找到NetConfig", this);
-                }
+                ClientRequestModel request = new ClientRequestModel("2.0", Name, methodid.ToString(), obj);
                 if (targetMethod.ReturnType == typeof(void))
                 {
-                    net.ClientRequestSend(request);
+                    client.Send(request);
                     return null;
                 }
                 else
@@ -93,30 +148,64 @@ namespace EtherealC.RPCRequest
                     }
                     tasks.TryAdd(id, request);
                     request.Id = id.ToString();
-                    int timeout = config.Timeout;
+                    int timeout = Config.Timeout;
                     if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
-                    net.ClientRequestSend(request);
+                    if (!client.Send(request)) return null;
                     ClientResponseModel result = request.Get(timeout);
                     if (result != null)
                     {
                         if (result.Error != null)
                         {
-                            if (result.Error.Code == 0)
-                            {
-                                config.OnException(RPCException.ErrorCode.Intercepted, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}", this);
-                            }
+                            OnException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                         }
-                        else if (config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
+                        else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
                         {
                             return type.Deserialize((string)result.Result);
                         }
-                        else config.OnException(RPCException.ErrorCode.Runtime,$"C#中的{result.ResultType}类型转换器尚未注册", this);
+                        else OnException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
                     }
                     return null;
                 }
             }
             return null;
         }
+        internal void OnClientException(Exception exception, SocketClient client)
+        {
+            OnException(exception);
+        }
+
+        internal void OnClientLog(RPCLog log, SocketClient client)
+        {
+            OnLog(log);
+        }
+        public void OnException(RPCException.ErrorCode code, string message)
+        {
+            OnException(new RPCException(code, message));
+        }
+        public void OnException(Exception e)
+        {
+            if (exceptionEvent != null)
+            {
+                exceptionEvent.Invoke(e, this);
+            }
+        }
+
+        public void OnLog(RPCLog.LogCode code, string message)
+        {
+            OnLog(new RPCLog(code, message));
+        }
+        public void OnLog(RPCLog log)
+        {
+            if (logEvent != null)
+            {
+                logEvent(log, this);
+            }
+        }
+        public void OnConnectSuccess()
+        {
+            ConnectSuccessEvent?.Invoke(this);
+        }
+        #endregion
     }
 }
         

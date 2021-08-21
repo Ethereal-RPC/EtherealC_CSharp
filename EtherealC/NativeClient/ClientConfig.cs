@@ -12,17 +12,6 @@ namespace EtherealC.NativeClient
         public delegate string ClientRequestModelSerializeDelegate(ClientRequestModel requestModel);
         public delegate ServerRequestModel ServerRequestModelDeserializeDelegate(string json);
         public delegate ClientResponseModel ClientResponseModelDeserializeDelegate (string json);
-        public delegate void OnExceptionDelegate(Exception exception,SocketClient client);
-
-        public delegate void OnLogDelegate(RPCLog log, SocketClient client);
-        #endregion
-
-        #region --事件--
-        public event OnLogDelegate LogEvent;
-        /// <summary>
-        /// 抛出异常事件
-        /// </summary>
-        public event OnExceptionDelegate ExceptionEvent;
         #endregion
 
         #region --字段--
@@ -33,6 +22,7 @@ namespace EtherealC.NativeClient
         private ClientRequestModelSerializeDelegate clientRequestModelSerialize;
         private ServerRequestModelDeserializeDelegate serverRequestModelDeserialize;
         private ClientResponseModelDeserializeDelegate clientResponseModelDeserialize;
+
         #endregion
 
         #region --属性--
@@ -53,30 +43,7 @@ namespace EtherealC.NativeClient
             clientResponseModelDeserialize = (obj) => JsonConvert.DeserializeObject<ClientResponseModel>(obj);
         }
 
-        internal void OnException(RPCException.ErrorCode code, string message, SocketClient client)
-        {
-            OnException(new RPCException(code, message),client);
-        }
-        internal void OnException(Exception e, SocketClient client)
-        {
-            if (ExceptionEvent != null)
-            {
-                ExceptionEvent(e,client);
-            }
-            throw e;
-        }
 
-        internal void OnLog(RPCLog.LogCode code, string message, SocketClient client)
-        {
-            OnLog(new RPCLog(code, message), client);
-        }
-        internal void OnLog(RPCLog log, SocketClient client)
-        {
-            if (LogEvent != null)
-            {
-                LogEvent(log,client);
-            }
-        }
         #endregion
 
 

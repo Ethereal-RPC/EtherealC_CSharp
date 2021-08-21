@@ -15,7 +15,11 @@ namespace EtherealC.RPCService
             {
                 return Get(net, serviceName, out service);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}-{serviceName}Net未找到");
+            else
+            {
+                service = null;
+                return false;
+            }
         }
         public static bool Get(Net net, string serviceName, out Service service)
         {
@@ -53,6 +57,8 @@ namespace EtherealC.RPCService
                     service = new Service();
                     service.Register(instance,net.Name,servicename,config);
                     net.Services[servicename] = service;
+                    service.LogEvent += net.OnServiceLog;
+                    service.ExceptionEvent += net.OnServiceException;
                     return service;
                 }
                 catch (SocketException e)
@@ -67,13 +73,16 @@ namespace EtherealC.RPCService
         {
             if (!NetCore.Get(netName, out Net net))
             {
-                throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
+                return true;
             }
             return UnRegister(net, serviceName);
         }
         public static bool UnRegister(Net net, string serviceName)
         {
-            return net.Services.TryRemove(serviceName, out Service value);
+            net.Services.TryRemove(serviceName, out Service service);
+            service.LogEvent -= net.OnServiceLog;
+            service.ExceptionEvent -= net.OnServiceException;
+            return true;
         }
     }
 }

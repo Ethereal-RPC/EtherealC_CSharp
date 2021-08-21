@@ -1,4 +1,5 @@
 ﻿using EtherealC.Model;
+using EtherealC.NativeClient;
 using EtherealC.RPCNet;
 using System;
 using System.Collections.Generic;
@@ -9,17 +10,21 @@ namespace EtherealC.RPCRequest
     {
         #region --方法--
 
-        public static bool Get(string netName, string servicename, out Request reqeust)
+        public static bool Get(string netName, string requestName, out Request reqeust)
         {
             if (NetCore.Get(netName, out Net net))
             {
-                return Get(net, servicename, out reqeust);
+                return Get(net, requestName, out reqeust);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
+            else
+            {
+                reqeust = null;
+                return false;
+            }
         }
-        public static bool Get(Net net, string servicename, out Request reqeust)
+        public static bool Get(Net net, string requestName, out Request reqeust)
         {
-            return net.Requests.TryGetValue(servicename, out reqeust);
+            return net.Requests.TryGetValue(requestName, out reqeust);
         }
 
         /// <summary>
@@ -47,6 +52,8 @@ namespace EtherealC.RPCRequest
             {
                 request = Request.Register<T>(net.Name, servicename,config);
                 net.Requests[servicename] = request;
+                request.LogEvent += net.OnRequestLog;
+                request.ExceptionEvent += net.OnRequestException;
             }
             return (T)(request as object);
         }
@@ -57,11 +64,18 @@ namespace EtherealC.RPCRequest
             {
                 return UnRegister(net, serviceName);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
+            else
+            {
+                return true;
+            }
         }
         public static bool UnRegister(Net net, string serviceName)
         {
-            return net.Requests.Remove(serviceName, out Request value);
+            net.Requests.Remove(serviceName, out Request request);
+            request.LogEvent -= net.OnRequestLog;
+            request.ExceptionEvent -= net.OnRequestException;
+            ClientCore.UnRegister(net, serviceName);
+            return true;
         }
         #endregion
     }

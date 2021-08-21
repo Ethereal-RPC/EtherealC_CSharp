@@ -4,69 +4,109 @@ using System.Net.Sockets;
 using System.Text;
 using EtherealC.Model;
 using EtherealC.RPCNet;
+using EtherealC.RPCRequest;
+using EtherealC.RPCService;
 
 namespace EtherealC.NativeClient
 {
     public class ClientCore
     {
-        public static bool Get(string netName, out SocketClient client)
+        public static bool Get(string netName,string serviceName, out SocketClient client)
         {
             if (NetCore.Get(netName, out Net net))
             {
-                return Get(net, out client);
+                return Get(net, serviceName, out client);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
+            else
+            {
+                client = null;
+                return false;
+            }
         }
-        public static bool Get(Net net, out SocketClient client)
+        public static bool Get(Net net,string serviceName, out SocketClient client)
         {
-            client = net.Client;
-            if (net.Client != null) return true;
-            else return false;
+            if(RequestCore.Get(net, serviceName, out Request request))
+            {
+                client = request.Client;
+                return true;
+            }
+            else
+            {
+                client = null;
+                return false;
+            }
         }
 
-        public static SocketClient Register(Net net, string ip, string port)
+        public static SocketClient Register(Net net,string serviceName, string ip, string port)
         {
-            return Register(net, ip, port,new ClientConfig(), null);
+            return Register(net,serviceName, ip, port,new ClientConfig());
         }
-        public static SocketClient Register(Net net, string ip, string port, ClientConfig config)
-        {
-            return Register(net, ip, port, config, null);
-        }
-        public static SocketClient Register(Net net, string ip,  string port, SocketClient client)
-        {
-            return Register(net,ip, port, new ClientConfig(), client);
-        }
+
         /// <summary>
         /// 获取客户端
         /// </summary>
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static SocketClient Register(Net net, string ip, string port,ClientConfig config, SocketClient socketserver)
+        public static SocketClient Register(Net net, string serviceName, string ip, string port,ClientConfig config)
         {
-            Tuple<string, string> key = new Tuple<string, string>(ip, port);
-            if (net.Client == null)
+            if(RequestCore.Get(net, serviceName, out Request request))
             {
-                if (socketserver == null) socketserver = new SocketClient(net,key, config);
-                net.Client = socketserver;
+                return Register(request, ip, port, config);
             }
-            return socketserver;
+            else throw new RPCException(RPCException.ErrorCode.Core, $"{net.Name}-{serviceName} 未找到");
+        }
+        public static SocketClient Register(object request, string ip, string port)
+        {
+            return Register(request, ip, port, new ClientConfig());
+        }
+        public static SocketClient Register(object request, string ip, string port, ClientConfig config)
+        {
+            if (config == null) config = new ClientConfig();
+            Tuple<string, string> key = new Tuple<string, string>(ip, port);
+            if (request is not Request) throw new RPCException(RPCException.ErrorCode.Core, "ClientCore执行Register函数时request参数非Request类型");
+            //已经有连接了，禁止重复注册
+            Request _request = request as Request;
+            if (_request.Client != null) return _request.Client;
+            _request.Client = new SocketClient(_request.NetName, _request.Name, key, config);
+            //当连接建立时，请求中的连接成功事件将会发生
+            _request.Client.ConnectSuccessEvent += Client_ConnectSuccessEvent;
+            _request.Client.LogEvent += _request.OnClientLog;
+            _request.Client.ExceptionEvent += _request.OnClientException;
+            return _request.Client;
         }
 
-        public static bool UnRegister(string netName)
+        private static void Client_ConnectSuccessEvent(SocketClient client)
         {
-            if (NetCore.Get(netName, out Net net))
+            if(RequestCore.Get(client.NetName, client.ServiceName, out Request request))
             {
-                return UnRegister(net);
+                request.OnConnectSuccess();
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{netName}Net未找到");
         }
-        public static bool UnRegister(Net net)
+
+        public static bool UnRegister(string netName,string serviceName)
         {
-            net.Client.Dispose();
-            net.Client = null;
-            net.ClientRequestSend = null;
-            return true;
+            if (NetCore.Get(netName, out Net net) && RequestCore.Get(net,serviceName,out Request request))
+            {
+                return UnRegister(net,serviceName);
+            }
+            else return true;
+        }
+        public static bool UnRegister(Net net, string serviceName)
+        {
+            if (RequestCore.Get(net, serviceName, out Request request))
+            {
+                request.Client.LogEvent -= request.OnClientLog;
+                request.Client.ExceptionEvent -= request.OnClientException;
+                //已经断开连接了就不用在调用了，避免和Event造成循环调用
+                if (request?.Client?.DataToken?.SocketArgs?.AcceptSocket?.Connected == true)
+                {
+                    request.Client.Disconnect();
+                }
+                request.Client = null;
+                return true;
+            }
+            else return true;
         }
     }
 }
