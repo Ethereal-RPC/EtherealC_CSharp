@@ -147,22 +147,30 @@ namespace EtherealC.RPCRequest
                         id = random.Next();
                     }
                     tasks.TryAdd(id, request);
-                    request.Id = id.ToString();
-                    int timeout = Config.Timeout;
-                    if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
-                    if (!client.Send(request)) return null;
-                    ClientResponseModel result = request.Get(timeout);
-                    if (result != null)
+                    try{
+                        request.Id = id.ToString();
+                        int timeout = Config.Timeout;
+                        if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
+                        if (client.Send(request))
+                        {
+                            ClientResponseModel result = request.Get(timeout);
+                            if (result != null)
+                            {
+                                if (result.Error != null)
+                                {
+                                    OnException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                }
+                                else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
+                                {
+                                    return type.Deserialize((string)result.Result);
+                                }
+                                else OnException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
+                            }
+                        }
+                    }
+                    finally
                     {
-                        if (result.Error != null)
-                        {
-                            OnException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
-                        }
-                        else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
-                        {
-                            return type.Deserialize((string)result.Result);
-                        }
-                        else OnException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
+                        tasks.TryRemove(id,out ClientRequestModel value);
                     }
                     return null;
                 }

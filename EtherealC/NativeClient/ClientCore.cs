@@ -62,7 +62,6 @@ namespace EtherealC.NativeClient
         }
         public static SocketClient Register(object request, string ip, string port, ClientConfig config)
         {
-            if (config == null) config = new ClientConfig();
             Tuple<string, string> key = new Tuple<string, string>(ip, port);
             if (request is not Request) throw new RPCException(RPCException.ErrorCode.Core, "ClientCore执行Register函数时request参数非Request类型");
             //已经有连接了，禁止重复注册

@@ -1,5 +1,8 @@
 ﻿using EtherealC.Model;
 using EtherealC.NativeClient;
+using EtherealC.RPCNet.Client.Model;
+using EtherealC.RPCNet.Client.Request;
+using EtherealC.RPCNet.Client.Service;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
 using System;
@@ -7,9 +10,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using EtherealC.RPCNet.Distribute.Model;
-using EtherealC.RPCNet.Distribute.Request;
-using EtherealC.RPCNet.Distribute.Service;
 
 namespace EtherealC.RPCNet
 {
@@ -298,7 +298,7 @@ namespace EtherealC.RPCNet
                         }
                         else service.OnException(RPCException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
                     }
-                    method.Invoke(service.Instance, request.Params);
+                    method.Invoke(service, request.Params);
                 }
                 else service.OnException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
             }

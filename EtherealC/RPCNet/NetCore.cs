@@ -52,7 +52,14 @@ namespace EtherealC.RPCNet
         }
         public static bool UnRegister(Net net)
         {
-            //**  这里应该执行一系列Net销毁操作
+            //清理请求上的连接
+            foreach(Request request in net.Requests.Values)
+            {
+                request.Client.Disconnect();
+                request.Client = null;
+            }
+            net.Requests.Clear();
+            net.Services.Clear();
             return nets.Remove(net.Name);
         }
     }
