@@ -8,6 +8,7 @@ using EtherealC_Test.ServiceDemo;
 using EtherealS_Test.RequestDemo;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace EtherealC_Test
 {
@@ -26,10 +27,12 @@ namespace EtherealC_Test
             //建立网关
             Net net = NetCore.Register(netName);
             net.ExceptionEvent += Config_ExceptionEvent;
+            net.LogEvent += Net_LogEvent;
             //向网关注册服务
             Service service = ServiceCore.Register<ClientService>(net, "Client", types);
             //向网关注册请求
             ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server", types);
+            (request as Request).ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
             SocketClient client = ClientCore.Register(request, ip, port);
             client.ConnectSuccessEvent += Config_ConnectSuccessEvent;
@@ -37,6 +40,12 @@ namespace EtherealC_Test
             //启动连接
             net.Publish();
         }
+
+        private static void Net_LogEvent(RPCLog log, Net net)
+        {
+            Console.WriteLine(log.Message);
+        }
+
         /// <summary>
         /// 分布式模式Demo
         /// </summary>
@@ -66,23 +75,18 @@ namespace EtherealC_Test
             net.Config.NetNodeMode = true;
             //添加分布式地址
             List<Tuple<string, string, ClientConfig>> ips = new();
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28015", null));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28016", null));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28017", null));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28018", null));
+            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28015", new ClientConfig()));
+            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28016", new ClientConfig()));
+            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28017", new ClientConfig()));
+            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28018", new ClientConfig()));
             net.Config.NetNodeIps = ips;
-            net.Publish();
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
+            net.Publish();
         }
 
         private static void Request_ConnectSuccessEvent(Request request)
         {
-            if (((request) as ServerRequest).Register("aa", 2))
-            {
-                Console.WriteLine("调用用户服务成功");
-                Console.WriteLine($"调用的目标服务器地址为:{request.Client.ClientKey}");
-            }
-            else Console.WriteLine("返回是啊比");
+            Console.WriteLine(((request) as ServerRequest).Add(2, 3));
         }
 
         private static void Client_ConnectFailEvent(SocketClient client)
@@ -97,8 +101,8 @@ namespace EtherealC_Test
 
         public static void Main()
         {
-            //Single("127.0.0.1", "28015","1");
-            NetNode("demo", "127.0.0.1");
+            Single("127.0.0.1", "28016","1");
+            //NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }
 
