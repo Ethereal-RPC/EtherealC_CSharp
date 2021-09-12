@@ -1,6 +1,6 @@
-﻿using EtherealC.RPCNet.Client.Model;
+﻿using EtherealC.RPCNet.NetNodeClient.Model;
 
-namespace EtherealC.RPCNet.Client.Request
+namespace EtherealC.RPCNet.NetNodeClient.Request
 {
     public interface ServerNetNodeRequest
     {

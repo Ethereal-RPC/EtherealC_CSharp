@@ -34,9 +34,9 @@ namespace EtherealC_Test
             ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server", types);
             (request as Request).ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            SocketClient client = ClientCore.Register(request, ip, port);
-            client.ConnectSuccessEvent += Config_ConnectSuccessEvent;
-            client.ConnectFailEvent += Client_ConnectFailEvent;
+            Client client = ClientCore.Register(request, "ws://127.0.0.1:28015/NetDemo/");
+            client.ConnectEvent += Config_ConnectSuccessEvent;
+            client.DisConnectEvent += Client_ConnectFailEvent;
             //启动连接
             net.Publish();
         }
@@ -74,14 +74,15 @@ namespace EtherealC_Test
             //开启分布式模式
             net.Config.NetNodeMode = true;
             //添加分布式地址
-            List<Tuple<string, string, ClientConfig>> ips = new();
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28015", new ClientConfig()));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28016", new ClientConfig()));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28017", new ClientConfig()));
-            ips.Add(new Tuple<string, string, ClientConfig>(ip, "28018", new ClientConfig()));
+            List<Tuple<string,ClientConfig>> ips = new();
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28015}/NetDemo/", new ClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28016}/NetDemo/", new ClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28017}/NetDemo/", new ClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28018}/NetDemo/", new ClientConfig()));
             net.Config.NetNodeIps = ips;
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             net.Publish();
+            Console.Read();
         }
 
         private static void Request_ConnectSuccessEvent(Request request)
@@ -89,7 +90,7 @@ namespace EtherealC_Test
             Console.WriteLine(((request) as ServerRequest).Add(2, 3));
         }
 
-        private static void Client_ConnectFailEvent(SocketClient client)
+        private static void Client_ConnectFailEvent(Client client)
         {
             Console.WriteLine("已断开连接");
         }
@@ -101,12 +102,12 @@ namespace EtherealC_Test
 
         public static void Main()
         {
-            Single("127.0.0.1", "28016","1");
-            //NetNode("demo", "127.0.0.1");
+            //Single("127.0.0.1", "28016","1");
+            NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }
 
-        private static void Config_ConnectSuccessEvent(SocketClient client)
+        private static void Config_ConnectSuccessEvent(Client client)
         {
             Console.WriteLine("启动成功");
         }

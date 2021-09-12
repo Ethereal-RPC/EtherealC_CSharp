@@ -11,7 +11,7 @@ namespace EtherealC.NativeClient
 {
     public class ClientCore
     {
-        public static bool Get(string netName,string serviceName, out SocketClient client)
+        public static bool Get(string netName,string serviceName, out Client client)
         {
             if (NetCore.Get(netName, out Net net))
             {
@@ -23,7 +23,7 @@ namespace EtherealC.NativeClient
                 return false;
             }
         }
-        public static bool Get(Net net,string serviceName, out SocketClient client)
+        public static bool Get(Net net,string serviceName, out Client client)
         {
             if(RequestCore.Get(net, serviceName, out Request request))
             {
@@ -37,9 +37,9 @@ namespace EtherealC.NativeClient
             }
         }
 
-        public static SocketClient Register(Net net,string serviceName, string ip, string port)
+        public static Client Register(Net net,string serviceName, string prefixes)
         {
-            return Register(net,serviceName, ip, port,new ClientConfig());
+            return Register(net,serviceName, prefixes,new ClientConfig());
         }
 
         /// <summary>
@@ -48,34 +48,33 @@ namespace EtherealC.NativeClient
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static SocketClient Register(Net net, string serviceName, string ip, string port,ClientConfig config)
+        public static Client Register(Net net, string serviceName, string prefixes,ClientConfig config)
         {
             if(RequestCore.Get(net, serviceName, out Request request))
             {
-                return Register(request, ip, port, config);
+                return Register(request,prefixes, config);
             }
             else throw new RPCException(RPCException.ErrorCode.Core, $"{net.Name}-{serviceName} 未找到");
         }
-        public static SocketClient Register(object request, string ip, string port)
+        public static Client Register(object request, string prefixes)
         {
-            return Register(request, ip, port, new ClientConfig());
+            return Register(request, prefixes,new ClientConfig());
         }
-        public static SocketClient Register(object request, string ip, string port, ClientConfig config)
+        public static Client Register(object request, string prefixes, ClientConfig config)
         {
-            Tuple<string, string> key = new Tuple<string, string>(ip, port);
             if (request is not Request) throw new RPCException(RPCException.ErrorCode.Core, "ClientCore执行Register函数时request参数非Request类型");
             //已经有连接了，禁止重复注册
             Request _request = request as Request;
             if (_request.Client != null) return _request.Client;
-            _request.Client = new SocketClient(_request.NetName, _request.Name, key, config);
+            _request.Client = new Client(_request.NetName, _request.Name, prefixes, config);
             //当连接建立时，请求中的连接成功事件将会发生
-            _request.Client.ConnectSuccessEvent += Client_ConnectSuccessEvent;
+            _request.Client.ConnectEvent += Client_ConnectSuccessEvent;
             _request.Client.LogEvent += _request.OnClientLog;
             _request.Client.ExceptionEvent += _request.OnClientException;
             return _request.Client;
         }
 
-        private static void Client_ConnectSuccessEvent(SocketClient client)
+        private static void Client_ConnectSuccessEvent(Client client)
         {
             if(RequestCore.Get(client.NetName, client.ServiceName, out Request request))
             {
@@ -95,14 +94,13 @@ namespace EtherealC.NativeClient
         {
             if (RequestCore.Get(net, serviceName, out Request request))
             {
-                request.Client.LogEvent -= request.OnClientLog;
-                request.Client.ExceptionEvent -= request.OnClientException;
-                //已经断开连接了就不用在调用了，避免和Event造成循环调用
-                if (request?.Client?.DataToken?.SocketArgs?.AcceptSocket?.Connected == true)
+                if(request.Client != null)
                 {
-                    request.Client.Disconnect();
+                    request.Client.LogEvent -= request.OnClientLog;
+                    request.Client.ExceptionEvent -= request.OnClientException;
+                    request.Client.Close(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
+                    request.Client = null;
                 }
-                request.Client = null;
                 return true;
             }
             else return true;

@@ -1,4 +1,4 @@
-﻿namespace EtherealC.RPCNet.Client.Model
+﻿namespace EtherealC.RPCNet.NetNodeClient.Model
 {
     public class NetNode
     {
@@ -14,11 +14,7 @@
         /// <summary>
         /// ip地址
         /// </summary>
-        private string ip;
-        /// <summary>
-        /// port地址
-        /// </summary>
-        private string port;
+        private string[] prefixes;
         /// <summary>
         /// 硬件信息
         /// </summary>
@@ -29,9 +25,8 @@
 
         public string Name { get => name; set => name = value; }
         public long Connects { get => connects; set => connects = value; }
-        public string Ip { get => ip; set => ip = value; }
         public HardwareInformation HardwareInformation { get => hardwareInformation; set => hardwareInformation = value; }
-        public string Port { get => port; set => port = value; }
+        public string[] Prefixes { get => prefixes; set => prefixes = value; }
 
 
         #endregion

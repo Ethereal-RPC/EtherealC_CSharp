@@ -55,7 +55,7 @@ namespace EtherealC.RPCNet
             //清理请求上的连接
             foreach(Request request in net.Requests.Values)
             {
-                request.Client.Disconnect();
+                request.Client.Close( System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,"UnRegister");
                 request.Client = null;
             }
             net.Requests.Clear();

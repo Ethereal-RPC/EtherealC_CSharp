@@ -17,7 +17,7 @@ namespace EtherealC.RPCNet
         /// <summary>
         /// 分布式IP组
         /// </summary>
-        private List<Tuple<string, string, ClientConfig>> netNodeIps;
+        private List<Tuple<string, ClientConfig>> netNodeIps;
         /// <summary>
         /// 服务注册心跳间隔
         /// </summary>
@@ -27,7 +27,7 @@ namespace EtherealC.RPCNet
 
         #region --属性--
         public bool NetNodeMode { get => netNodeMode; set => netNodeMode = value; }
-        public List<Tuple<string, string, ClientConfig>> NetNodeIps { get => netNodeIps; set => netNodeIps = value; }
+        public List<Tuple<string, ClientConfig>> NetNodeIps { get => netNodeIps; set => netNodeIps = value; }
         public int NetNodeHeartInterval { get => netNodeHeartInterval; set => netNodeHeartInterval = value; }
 
         #endregion

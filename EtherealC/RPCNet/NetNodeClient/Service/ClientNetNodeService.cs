@@ -1,4 +1,4 @@
-﻿namespace EtherealC.RPCNet.Client.Service
+﻿namespace EtherealC.RPCNet.NetNodeClient.Service
 {
     public class ClientNetNodeService
     {

@@ -1,8 +1,8 @@
 ﻿using EtherealC.Model;
 using EtherealC.NativeClient;
-using EtherealC.RPCNet.Client.Model;
-using EtherealC.RPCNet.Client.Request;
-using EtherealC.RPCNet.Client.Service;
+using EtherealC.RPCNet.NetNodeClient.Model;
+using EtherealC.RPCNet.NetNodeClient.Request;
+using EtherealC.RPCNet.NetNodeClient.Service;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
 using System;
@@ -129,9 +129,16 @@ namespace EtherealC.RPCNet
             }
             else
             {
-                foreach (Request request in requests.Values)
+                try
                 {
-                    request.Client.Start();
+                    foreach (Request request in requests.Values)
+                    {
+                        request.Client.Start();
+                    }
+                }
+                catch(Exception e)
+                {
+                    OnException(RPCException.ErrorCode.Runtime, e.Message);
                 }
             }
             return true;
@@ -162,27 +169,26 @@ namespace EtherealC.RPCNet
                 }
                 if (flag)
                 {
-                    SocketClient client = null;
+                    Client client = null;
                     if (!NetCore.Get($"NetNode-{name}", out Net net)) OnException(RPCException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
                     //搜寻正常启动的注册中心
-                    foreach (Tuple<string, string,ClientConfig> item in config.NetNodeIps)
+                    foreach (Tuple<string,ClientConfig> item in config.NetNodeIps)
                     {
-                        string ip = item.Item1;
-                        string port = item.Item2;
-                        ClientConfig config = item.Item3;
+                        string prefixe = item.Item1;
+                        ClientConfig config = item.Item2;
                         //向网关注册连接
-                        client = ClientCore.Register(net, "ServerNetNodeService", ip, port,config);
+                        client = ClientCore.Register(net, "ServerNetNodeService",prefixe,config);
                         //关闭分布式模式
                         net.config.NetNodeMode = false;
-                        client.ConnectSuccessEvent += SignConnectSuccessEvent;
-                        client.ConnectFailEvent += SignConnectFailEvent;
+                        client.ConnectEvent += SignConnectSuccessEvent;
+                        client.DisConnectEvent += SignConnectFailEvent;
                         //启动连接
                         net.Publish();
                         connectSign.WaitOne();
-                        client.ConnectSuccessEvent -= SignConnectSuccessEvent;
-                        client.ConnectFailEvent -= SignConnectFailEvent;
+                        client.ConnectEvent -= SignConnectSuccessEvent;
+                        client.DisConnectEvent -= SignConnectFailEvent;
                         //连接成功
-                        if (client?.DataToken?.SocketArgs?.AcceptSocket?.Connected == true)
+                        if (client?.Accept?.State == System.Net.WebSockets.WebSocketState.Open)
                         {
                             break;
                         }
@@ -192,7 +198,7 @@ namespace EtherealC.RPCNet
                         }
                     }
 
-                    if (client?.DataToken?.SocketArgs?.AcceptSocket?.Connected == true)
+                    if (client?.Accept?.State == System.Net.WebSockets.WebSocketState.Open)
                     {
                         if(RequestCore.Get(net, "ServerNetNodeService", out Request netNodeRequest))
                         {
@@ -205,8 +211,8 @@ namespace EtherealC.RPCNet
                                     if (node != null)
                                     {
                                         //注册连接并启动连接
-                                        SocketClient requestClient = ClientCore.Register(request, node.Ip, node.Port);
-                                        requestClient.ConnectFailEvent += ClientConnectFailEvent;
+                                        Client requestClient = ClientCore.Register(request, node.Prefixes[0]);
+                                        requestClient.DisConnectEvent += ClientConnectFailEvent;
                                         requestClient.Start();
                                     }
                                     else OnException(RPCException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
@@ -218,18 +224,18 @@ namespace EtherealC.RPCNet
                 }
             }
         }
-        private  void ClientConnectFailEvent(SocketClient client)
+        private  void ClientConnectFailEvent(Client client)
         {
-            client.ConnectFailEvent -= ClientConnectFailEvent;
+            client.DisConnectEvent -= ClientConnectFailEvent;
             ClientCore.UnRegister(client.NetName, client.ServiceName);
             NetNodeSearch();
         }
-        private void SignConnectFailEvent(SocketClient client)
+        private void SignConnectFailEvent(Client client)
         {
             connectSign.Set();
         }
 
-        private void SignConnectSuccessEvent(SocketClient client)
+        private void SignConnectSuccessEvent(Client client)
         {
             connectSign.Set();
         }
@@ -319,7 +325,14 @@ namespace EtherealC.RPCNet
                 }
                 else OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
             }
-            else OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
+            else
+            {
+                if(response.Error != null)
+                {
+                    OnException(RPCException.ErrorCode.Runtime, $"Server:\n{response.Error}");
+                }
+                else OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
+            }
         }
         #endregion
     }

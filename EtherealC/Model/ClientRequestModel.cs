@@ -7,23 +7,22 @@ namespace EtherealC.Model
     {
         [JsonIgnore]
         private ClientResponseModel result;
-        private string jsonRpc;
+        private string type = "ER-1.0-ClientRequest";
         private string methodId;
         private object[] @params;
         private string id;
         private string service;
         private AutoResetEvent sign = new AutoResetEvent(false);
         public ClientResponseModel Result { get => result; set => result = value; } 
-        public string JsonRpc { get => jsonRpc; set => jsonRpc = value; }
+        public string Type { get => type; set => type = value; }
         public string MethodId { get => methodId; set => methodId = value; }
         public object[] Params { get => @params; set => @params = value; }
         public string Id { get => id; set => id = value; }
         public string Service { get => service; set => service = value; }
         public AutoResetEvent Sign { get => sign; set => sign = value; }
 
-        public ClientRequestModel(string jsonRpc,string service,string methodId, object[] @params)
+        public ClientRequestModel(string service,string methodId, object[] @params)
         {
-            JsonRpc = jsonRpc;
             MethodId = methodId;
             Params = @params;
             Service = service;
@@ -46,7 +45,7 @@ namespace EtherealC.Model
         }
         public override string ToString()
         {
-            return "Jsonrpc:" + JsonRpc + "\n"
+            return "Type:" + Type + "\n"
                 + "Service:" + Service + "\n"
                 + "Methodid:" + MethodId + "\n"
                 + "Params:" + JsonConvert.SerializeObject(Params);

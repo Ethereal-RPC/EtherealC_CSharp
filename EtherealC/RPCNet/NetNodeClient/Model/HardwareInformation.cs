@@ -1,4 +1,4 @@
-﻿namespace EtherealC.RPCNet.Client.Model
+﻿namespace EtherealC.RPCNet.NetNodeClient.Model
 {
     public class HardwareInformation
     {

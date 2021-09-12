@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace EtherealC.RPCRequest
 {
@@ -58,7 +59,7 @@ namespace EtherealC.RPCRequest
         #endregion
 
         #region --字段--
-        private SocketClient client;
+        private Client client;
         private string name;
         private string netName;
         private RequestConfig config;
@@ -68,7 +69,7 @@ namespace EtherealC.RPCRequest
 
         #region --属性--
         public RequestConfig Config { get => config; set => config = value; }
-        public SocketClient Client { get => client; set => client = value; }
+        public Client Client { get => client; set => client = value; }
         public string NetName { get => netName; set => netName = value; }
         public string Name { get => name; set => name = value; }
         #endregion
@@ -133,10 +134,10 @@ namespace EtherealC.RPCRequest
                     }
                     else OnException(RPCException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
-                ClientRequestModel request = new ClientRequestModel("2.0", Name, methodid.ToString(), obj);
+                ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), obj);
                 if (targetMethod.ReturnType == typeof(void))
                 {
-                    client.Send(request);
+                    client.SendAsync(request);
                     return null;
                 }
                 else
@@ -151,7 +152,9 @@ namespace EtherealC.RPCRequest
                         request.Id = id.ToString();
                         int timeout = Config.Timeout;
                         if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
-                        if (client.Send(request))
+                        Task<bool> task_result = client.SendAsync(request);
+                        task_result.Wait();
+                        if (task_result.Result)
                         {
                             ClientResponseModel result = request.Get(timeout);
                             if (result != null)
@@ -177,12 +180,12 @@ namespace EtherealC.RPCRequest
             }
             return null;
         }
-        internal void OnClientException(Exception exception, SocketClient client)
+        internal void OnClientException(Exception exception, Client client)
         {
             OnException(exception);
         }
 
-        internal void OnClientLog(RPCLog log, SocketClient client)
+        internal void OnClientLog(RPCLog log, Client client)
         {
             OnLog(log);
         }
