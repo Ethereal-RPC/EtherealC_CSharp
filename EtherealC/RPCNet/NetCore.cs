@@ -52,15 +52,19 @@ namespace EtherealC.RPCNet
         }
         public static bool UnRegister(Net net)
         {
-            //清理请求上的连接
-            foreach(Request request in net.Requests.Values)
+            if(net != null)
             {
-                request.Client.Close( System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,"UnRegister");
-                request.Client = null;
+                //清理请求上的连接
+                foreach (Request request in net.Requests.Values)
+                {
+                    request.Client.Close(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
+                    request.Client = null;
+                }
+                net.Requests.Clear();
+                net.Services.Clear();
+                nets.Remove(net.Name);
             }
-            net.Requests.Clear();
-            net.Services.Clear();
-            return nets.Remove(net.Name);
+            return true;
         }
     }
 }

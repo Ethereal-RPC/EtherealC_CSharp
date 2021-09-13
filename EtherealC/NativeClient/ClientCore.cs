@@ -84,7 +84,7 @@ namespace EtherealC.NativeClient
 
         public static bool UnRegister(string netName,string serviceName)
         {
-            if (NetCore.Get(netName, out Net net) && RequestCore.Get(net,serviceName,out Request request))
+            if (NetCore.Get(netName, out Net net))
             {
                 return UnRegister(net,serviceName);
             }
@@ -92,7 +92,15 @@ namespace EtherealC.NativeClient
         }
         public static bool UnRegister(Net net, string serviceName)
         {
-            if (RequestCore.Get(net, serviceName, out Request request))
+            if (net != null && RequestCore.Get(net, serviceName, out Request request))
+            {
+                return UnRegister(request);
+            }
+            return true;
+        }
+        public static bool UnRegister(Request request)
+        {
+            if (request != null)
             {
                 if(request.Client != null)
                 {
@@ -101,9 +109,8 @@ namespace EtherealC.NativeClient
                     request.Client.Close(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
                     request.Client = null;
                 }
-                return true;
             }
-            else return true;
+            return true;
         }
     }
 }

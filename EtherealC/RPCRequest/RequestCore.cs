@@ -64,17 +64,17 @@ namespace EtherealC.RPCRequest
             {
                 return UnRegister(net, serviceName);
             }
-            else
-            {
-                return true;
-            }
+            return true;
         }
         public static bool UnRegister(Net net, string serviceName)
         {
-            net.Requests.Remove(serviceName, out Request request);
-            request.LogEvent -= net.OnRequestLog;
-            request.ExceptionEvent -= net.OnRequestException;
-            ClientCore.UnRegister(net, serviceName);
+            if(net != null)
+            {
+                net.Requests.Remove(serviceName, out Request request);
+                request.LogEvent -= net.OnRequestLog;
+                request.ExceptionEvent -= net.OnRequestException;
+                ClientCore.UnRegister(request);
+            }
             return true;
         }
         #endregion
