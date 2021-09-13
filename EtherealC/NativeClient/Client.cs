@@ -106,7 +106,7 @@ namespace EtherealC.NativeClient
                 return;
             }
             if (prefixes == null)
-                OnException(new ArgumentException(" "));
+                throw new ArgumentException(" ");
             this.Prefixes = prefixes;
             this.NetName = netName;
             this.ServiceName = serviceName;
@@ -134,7 +134,7 @@ namespace EtherealC.NativeClient
             }
             catch (Exception e)
             {
-                OnException(new RPCException(RPCException.ErrorCode.Runtime, $"[{prefixes}]{e.Message}"), false);
+                OnException(e);
                 OnDisConnect();
             }
         }
@@ -150,7 +150,7 @@ namespace EtherealC.NativeClient
             }
             catch(Exception e)
             {
-
+                OnException(e);
             }
         }
         public async void ReceiveAsync()
@@ -191,7 +191,7 @@ namespace EtherealC.NativeClient
                                 ClientResponseModel response = config.ClientResponseModelDeserialize(data);
                                 if (!NetCore.Get(netName, out Net net))
                                 {
-                                    OnException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
+                                    throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
                                 net.ClientResponseReceive(response);
                             }
@@ -200,7 +200,7 @@ namespace EtherealC.NativeClient
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                                 if (!NetCore.Get(netName, out Net net))
                                 {
-                                    OnException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
+                                    throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
                                 net.ServerRequestReceive(request);
                             }
@@ -229,35 +229,27 @@ namespace EtherealC.NativeClient
         }
         public async Task<bool> SendAsync(ClientRequestModel request)
         {
-            try
+            if (accept.State == WebSocketState.Open)
             {
-                if (accept.State == WebSocketState.Open)
-                {
-                    string log = "--------------------------------------------------\n" +
-                                $"{DateTime.Now}::{netName}::[客-请求]\n{request}\n" +
-                                "--------------------------------------------------\n";
-                    OnLog(RPCLog.LogCode.Runtime, log);
-                    await accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
-                    return true;
-                }
+                string log = "--------------------------------------------------\n" +
+                            $"{DateTime.Now}::{netName}::[客-请求]\n{request}\n" +
+                            "--------------------------------------------------\n";
+                OnLog(RPCLog.LogCode.Runtime, log);
+                await accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
+                return true;
             }
-            catch
-            {
-
-            }
-            return false;
+            else return false;
         }
         public void OnException(RPCException.ErrorCode code, string message)
         {
             OnException(new RPCException(code, message));
         }
-        public void OnException(Exception e,bool isThrow = true)
+        public void OnException(Exception e)
         {
             if (exceptionEvent != null)
             {
                 exceptionEvent.Invoke(e,this);
             }
-            if(isThrow)throw e;
         }
 
         public void OnLog(RPCLog.LogCode code, string message)

@@ -52,20 +52,12 @@ namespace EtherealC.RPCService
             net.Services.TryGetValue(servicename, out Service service);
             if(service == null)
             {
-                try
-                {
-                    service = new Service();
-                    service.Register(instance,net.Name,servicename,config);
-                    net.Services[servicename] = service;
-                    service.LogEvent += net.OnServiceLog;
-                    service.ExceptionEvent += net.OnServiceException;
-                    return service;
-                }
-                catch (SocketException e)
-                {
-                    Console.WriteLine("发生异常报错,销毁注册\n" + e.StackTrace);
-                    UnRegister(net,servicename);
-                }
+                service = new Service();
+                service.Register(instance, net.Name, servicename, config);
+                net.Services[servicename] = service;
+                service.LogEvent += net.OnServiceLog;
+                service.ExceptionEvent += net.OnServiceException;
+                return service;
             }
             return null;
         }

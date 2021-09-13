@@ -111,7 +111,7 @@ namespace EtherealC.RPCRequest
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
                         }
-                        else OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                        else throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                     }
                 }
                 else
@@ -128,11 +128,11 @@ namespace EtherealC.RPCRequest
                             }
                             catch (Exception)
                             {
-                                OnException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                                throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                             }
                         }
                     }
-                    else OnException(RPCException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
+                    else throw new RPCException(RPCException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
                 ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), obj);
                 if (targetMethod.ReturnType == typeof(void))
@@ -161,13 +161,13 @@ namespace EtherealC.RPCRequest
                             {
                                 if (result.Error != null)
                                 {
-                                    OnException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                    throw new RPCException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                                 }
                                 else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
                                 {
                                     return type.Deserialize((string)result.Result);
                                 }
-                                else OnException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
+                                else throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
                             }
                         }
                     }

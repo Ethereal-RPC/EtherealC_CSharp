@@ -101,7 +101,7 @@ namespace EtherealC.RPCService
                                 {
                                     methodid.Append("-" + type.Name);
                                 }
-                                else OnException(RPCException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
+                                else throw new RPCException(RPCException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
                             }
                         }
                         else
@@ -115,7 +115,7 @@ namespace EtherealC.RPCService
                                     {
                                         methodid.Append("-").Append(type.Name);
                                     }
-                                    else OnException(RPCException.ErrorCode.Core,$"C#对应的{types_name}类型参数尚未注册");
+                                    else throw new RPCException(RPCException.ErrorCode.Core,$"C#对应的{types_name}类型参数尚未注册");
                                 }
                             }
                         }

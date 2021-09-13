@@ -120,10 +120,17 @@ namespace EtherealC.RPCNet
                 ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest>(net, "ServerNetNodeService", types);
                 new Thread(() =>
                 {
-                    while (true)
+                    try
                     {
-                        NetNodeSearch();
-                        Thread.Sleep(config.NetNodeHeartInterval);
+                        while (true)
+                        {
+                            NetNodeSearch();
+                            Thread.Sleep(config.NetNodeHeartInterval);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        OnException(e);
                     }
                 }).Start();
             }
@@ -138,7 +145,7 @@ namespace EtherealC.RPCNet
                 }
                 catch(Exception e)
                 {
-                    OnException(RPCException.ErrorCode.Runtime, e.Message);
+                    OnException(e);
                 }
             }
             return true;
@@ -170,7 +177,7 @@ namespace EtherealC.RPCNet
                 if (flag)
                 {
                     Client client = null;
-                    if (!NetCore.Get($"NetNode-{name}", out Net net)) OnException(RPCException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
+                    if (!NetCore.Get($"NetNode-{name}", out Net net)) throw new RPCException(RPCException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
                     //搜寻正常启动的注册中心
                     foreach (Tuple<string,ClientConfig> item in config.NetNodeIps)
                     {
@@ -215,7 +222,7 @@ namespace EtherealC.RPCNet
                                         requestClient.DisConnectEvent += ClientConnectFailEvent;
                                         requestClient.Start();
                                     }
-                                    else OnException(RPCException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
+                                    else throw new RPCException(RPCException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
                                 }
                             }
                         }
@@ -302,13 +309,13 @@ namespace EtherealC.RPCNet
                         {
                             request.Params[j] = type.Deserialize((string)request.Params[j]);
                         }
-                        else service.OnException(RPCException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
+                        else throw new RPCException(RPCException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
                     }
                     method.Invoke(service, request.Params);
                 }
-                else service.OnException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
+                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
             }
-            else OnException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
+            else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
         }
         private void ClientResponseReceiveProcess(ClientResponseModel response)
         {
@@ -323,15 +330,15 @@ namespace EtherealC.RPCNet
                 {
                     model.Set(response);
                 }
-                else OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
+                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
             }
             else
             {
                 if(response.Error != null)
                 {
-                    OnException(RPCException.ErrorCode.Runtime, $"Server:\n{response.Error}");
+                    throw new RPCException(RPCException.ErrorCode.Runtime, $"Server:\n{response.Error}");
                 }
-                else OnException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
+                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
             }
         }
         #endregion
