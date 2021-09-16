@@ -1,4 +1,4 @@
-﻿using EtherealC.Model;
+﻿using EtherealC.Core.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCNet;
 using System;
@@ -36,7 +36,11 @@ namespace EtherealC.RPCRequest
         /// <returns>客户端</returns>
         public static T Register<T>(Net net, string requestname,RPCTypeConfig type) where T : class
         {
-            return Register<T>(net, requestname, new RequestConfig(type));
+            if(net.NetType == Core.Enums.NetType.WebSocket)
+            {
+                return Register<T>(net, requestname, new WebSocketRequestConfig(type));
+            }
+            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.NetType}的Request-Register处理");
         }
         /// <summary>
         /// 获取RPC代理
@@ -45,15 +49,19 @@ namespace EtherealC.RPCRequest
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(Net net, string servicename, RequestConfig config) where T : class
+        public static T Register<T>(Net net, string servicename, WebSocketRequestConfig config) where T : class
         {
             net.Requests.TryGetValue(servicename, out Request request);
             if (request == null)
             {
-                request = Request.Register<T>(net.Name, servicename,config);
+                if(net.NetType == Core.Enums.NetType.WebSocket)
+                {
+                    request = WebSocketRequest.Register<T>(net.Name, servicename, config);
+                }
+                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.NetType}的Request-Register处理");
                 net.Requests[servicename] = request;
-                request.LogEvent += net.OnRequestLog;
-                request.ExceptionEvent += net.OnRequestException;
+                request.LogEvent += net.OnLog;
+                request.ExceptionEvent += net.OnException;
             }
             return (T)(request as object);
         }
@@ -71,8 +79,8 @@ namespace EtherealC.RPCRequest
             if(net != null)
             {
                 net.Requests.Remove(serviceName, out Request request);
-                request.LogEvent -= net.OnRequestLog;
-                request.ExceptionEvent -= net.OnRequestException;
+                request.LogEvent -= net.OnLog;
+                request.ExceptionEvent -= net.OnException;
                 ClientCore.UnRegister(request);
             }
             return true;

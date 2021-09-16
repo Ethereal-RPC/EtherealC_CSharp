@@ -1,4 +1,4 @@
-using EtherealC.Model;
+using EtherealC.Core.Model;
 using EtherealC.RPCNet;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,94 +11,26 @@ using System.Threading.Tasks;
 namespace EtherealC.NativeClient
 {
 
-    public class Client
+    public class WebSocketClient : Client
     {
-
-        #region --委托--
-
-        public delegate void OnExceptionDelegate(Exception exception, Client client);
-
-        public delegate void OnLogDelegate(RPCLog log, Client client);
-
-        /// <summary>
-        /// 连接委托
-        /// </summary>
-        /// <param name="token"></param>
-        public delegate void ConnectDelegate(Client client);
-        /// <summary>
-        ///     
-        /// </summary>
-        /// <param name="token"></param>
-        public delegate void DisConnectDelegate(Client client);
-
-        #endregion
-
-        #region --事件字段--
-        private OnLogDelegate logEvent;
-        private OnExceptionDelegate exceptionEvent;
-        #endregion
-
-        #region --事件属性--
-        /// <summary>
-        /// 日志输出事件
-        /// </summary>
-        public event OnLogDelegate LogEvent
-        {
-            add
-            {
-                logEvent -= value;
-                logEvent += value;
-            }
-            remove
-            {
-                logEvent -= value;
-            }
-        }
-        /// <summary>
-        /// 抛出异常事件
-        /// </summary>
-        public event OnExceptionDelegate ExceptionEvent
-        {
-            add
-            {
-                exceptionEvent -= value;
-                exceptionEvent += value;
-            }
-            remove
-            {
-                exceptionEvent -= value;
-            }
-
-        }
-
-        /// <summary>
-        /// 连接事件
-        /// </summary>
-        public event ConnectDelegate ConnectEvent;
-        /// <summary>
-        /// 断开连接事件
-        /// </summary>
-        public event DisConnectDelegate DisConnectEvent;
-        #endregion
-
         #region --字段--
-        private string netName;
-        private string serviceName;
+
         private string prefixes;
-        private ClientConfig config;
         private ClientWebSocket accept;
         private CancellationToken cancellationToken = CancellationToken.None;
+        private bool isDisConnect = false;
 
         #endregion
 
         #region --属性--
 
-        public string NetName { get => netName; set => netName = value; }
-        public string Prefixes { get => prefixes; set => prefixes = value; }
         public ClientWebSocket Accept { get => accept; set => accept = value; }
-        public string ServiceName { get => serviceName; set => serviceName = value; }
+        public string Prefixes { get => prefixes; set => prefixes = value; }
+        public new WebSocketClientConfig Config { get => (WebSocketClientConfig)config; set => config = value; }
+
         #endregion
-        public Client(string netName,string serviceName,string prefixes, ClientConfig config)
+
+        public WebSocketClient(string netName,string serviceName,string prefixes, ClientConfig config):base(netName,serviceName)
         {
             if (!HttpListener.IsSupported)
             {
@@ -108,16 +40,14 @@ namespace EtherealC.NativeClient
             if (prefixes == null)
                 throw new ArgumentException(" ");
             this.Prefixes = prefixes;
-            this.NetName = netName;
-            this.ServiceName = serviceName;
-            this.config = config;
             // Create a listener.
             Accept = new ClientWebSocket();
+            this.config = config as WebSocketClientConfig;
             // Add the prefixes.
-            Accept.Options.KeepAliveInterval = config.KeepAliveInterval;
+            Accept.Options.KeepAliveInterval = Config.KeepAliveInterval;
         }
 
-        public async void Start()
+        public async override void Connect()
         {
             try
             {
@@ -135,35 +65,54 @@ namespace EtherealC.NativeClient
             catch (Exception e)
             {
                 OnException(e);
-                OnDisConnect();
+                DisConnect();
             }
         }
-        public async void Close(WebSocketCloseStatus code,string description)
+        public override void DisConnect()
         {
+            DisConnect(WebSocketCloseStatus.NormalClosure, "正常关闭");
+        }
+        public async void DisConnect(WebSocketCloseStatus status,string message)
+        {
+            bool temp = isDisConnect;
             try
             {
-                if(cancellationToken.CanBeCanceled == true)
+                if (!isDisConnect)
                 {
-                    await Accept.CloseAsync(code, description, cancellationToken);
-                    OnDisConnect();
+                    isDisConnect = true;
+                    if (Accept?.State == WebSocketState.Open)
+                    {
+                        await Accept?.CloseAsync(status, message, cancellationToken);
+                    }
+                    else
+                    {
+                        Accept?.Abort();
+                    }
                 }
             }
             catch(Exception e)
             {
                 OnException(e);
             }
+            finally
+            {
+                if (!temp)
+                {
+                    OnDisConnect();
+                }
+            }
         }
         public async void ReceiveAsync()
         {   
             byte[] receiveBuffer = null;
             int offset = 0;
-            int free = config.BufferSize;
+            int free = Config.BufferSize;
             // While the WebSocket connection remains open run a simple loop that receives data and sends it back.
             while (Accept.State == WebSocketState.Open)
             {
                 if (receiveBuffer == null)
                 {
-                    receiveBuffer = new byte[config.BufferSize];
+                    receiveBuffer = new byte[Config.BufferSize];
                 }
                 try
                 {
@@ -180,20 +129,20 @@ namespace EtherealC.NativeClient
 
                     if (receiveResult.EndOfMessage)
                     {
-                        string data = config.Encoding.GetString(receiveBuffer);
+                        string data = Config.Encoding.GetString(receiveBuffer);
                         JObject token = JObject.Parse(data);
                         offset = 0;
-                        free = config.BufferSize;
+                        free = Config.BufferSize;
                         if(token.TryGetValue("Type",out JToken value))
                         {
                             if (value.ToString() == "ER-1.0-ClientResponse")
                             {
-                                ClientResponseModel response = config.ClientResponseModelDeserialize(data);
+                                ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
                                 if (!NetCore.Get(netName, out Net net))
                                 {
                                     throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
-                                net.ClientResponseReceive(response);
+                                net.ClientResponseReceiveProcess(response);
                             }
                             else if(value.ToString() == "ER-1.0-ServerRequest")
                             {
@@ -202,16 +151,16 @@ namespace EtherealC.NativeClient
                                 {
                                     throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
-                                net.ServerRequestReceive(request);
+                                net.ServerRequestReceiveProcess(request);
                             }
                         }
                     }
                     else if (free == 0)
                     {
-                        var newSize = receiveBuffer.Length + config.BufferSize;
-                        if (newSize > config.MaxBufferSize)
+                        var newSize = receiveBuffer.Length + Config.BufferSize;
+                        if (newSize > Config.MaxBufferSize)
                         {
-                            Close(WebSocketCloseStatus.MessageTooBig, $"缓冲区:{newSize}-超过最大字节数:{config.MaxBufferSize}，已断开连接！");
+                            DisConnect(WebSocketCloseStatus.MessageTooBig, $"缓冲区:{newSize}-超过最大字节数:{Config.MaxBufferSize}，已断开连接！");
                             return;
                         }
                         byte[] new_bytes = new byte[newSize];
@@ -223,60 +172,20 @@ namespace EtherealC.NativeClient
                 }
                 catch (Exception e)
                 {
-                    Close(WebSocketCloseStatus.NormalClosure, $"{e.Message}");
+                    DisConnect(WebSocketCloseStatus.NormalClosure, $"{e.Message}");
                 }
             }
         }
-        public async Task<bool> SendAsync(ClientRequestModel request)
+        public override async void SendClientRequestModel(ClientRequestModel request)
         {
-            if (accept.State == WebSocketState.Open)
+            if (Accept.State == WebSocketState.Open)
             {
                 string log = "--------------------------------------------------\n" +
                             $"{DateTime.Now}::{netName}::[客-请求]\n{request}\n" +
                             "--------------------------------------------------\n";
                 OnLog(RPCLog.LogCode.Runtime, log);
-                await accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
-                return true;
+                await Accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
             }
-            else return false;
-        }
-        public void OnException(RPCException.ErrorCode code, string message)
-        {
-            OnException(new RPCException(code, message));
-        }
-        public void OnException(Exception e)
-        {
-            if (exceptionEvent != null)
-            {
-                exceptionEvent.Invoke(e,this);
-            }
-        }
-
-        public void OnLog(RPCLog.LogCode code, string message)
-        {
-            OnLog(new RPCLog(code, message));
-        }
-        public void OnLog(RPCLog log)
-        {
-            if (logEvent != null)
-            {
-                logEvent.Invoke(log, this);
-            }
-        }
-
-        /// <summary>
-        /// 连接时激活连接事件
-        /// </summary>
-        public void OnConnect()
-        {
-            ConnectEvent?.Invoke(this);
-        }
-        /// <summary>
-        /// 断开连接时激活断开连接事件
-        /// </summary>
-        public void OnDisConnect()
-        {
-            DisConnectEvent?.Invoke(this);
         }
     }
 }

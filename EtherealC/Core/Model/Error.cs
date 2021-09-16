@@ -1,4 +1,4 @@
-﻿namespace EtherealC.Model
+﻿namespace EtherealC.Core.Model
 {
     public class Error
     {

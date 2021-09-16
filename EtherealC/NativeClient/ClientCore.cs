@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
-using EtherealC.Model;
+using EtherealC.Core.Model;
 using EtherealC.RPCNet;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
@@ -28,7 +28,7 @@ namespace EtherealC.NativeClient
             if(RequestCore.Get(net, serviceName, out Request request))
             {
                 client = request.Client;
-                return true;
+                return client != null;
             }
             else
             {
@@ -39,7 +39,11 @@ namespace EtherealC.NativeClient
 
         public static Client Register(Net net,string serviceName, string prefixes)
         {
-            return Register(net,serviceName, prefixes,new ClientConfig());
+            if(net.NetType == Core.Enums.NetType.WebSocket)
+            {
+                return Register(net, serviceName, prefixes, new WebSocketClientConfig());
+            }
+            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.NetType}的Client-Register处理");
         }
 
         /// <summary>
@@ -58,7 +62,7 @@ namespace EtherealC.NativeClient
         }
         public static Client Register(object request, string prefixes)
         {
-            return Register(request, prefixes,new ClientConfig());
+            return Register(request, prefixes,null);
         }
         public static Client Register(object request, string prefixes, ClientConfig config)
         {
@@ -66,17 +70,29 @@ namespace EtherealC.NativeClient
             //已经有连接了，禁止重复注册
             Request _request = request as Request;
             if (_request.Client != null) return _request.Client;
-            _request.Client = new Client(_request.NetName, _request.Name, prefixes, config);
+            if(NetCore.Get(_request.NetName,out Net net))
+            {
+                if(net.NetType == Core.Enums.NetType.WebSocket)
+                {
+                    if(config == null)
+                    {
+                        config = new WebSocketClientConfig();
+                    }
+                    _request.Client = new WebSocketClient(_request.NetName, _request.Name, prefixes, config);
+                }
+                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.NetType}的Client-Register处理");
+            }
+            else throw new RPCException(RPCException.ErrorCode.Core, $"找不到Net:{_request.NetName}");
             //当连接建立时，请求中的连接成功事件将会发生
-            _request.Client.ConnectEvent += Client_ConnectSuccessEvent;
-            _request.Client.LogEvent += _request.OnClientLog;
-            _request.Client.ExceptionEvent += _request.OnClientException;
+            _request.Client.LogEvent += _request.OnLog;
+            _request.Client.ExceptionEvent += _request.OnException;
+            _request.Client.ConnectEvent += Client_ConnectEvent;
             return _request.Client;
         }
 
-        private static void Client_ConnectSuccessEvent(Client client)
+        private static void Client_ConnectEvent(Client client)
         {
-            if(RequestCore.Get(client.NetName, client.ServiceName, out Request request))
+            if(RequestCore.Get(client.NetName,client.ServiceName,out Request request))
             {
                 request.OnConnectSuccess();
             }
@@ -100,15 +116,13 @@ namespace EtherealC.NativeClient
         }
         public static bool UnRegister(Request request)
         {
-            if (request != null)
+            if (request?.Client != null)
             {
-                if(request.Client != null)
-                {
-                    request.Client.LogEvent -= request.OnClientLog;
-                    request.Client.ExceptionEvent -= request.OnClientException;
-                    request.Client.Close(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
-                    request.Client = null;
-                }
+                request.Client.LogEvent -= request.OnLog;
+                request.Client.ExceptionEvent -= request.OnException;
+                var temp = request.Client;
+                request.Client = null;
+                temp.DisConnect();
             }
             return true;
         }

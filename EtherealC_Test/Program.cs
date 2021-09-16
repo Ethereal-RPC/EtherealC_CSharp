@@ -1,4 +1,4 @@
-﻿using EtherealC.Model;
+﻿using EtherealC.Core.Model;
 using EtherealC.NativeClient;
 using EtherealC.RPCNet;
 using EtherealC.RPCRequest;
@@ -8,6 +8,7 @@ using EtherealC_Test.ServiceDemo;
 using EtherealS_Test.RequestDemo;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EtherealC_Test
@@ -16,7 +17,7 @@ namespace EtherealC_Test
     {
 
         public static void Single(string ip,string port,string netName)
-        {
+        {   
             //注册数据类型
             RPCTypeConfig types = new RPCTypeConfig();
             types.Add<int>("Int");
@@ -25,7 +26,7 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName);
+            Net net = NetCore.Register(netName, EtherealC.Core.Enums.NetType.WebSocket);
             net.ExceptionEvent += Config_ExceptionEvent;
             net.LogEvent += Net_LogEvent;
             //向网关注册服务
@@ -34,14 +35,15 @@ namespace EtherealC_Test
             ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server", types);
             (request as Request).ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            Client client = ClientCore.Register(request, "ws://127.0.0.1:28015/NetDemo/");
+            Client client = ClientCore.Register(request, "127.0.0.1:28015/NetDemo/");
             client.ConnectEvent += Config_ConnectSuccessEvent;
             client.DisConnectEvent += Client_ConnectFailEvent;
             //启动连接
             net.Publish();
+
         }
 
-        private static void Net_LogEvent(RPCLog log, Net net)
+        private static void Net_LogEvent(RPCLog log)
         {
             Console.WriteLine(log.Message);
         }
@@ -61,7 +63,7 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName);
+            Net net = NetCore.Register(netName, EtherealC.Core.Enums.NetType.WebSocket);
             net.ExceptionEvent += Config_ExceptionEvent;
             //向网关注册服务
             Service service = ServiceCore.Register<ClientService>(net, "Client", types);
@@ -75,10 +77,10 @@ namespace EtherealC_Test
             net.Config.NetNodeMode = true;
             //添加分布式地址
             List<Tuple<string,ClientConfig>> ips = new();
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28015}/NetDemo/", new ClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28016}/NetDemo/", new ClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28017}/NetDemo/", new ClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28018}/NetDemo/", new ClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28015}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28016}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28017}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28018}/NetDemo/", new WebSocketClientConfig()));
             net.Config.NetNodeIps = ips;
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             net.Publish();
@@ -92,17 +94,17 @@ namespace EtherealC_Test
 
         private static void Client_ConnectFailEvent(Client client)
         {
-            Console.WriteLine("已断开连接");
+            ClientCore.UnRegister(client.NetName, client.ServiceName);
         }
 
-        private static void Config_ExceptionEvent(Exception exception, Net net)
+        private static void Config_ExceptionEvent(Exception exception)
         {
             Console.WriteLine(exception.Message);
         }
 
         public static void Main()
         {
-            //Single("127.0.0.1", "28016","1");
+            //Single("127.0.0.1", "28015","1");
             NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }

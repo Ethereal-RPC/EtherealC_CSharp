@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using EtherealC.Model;
+using EtherealC.Core.Model;
+using EtherealC.NativeClient;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
+using static EtherealC.Core.Enums;
 
 namespace EtherealC.RPCNet
 {
@@ -21,12 +23,15 @@ namespace EtherealC.RPCNet
         {
             return nets.TryGetValue(name, out net);
         }
-
-        public static Net Register(string name)
+        public static Net Register(string name,NetType netType)
         {
-            return Register(name, new NetConfig());
+            if(netType == NetType.WebSocket)
+            {
+                return Register(name, new WebSocketNetConfig(), netType);
+            }
+            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{netType}的Net-Register处理");
         }
-        public static Net Register(string name, NetConfig config)
+        public static Net Register(string name, NetConfig config, NetType netType)
         {
             if (config is null)
             {
@@ -34,8 +39,12 @@ namespace EtherealC.RPCNet
             }
             if (!nets.TryGetValue(name, out Net net))
             {
-                net = new Net();
-                net.Config = config;
+                if (netType == NetType.WebSocket)
+                {
+                    net = new WebSocketNet();
+                    net.Config = config;
+                }
+                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.NetType}的Net-Register处理");
                 net.Name = name;
                 nets.Add(name, net);
                 return net;
@@ -57,7 +66,10 @@ namespace EtherealC.RPCNet
                 //清理请求上的连接
                 foreach (Request request in net.Requests.Values)
                 {
-                    request.Client.Close(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
+                    if(net.NetType == NetType.WebSocket)
+                    {
+                        (request.Client as WebSocketClient).DisConnect(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
+                    }
                     request.Client = null;
                 }
                 net.Requests.Clear();

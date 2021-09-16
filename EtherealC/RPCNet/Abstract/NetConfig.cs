@@ -1,13 +1,10 @@
-﻿using EtherealC.Model;
-using EtherealC.NativeClient;
-using EtherealC.RPCRequest;
-using EtherealC.RPCService;
+﻿using EtherealC.NativeClient;
 using System;
 using System.Collections.Generic;
 
 namespace EtherealC.RPCNet
 {
-    public class NetConfig
+    public abstract class NetConfig: IBaseNetConfig
     {
         #region --字段--
         /// <summary>
@@ -22,7 +19,6 @@ namespace EtherealC.RPCNet
         /// 服务注册心跳间隔
         /// </summary>
         private int netNodeHeartInterval = 6000;
-
         #endregion
 
         #region --属性--

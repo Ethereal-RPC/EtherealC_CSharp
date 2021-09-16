@@ -1,9 +1,9 @@
-﻿using EtherealC.Model;
+﻿using EtherealC.Core.Model;
 using System;
 
 namespace EtherealC.RPCRequest
 {
-    public class RequestConfig
+    public abstract class RequestConfig: IRequestConfig
     {
 
         #region --字段--
@@ -18,7 +18,6 @@ namespace EtherealC.RPCRequest
         public RPCTypeConfig Types { get => types; set => types = value; }
         public int Timeout { get => timeout; set => timeout = value; }
         #endregion
-
 
         #region --方法--
         public RequestConfig(RPCTypeConfig types)

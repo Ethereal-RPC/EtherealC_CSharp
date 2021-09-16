@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using Newtonsoft.Json;
 
-namespace EtherealC.Model
+namespace EtherealC.Core.Model
 {
     public class ClientRequestModel
     {

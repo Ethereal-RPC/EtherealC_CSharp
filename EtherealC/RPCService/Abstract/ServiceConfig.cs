@@ -1,13 +1,13 @@
-﻿using EtherealC.Model;
+﻿using EtherealC.Core.Model;
 using System;
 
 namespace EtherealC.RPCService
 {
-    public class ServiceConfig
+    public abstract class ServiceConfig: IServiceConfig
     {
 
         #region --字段--
-        private RPCTypeConfig types;
+        protected RPCTypeConfig types;
         #endregion
 
         #region --属性--
