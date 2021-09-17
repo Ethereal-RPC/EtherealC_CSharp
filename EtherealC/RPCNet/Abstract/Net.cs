@@ -13,7 +13,7 @@ using EtherealC.Core.Enums;
 
 namespace EtherealC.RPCNet.Abstract
 {
-    public abstract class Net:IBaseNet
+    public abstract class Net:INet
     {
 
         #region --事件字段--
@@ -89,13 +89,9 @@ namespace EtherealC.RPCNet.Abstract
         {
             OnException(new RPCException(code, message));
         }
-        public void OnException(Exception e)
+        public void OnException(RPCException e)
         {
-            if (e is not RPCException)
-            {
-                e = new RPCException(e);
-            }
-            (e as RPCException).Net = this;
+            e.Net = this;
             exceptionEvent?.Invoke(e);
         }
 

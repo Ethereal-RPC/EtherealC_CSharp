@@ -60,7 +60,7 @@ namespace EtherealC.RPCNet.WebSocket
                     }
                     catch(Exception e)
                     {
-                        OnException(e);
+                        OnException(new RPCException(e));
                     }
                 }).Start();
             }
@@ -75,7 +75,7 @@ namespace EtherealC.RPCNet.WebSocket
                 }
                 catch(Exception e)
                 {
-                    OnException(e);
+                    OnException(new RPCException(e));
                 }
             }
             return true;
@@ -102,6 +102,7 @@ namespace EtherealC.RPCNet.WebSocket
                     {
                         string prefixe = item.Item1;
                         ClientConfig config = item.Item2;
+
                         //向网关注册连接
                         client = (WebSocketClient)ClientCore.Register(net, "ServerNetNodeService",prefixe,config);
                         //关闭分布式模式

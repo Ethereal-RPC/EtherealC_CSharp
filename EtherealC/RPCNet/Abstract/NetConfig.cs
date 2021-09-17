@@ -5,7 +5,7 @@ using EtherealC.RPCNet.Interface;
 
 namespace EtherealC.RPCNet.Abstract
 {
-    public abstract class NetConfig: IBaseNetConfig
+    public abstract class NetConfig: INetConfig
     {
         #region --字段--
         /// <summary>

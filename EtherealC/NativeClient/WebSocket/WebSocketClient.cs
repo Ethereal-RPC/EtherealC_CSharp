@@ -64,7 +64,7 @@ namespace EtherealC.NativeClient.WebSocket
             }
             catch (Exception e)
             {
-                OnException(e);
+                OnException(new RPCException(e));
                 DisConnect();
             }
         }
@@ -92,7 +92,7 @@ namespace EtherealC.NativeClient.WebSocket
             }
             catch(Exception e)
             {
-                OnException(e);
+                OnException(new RPCException(e));
             }
             finally
             {

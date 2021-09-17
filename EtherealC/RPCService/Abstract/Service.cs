@@ -67,14 +67,9 @@ namespace EtherealC.RPCService.Abstract
         {
             OnException(new RPCException(code, message));
         }
-        public void OnException(Exception e)
+        public void OnException(RPCException e)
         {
-
-            if (e is not RPCException)
-            {
-                e = new RPCException(e);
-            }
-            (e as RPCException).Service = this;
+            e.Service = this;
             exceptionEvent?.Invoke(e);
         }
 

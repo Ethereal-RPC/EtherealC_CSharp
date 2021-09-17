@@ -1,6 +1,6 @@
 ﻿namespace EtherealC.RPCNet.Interface
 {
-    public interface IBaseNetConfig
+    public interface INetConfig
     {
         #region --方法--
 

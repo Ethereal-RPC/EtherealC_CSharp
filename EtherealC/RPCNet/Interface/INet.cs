@@ -2,7 +2,7 @@
 
 namespace EtherealC.RPCNet.Interface
 {
-    public interface IBaseNet
+    public interface INet
     {
         #region --方法--
         public bool Publish();
