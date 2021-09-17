@@ -24,7 +24,7 @@ namespace EtherealC.Net
             {
                 return Register(name, new WebSocketNetConfig(), netType);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{netType}的Net-Register处理");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{netType}的Net-Register处理");
         }
         public static Net.Abstract.Net Register(string name, NetConfig config, Net.Abstract.Net.NetType netType)
         {
@@ -39,12 +39,12 @@ namespace EtherealC.Net
                     net = new WebSocketNet();
                     net.Config = config;
                 }
-                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Net-Register处理");
+                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Net-Register处理");
                 net.Name = name;
                 nets.Add(name, net);
                 return net;
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{name} Net已经注册");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{name} Net已经注册");
         }
         public static bool UnRegister(string name)
         {

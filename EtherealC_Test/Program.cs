@@ -24,7 +24,7 @@ namespace EtherealC_Test
         public static void Single(string ip,string port,string netName)
         {   
             //注册数据类型
-            RPCTypeConfig types = new RPCTypeConfig();
+            AbstractTypes types = new AbstractTypes();
             types.Add<int>("Int");
             types.Add<User>("User");
             types.Add<long>("Long");
@@ -48,7 +48,7 @@ namespace EtherealC_Test
 
         }
 
-        private static void Net_LogEvent(RPCLog log)
+        private static void Net_LogEvent(TrackLog log)
         {
             Console.WriteLine(log.Message);
         }
@@ -61,7 +61,7 @@ namespace EtherealC_Test
         public static void NetNode(string netName,string ip)
         {
             //注册数据类型
-            RPCTypeConfig types = new RPCTypeConfig();
+            AbstractTypes types = new AbstractTypes();
             types.Add<int>("Int");
             types.Add<User>("User");
             types.Add<long>("Long");

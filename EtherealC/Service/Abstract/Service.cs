@@ -62,21 +62,21 @@ namespace EtherealC.Service.Abstract
         public string NetName { get => netName; set => netName = value; }
 
         public abstract void Register<T>(T instance, string netName, string servicename, ServiceConfig config);
-        public void OnException(RPCException.ErrorCode code, string message)
+        public void OnException(TrackException.ErrorCode code, string message)
         {
-            OnException(new RPCException(code, message));
+            OnException(new TrackException(code, message));
         }
-        public void OnException(RPCException e)
+        public void OnException(TrackException e)
         {
             e.Service = this;
             exceptionEvent?.Invoke(e);
         }
 
-        public void OnLog(RPCLog.LogCode code, string message)
+        public void OnLog(TrackLog.LogCode code, string message)
         {
-            OnLog(new RPCLog(code, message));
+            OnLog(new TrackLog(code, message));
         }
-        public void OnLog(RPCLog log)
+        public void OnLog(TrackLog log)
         {
             logEvent?.Invoke(log);
         }

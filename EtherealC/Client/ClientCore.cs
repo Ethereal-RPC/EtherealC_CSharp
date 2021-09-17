@@ -40,7 +40,7 @@ namespace EtherealC.Client
             {
                 return Register(net, serviceName, prefixes, new WebSocketClientConfig());
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Client-Register处理");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Client-Register处理");
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace EtherealC.Client
             {
                 return Register(request,prefixes, config);
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"{net.Name}-{serviceName} 未找到");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}-{serviceName} 未找到");
         }
         public static Abstract.Client Register(object request, string prefixes)
         {
@@ -63,7 +63,7 @@ namespace EtherealC.Client
         }
         public static Abstract.Client Register(object request, string prefixes, ClientConfig config)
         {
-            if (request is not Request.Abstract.Request) throw new RPCException(RPCException.ErrorCode.Core, "ClientCore执行Register函数时request参数非Request类型");
+            if (request is not Request.Abstract.Request) throw new TrackException(TrackException.ErrorCode.Core, "ClientCore执行Register函数时request参数非Request类型");
             //已经有连接了，禁止重复注册
             Request.Abstract.Request _request = request as Request.Abstract.Request;
             if (_request.Client != null) return _request.Client;
@@ -77,9 +77,9 @@ namespace EtherealC.Client
                     }
                     _request.Client = new WebSocketClient(_request.NetName, _request.Name, prefixes, config);
                 }
-                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Client-Register处理");
+                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Client-Register处理");
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"找不到Net:{_request.NetName}");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"找不到Net:{_request.NetName}");
             //当连接建立时，请求中的连接成功事件将会发生
             _request.Client.LogEvent += _request.OnLog;
             _request.Client.ExceptionEvent += _request.OnException;

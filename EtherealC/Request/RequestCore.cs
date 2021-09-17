@@ -33,13 +33,13 @@ namespace EtherealC.Request
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(Net.Abstract.Net net, string requestname,RPCTypeConfig type) where T : class
+        public static T Register<T>(Net.Abstract.Net net, string requestname,AbstractTypes type) where T : class
         {
             if(net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
                 return Register<T>(net, requestname, new WebSocketRequestConfig(type));
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
         }
         /// <summary>
         /// 获取RPC代理
@@ -57,7 +57,7 @@ namespace EtherealC.Request
                 {
                     request = WebSocketRequest.Register<T>(net.Name, servicename, config);
                 }
-                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
+                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
                 net.Requests[servicename] = request;
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;

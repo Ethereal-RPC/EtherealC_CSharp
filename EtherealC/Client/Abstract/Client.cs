@@ -87,21 +87,21 @@ namespace EtherealC.Client.Abstract
         public abstract void Connect();
         public abstract void DisConnect();
         public abstract void SendClientRequestModel(ClientRequestModel request);
-        public void OnException(RPCException.ErrorCode code, string message)
+        public void OnException(TrackException.ErrorCode code, string message)
         {
-            OnException(new RPCException(code, message));
+            OnException(new TrackException(code, message));
         }
-        public void OnException(RPCException e)
+        public void OnException(TrackException e)
         {
             e.Client = this;
             exceptionEvent?.Invoke(e);
         }
 
-        public void OnLog(RPCLog.LogCode code, string message)
+        public void OnLog(TrackLog.LogCode code, string message)
         {
-            OnLog(new RPCLog(code, message));
+            OnLog(new TrackLog(code, message));
         }
-        public void OnLog(RPCLog log)
+        public void OnLog(TrackLog log)
         {
             log.Client = this;
             logEvent?.Invoke(log);

@@ -2,7 +2,7 @@
 
 namespace EtherealC.Core.Model
 {
-    public class RPCType
+    public class AbstractType
     {
         #region --委托--
         public delegate object DeserializeDelegage(string obj);

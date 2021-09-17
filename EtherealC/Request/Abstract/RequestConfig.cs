@@ -8,19 +8,19 @@ namespace EtherealC.Request.Abstract
 
         #region --字段--
         private bool tokenEnable = true;
-        private RPCTypeConfig types;
+        private AbstractTypes types;
         private int timeout = -1;
 
         #endregion
 
         #region --属性--
         public bool TokenEnable { get => tokenEnable; set => tokenEnable = value; }
-        public RPCTypeConfig Types { get => types; set => types = value; }
+        public AbstractTypes Types { get => types; set => types = value; }
         public int Timeout { get => timeout; set => timeout = value; }
         #endregion
 
         #region --方法--
-        public RequestConfig(RPCTypeConfig types)
+        public RequestConfig(AbstractTypes types)
         {
             this.types = types;
         }

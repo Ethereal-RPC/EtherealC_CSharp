@@ -2,6 +2,6 @@
 
 namespace EtherealC.Core
 {
-    public delegate void OnExceptionDelegate(RPCException exception);
-    public delegate void OnLogDelegate(RPCLog log);
+    public delegate void OnExceptionDelegate(TrackException exception);
+    public delegate void OnLogDelegate(TrackLog log);
 }

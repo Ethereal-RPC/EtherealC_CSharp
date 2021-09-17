@@ -31,7 +31,7 @@ namespace EtherealC.Net.WebSocket
             if (Config.NetNodeMode)
             {
                 //注册数据类型
-                RPCTypeConfig types = new RPCTypeConfig();
+                AbstractTypes types = new AbstractTypes();
                 types.Add<int>("Int");
                 types.Add<long>("Long");
                 types.Add<string>("String");
@@ -57,7 +57,7 @@ namespace EtherealC.Net.WebSocket
                     }
                     catch(Exception e)
                     {
-                        OnException(new RPCException(e));
+                        OnException(new TrackException(e));
                     }
                 }).Start();
             }
@@ -72,7 +72,7 @@ namespace EtherealC.Net.WebSocket
                 }
                 catch(Exception e)
                 {
-                    OnException(new RPCException(e));
+                    OnException(new TrackException(e));
                 }
             }
             return true;
@@ -93,7 +93,7 @@ namespace EtherealC.Net.WebSocket
                 if (flag)
                 {
                     WebSocketClient client = null;
-                    if (!NetCore.Get($"NetNode-{name}", out Abstract.Net net)) throw new RPCException(RPCException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
+                    if (!NetCore.Get($"NetNode-{name}", out Abstract.Net net)) throw new TrackException(TrackException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
                     //搜寻正常启动的注册中心
                     foreach (Tuple<string,ClientConfig> item in Config.NetNodeIps)
                     {
@@ -139,7 +139,7 @@ namespace EtherealC.Net.WebSocket
                                         requestClient.DisConnectEvent += ClientConnectFailEvent;
                                         requestClient.Connect();
                                     }
-                                    else throw new RPCException(RPCException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
+                                    else throw new TrackException(TrackException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
                                 }
                             }
                         }

@@ -24,25 +24,25 @@ namespace EtherealC.Service
         {
             return net.Services.TryGetValue(serviceName, out service);
         }
-        public static WebSocketService Register(object instance, Net.Abstract.Net net, string servicename, RPCTypeConfig type)
+        public static WebSocketService Register(object instance, Net.Abstract.Net net, string servicename, AbstractTypes type)
         {
             if(net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
                 return Register(instance, net, servicename, new WebSocketServiceConfig(type));
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
         }
         public static WebSocketService Register<T>(Net.Abstract.Net net, string servicename, ServiceConfig config) where T : new()
         {
             return Register(new T(), net, servicename, config);
         }
-        public static WebSocketService Register<T>(Net.Abstract.Net net, string servicename, RPCTypeConfig type) where T : new()
+        public static WebSocketService Register<T>(Net.Abstract.Net net, string servicename, AbstractTypes type) where T : new()
         {
             if (net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
                 return Register(new T(), net, servicename, new WebSocketServiceConfig(type));
             }
-            else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
             
         }
         public static WebSocketService Register(object instance, Net.Abstract.Net net, string servicename, ServiceConfig config)
@@ -64,7 +64,7 @@ namespace EtherealC.Service
                 {
                     service = new WebSocketService();
                 }
-                else throw new RPCException(RPCException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
+                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
                 service.Register(instance, net.Name, servicename, config);
                 net.Services[servicename] = service;
                 service.LogEvent += net.OnLog;

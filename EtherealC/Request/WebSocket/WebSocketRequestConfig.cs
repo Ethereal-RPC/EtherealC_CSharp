@@ -5,7 +5,7 @@ namespace EtherealC.Request.WebSocket
 {
     public class WebSocketRequestConfig : RequestConfig
     {
-        public WebSocketRequestConfig(RPCTypeConfig types) : base(types)
+        public WebSocketRequestConfig(AbstractTypes types) : base(types)
         {
         }
     }

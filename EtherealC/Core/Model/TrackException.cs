@@ -5,7 +5,7 @@ namespace EtherealC.Core.Model
     /// <summary>
     /// Ethereal-RPC异常类
     /// </summary>
-    public class RPCException : Exception
+    public class TrackException : Exception
     {
         #region --字段--
         public enum ErrorCode { Core, Runtime , NotEthereal}
@@ -29,17 +29,17 @@ namespace EtherealC.Core.Model
         public Client.Abstract.Client Client { get => client; set => client = value; }
         #endregion
 
-        public RPCException(string message) : base(message)
+        public TrackException(string message) : base(message)
         {
             exception = this;
         }
-        public RPCException(Exception e) : base("外部库发生异常\n" + e.Message)
+        public TrackException(Exception e) : base("外部库发生异常\n" + e.Message)
         {
             exception = e;
             errorCode = ErrorCode.NotEthereal;
         }
 
-        public RPCException(ErrorCode errorCode, string message) : base(message)
+        public TrackException(ErrorCode errorCode, string message) : base(message)
         {
             exception = this;
             this.errorCode = errorCode;

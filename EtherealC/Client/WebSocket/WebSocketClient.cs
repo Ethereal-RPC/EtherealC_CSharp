@@ -33,7 +33,7 @@ namespace EtherealC.Client.WebSocket
         {
             if (!HttpListener.IsSupported)
             {
-                OnLog(RPCLog.LogCode.Runtime,"Windows XP SP2 or Server 2003 is required to use the HttpListener class.");
+                OnLog(TrackLog.LogCode.Runtime,"Windows XP SP2 or Server 2003 is required to use the HttpListener class.");
                 return;
             }
             if (prefixes == null)
@@ -63,7 +63,7 @@ namespace EtherealC.Client.WebSocket
             }
             catch (Exception e)
             {
-                OnException(new RPCException(e));
+                OnException(new TrackException(e));
                 DisConnect();
             }
         }
@@ -91,7 +91,7 @@ namespace EtherealC.Client.WebSocket
             }
             catch(Exception e)
             {
-                OnException(new RPCException(e));
+                OnException(new TrackException(e));
             }
             finally
             {
@@ -139,7 +139,7 @@ namespace EtherealC.Client.WebSocket
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
                                 if (!NetCore.Get(netName, out Net.Abstract.Net net))
                                 {
-                                    throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
+                                    throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
                                 net.ClientResponseReceiveProcess(response);
                             }
@@ -148,7 +148,7 @@ namespace EtherealC.Client.WebSocket
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                                 if (!NetCore.Get(netName, out Net.Abstract.Net net))
                                 {
-                                    throw new RPCException(RPCException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
+                                    throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
                                 net.ServerRequestReceiveProcess(request);
                             }
@@ -182,7 +182,7 @@ namespace EtherealC.Client.WebSocket
                 string log = "--------------------------------------------------\n" +
                             $"{DateTime.Now}::{netName}::[客-请求]\n{request}\n" +
                             "--------------------------------------------------\n";
-                OnLog(RPCLog.LogCode.Runtime, log);
+                OnLog(TrackLog.LogCode.Runtime, log);
                 await Accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
             }
         }

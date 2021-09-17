@@ -4,13 +4,13 @@ using Newtonsoft.Json;
 
 namespace EtherealC.Core.Model
 {
-    public class RPCTypeConfig
+    public class AbstractTypes
     {
 
-        public Dictionary<Type, RPCType> TypesByType { get; set; } = new Dictionary<Type, RPCType>();
-        public Dictionary<string, RPCType> TypesByName { get; set; } = new Dictionary<string, RPCType>();
+        public Dictionary<Type, AbstractType> TypesByType { get; set; } = new Dictionary<Type, AbstractType>();
+        public Dictionary<string, AbstractType> TypesByName { get; set; } = new Dictionary<string, AbstractType>();
 
-        public RPCTypeConfig()
+        public AbstractTypes()
         {
 
         }
@@ -18,9 +18,9 @@ namespace EtherealC.Core.Model
         {
             Add<T>(typeName, obj => JsonConvert.SerializeObject(obj), obj => JsonConvert.DeserializeObject<T>(obj));
         }
-        public void Add<T>(string typeName, RPCType.SerializeDelegage serializDelegage, RPCType.DeserializeDelegage deserializeDelegage)
+        public void Add<T>(string typeName, AbstractType.SerializeDelegage serializDelegage, AbstractType.DeserializeDelegage deserializeDelegage)
         {
-            RPCType type = new RPCType();
+            AbstractType type = new AbstractType();
             type.Name = typeName;
             type.Type = typeof(T);
             if (serializDelegage == null) type.Serialize = obj => JsonConvert.SerializeObject(obj);
@@ -33,7 +33,7 @@ namespace EtherealC.Core.Model
         /// 注册RPCType
         /// </summary>
         /// <param name="type">RPCType</param>
-        public void Add(RPCType type)
+        public void Add(AbstractType type)
         {
             try
             {

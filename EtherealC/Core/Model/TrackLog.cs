@@ -1,6 +1,6 @@
 ﻿namespace EtherealC.Core.Model
 {
-    public class RPCLog
+    public class TrackLog
     {
         public enum LogCode { Core, Runtime }
 
@@ -25,7 +25,7 @@
         public Client.Abstract.Client Client { get => client; set => client = value; }
         #endregion
 
-        public RPCLog(LogCode code,string message)
+        public TrackLog(LogCode code,string message)
         {
             this.code = code;
             this.message = message;

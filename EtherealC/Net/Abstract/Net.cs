@@ -80,22 +80,22 @@ namespace EtherealC.Net.Abstract
 
         public abstract bool Publish();
 
-        public void OnException(RPCException.ErrorCode code, string message)
+        public void OnException(TrackException.ErrorCode code, string message)
         {
-            OnException(new RPCException(code, message));
+            OnException(new TrackException(code, message));
         }
-        public void OnException(RPCException e)
+        public void OnException(TrackException e)
         {
             e.Net = this;
             exceptionEvent?.Invoke(e);
         }
 
-        public void OnLog(RPCLog.LogCode code, string message)
+        public void OnLog(TrackLog.LogCode code, string message)
         {
-            OnLog(new RPCLog(code, message));
+            OnLog(new TrackLog(code, message));
         }
 
-        public void OnLog(RPCLog log)
+        public void OnLog(TrackLog log)
         {
             logEvent?.Invoke(log);
         }
@@ -110,21 +110,21 @@ namespace EtherealC.Net.Abstract
                     log += "---------------------------------------------------------\n";
                     log += $"{DateTime.Now}::{name}::[服-指令]\n{request}\n";
                     log += "---------------------------------------------------------\n";
-                    OnLog(RPCLog.LogCode.Runtime,log);
+                    OnLog(TrackLog.LogCode.Runtime,log);
                     string[] param_id = request.MethodId.Split('-');
                     for (int i = 1, j = 0; i < param_id.Length; i++, j++)
                     {
-                        if (service.Config.Types.TypesByName.TryGetValue(param_id[i], out RPCType type))
+                        if (service.Config.Types.TypesByName.TryGetValue(param_id[i], out AbstractType type))
                         {
                             request.Params[j] = type.Deserialize((string)request.Params[j]);
                         }
-                        else throw new RPCException(RPCException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
+                        else throw new TrackException(TrackException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
                     }
                     method.Invoke(service, request.Params);
                 }
-                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
             }
-            else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
+            else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
         }
         public void ClientResponseReceiveProcess(ClientResponseModel response)
         {
@@ -132,22 +132,22 @@ namespace EtherealC.Net.Abstract
             log += "---------------------------------------------------------\n";
             log += $"{DateTime.Now}::{name}::[服-返回]\n{response}\n";
             log += "---------------------------------------------------------\n";
-            OnLog(RPCLog.LogCode.Runtime, log);
+            OnLog(TrackLog.LogCode.Runtime, log);
             if (int.TryParse(response.Id, out int id) && Requests.TryGetValue(response.Service, out Request.Abstract.Request request))
             {
                 if (request.GetTask(id, out ClientRequestModel model))
                 {
                     model.Set(response);
                 }
-                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
             }
             else
             {
                 if(response.Error != null)
                 {
-                    throw new RPCException(RPCException.ErrorCode.Runtime, $"Server:\n{response.Error}");
+                    throw new TrackException(TrackException.ErrorCode.Runtime, $"Server:\n{response.Error}");
                 }
-                else throw new RPCException(RPCException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
             }
         }
         #endregion

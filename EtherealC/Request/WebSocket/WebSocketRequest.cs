@@ -49,12 +49,12 @@ namespace EtherealC.Request.WebSocket
                     ParameterInfo[] parameters = targetMethod.GetParameters();
                     for (int i = 0, j = 1; i < param_count; i++, j++)
                     {
-                        if (Config.Types.TypesByType.TryGetValue(parameters[i].ParameterType, out RPCType type))
+                        if (Config.Types.TypesByType.TryGetValue(parameters[i].ParameterType, out AbstractType type))
                         {
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
                         }
-                        else throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                        else throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                     }
                 }
                 else
@@ -71,11 +71,11 @@ namespace EtherealC.Request.WebSocket
                             }
                             catch (Exception)
                             {
-                                throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                                throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
                             }
                         }
                     }
-                    else throw new RPCException(RPCException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
+                    else throw new TrackException(TrackException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
                 ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), obj);
                 if (targetMethod.ReturnType == typeof(void))
@@ -101,13 +101,13 @@ namespace EtherealC.Request.WebSocket
                         {
                             if (result.Error != null)
                             {
-                                throw new RPCException(RPCException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                throw new TrackException(TrackException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out RPCType type))
+                            else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out AbstractType type))
                             {
                                 return type.Deserialize((string)result.Result);
                             }
-                            else throw new RPCException(RPCException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
+                            else throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
                         }
                     }
                     finally

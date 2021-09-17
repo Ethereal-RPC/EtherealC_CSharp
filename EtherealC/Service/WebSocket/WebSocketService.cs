@@ -43,11 +43,11 @@ namespace EtherealC.Service.WebSocket
                         {
                             foreach (ParameterInfo param in parameters)
                             {
-                                if(config.Types.TypesByType.TryGetValue(param.ParameterType,out RPCType type))
+                                if(config.Types.TypesByType.TryGetValue(param.ParameterType,out AbstractType type))
                                 {
                                     methodid.Append("-" + type.Name);
                                 }
-                                else throw new RPCException(RPCException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
+                                else throw new TrackException(TrackException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
                             }
                         }
                         else
@@ -57,11 +57,11 @@ namespace EtherealC.Service.WebSocket
                             {
                                 foreach (string type_name in types_name)
                                 {
-                                    if (config.Types.TypesByName.TryGetValue(type_name, out RPCType type))
+                                    if (config.Types.TypesByName.TryGetValue(type_name, out AbstractType type))
                                     {
                                         methodid.Append("-").Append(type.Name);
                                     }
-                                    else throw new RPCException(RPCException.ErrorCode.Core,$"C#对应的{types_name}类型参数尚未注册");
+                                    else throw new TrackException(TrackException.ErrorCode.Core,$"C#对应的{types_name}类型参数尚未注册");
                                 }
                             }
                         }
