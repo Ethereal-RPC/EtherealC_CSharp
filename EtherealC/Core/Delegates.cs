@@ -1,11 +1,8 @@
 ﻿using System;
-using EtherealC.Core.Model;  
+using EtherealC.Core.Model;
 
-namespace EtherealC.Core.Delegate
+namespace EtherealC.Core.Delegates
 {
-    public class Delegates
-    {
-        public delegate void OnExceptionDelegate(Exception exception);
-        public delegate void OnLogDelegate(RPCLog log);
-    }
+    public delegate void OnExceptionDelegate(Exception exception);
+    public delegate void OnLogDelegate(RPCLog log);
 }

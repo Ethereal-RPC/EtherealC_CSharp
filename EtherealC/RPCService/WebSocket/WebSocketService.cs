@@ -1,10 +1,9 @@
-﻿using EtherealC.Core.Model;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
+using EtherealC.Core.Model;
+using EtherealC.RPCService.Abstract;
 
-namespace EtherealC.RPCService
+namespace EtherealC.RPCService.WebSocket
 {
 
     public class WebSocketService:Service

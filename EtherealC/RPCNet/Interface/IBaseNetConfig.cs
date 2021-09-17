@@ -1,8 +1,4 @@
-﻿using EtherealC.NativeClient;
-using System;
-using System.Collections.Generic;
-
-namespace EtherealC.RPCNet
+﻿namespace EtherealC.RPCNet.Interface
 {
     public interface IBaseNetConfig
     {

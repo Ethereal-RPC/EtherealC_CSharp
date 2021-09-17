@@ -6,9 +6,13 @@ using System.Reflection;
 using System.Text;
 using EtherealC.Core.Model;
 using EtherealC.NativeClient;
+using EtherealC.NativeClient.WebSocket;
+using EtherealC.RPCNet.Abstract;
+using EtherealC.RPCNet.WebSocket;
 using EtherealC.RPCRequest;
+using EtherealC.RPCRequest.Abstract;
 using EtherealC.RPCService;
-using static EtherealC.Core.Enums;
+using EtherealC.Core.Enums;
 
 namespace EtherealC.RPCNet
 {

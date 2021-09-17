@@ -1,14 +1,14 @@
-using EtherealC.Core.Model;
-using EtherealC.RPCNet;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Net;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using EtherealC.Core.Model;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.RPCNet;
+using EtherealC.RPCNet.Abstract;
+using Newtonsoft.Json.Linq;
 
-namespace EtherealC.NativeClient
+namespace EtherealC.NativeClient.WebSocket
 {
 
     public class WebSocketClient : Client

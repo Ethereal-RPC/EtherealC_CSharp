@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using EtherealC.Core.Model;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.NativeClient.WebSocket;
 using EtherealC.RPCNet;
+using EtherealC.RPCNet.Abstract;
 using EtherealC.RPCRequest;
+using EtherealC.RPCRequest.Abstract;
 using EtherealC.RPCService;
 
 namespace EtherealC.NativeClient

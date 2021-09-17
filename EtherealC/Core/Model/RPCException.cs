@@ -3,6 +3,10 @@ using EtherealC.RPCNet;
 using EtherealC.RPCRequest;
 using EtherealC.RPCService;
 using System;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.RPCNet.Abstract;
+using EtherealC.RPCRequest.Abstract;
+using EtherealC.RPCService.Abstract;
 
 namespace EtherealC.Core.Model
 {
@@ -12,7 +16,7 @@ namespace EtherealC.Core.Model
     public class RPCException : Exception
     {
         #region --字段--
-        public enum ErrorCode { Core, Runtime }
+        public enum ErrorCode { Core, Runtime , NotEthereal}
         /// <summary>
         /// 错误代码
         /// </summary>
@@ -37,10 +41,10 @@ namespace EtherealC.Core.Model
         {
             exception = this;
         }
-        public RPCException(Exception e) : base(e.Message)
+        public RPCException(Exception e) : base("外部库发生异常\n" + e.Message)
         {
-            exception = this;
-            this.exception = e;
+            exception = e;
+            errorCode = ErrorCode.NotEthereal;
         }
 
         public RPCException(ErrorCode errorCode, string message) : base(message)

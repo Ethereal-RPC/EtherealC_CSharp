@@ -1,10 +1,8 @@
-﻿using EtherealC.Core.Model;
+﻿using System.Text;
+using EtherealC.Core.Model;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace EtherealC.NativeClient
+namespace EtherealC.NativeClient.Abstract
 {
     public abstract class ClientConfig
     {

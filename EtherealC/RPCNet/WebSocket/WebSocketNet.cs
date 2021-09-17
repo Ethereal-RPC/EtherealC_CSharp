@@ -1,16 +1,19 @@
-﻿using EtherealC.Core.Model;
+﻿using System;
+using System.Threading;
+using EtherealC.Core.Model;
 using EtherealC.NativeClient;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.NativeClient.WebSocket;
+using EtherealC.RPCNet.Abstract;
 using EtherealC.RPCNet.NetNodeClient.Model;
 using EtherealC.RPCNet.NetNodeClient.Request;
 using EtherealC.RPCNet.NetNodeClient.Service;
 using EtherealC.RPCRequest;
+using EtherealC.RPCRequest.Abstract;
 using EtherealC.RPCService;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
+using EtherealC.RPCService.Abstract;
 
-namespace EtherealC.RPCNet
+namespace EtherealC.RPCNet.WebSocket
 {
     public class WebSocketNet:Net
     {

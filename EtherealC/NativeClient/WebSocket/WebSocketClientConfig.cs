@@ -1,10 +1,7 @@
-﻿using EtherealC.Core.Model;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using EtherealC.NativeClient.Abstract;
 
-namespace EtherealC.NativeClient
+namespace EtherealC.NativeClient.WebSocket
 {
     public class WebSocketClientConfig:ClientConfig
     {

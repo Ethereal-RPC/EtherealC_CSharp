@@ -1,14 +1,17 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.RPCRequest;
-using EtherealC.RPCService;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using static EtherealC.Core.Delegate.Delegates;
-using static EtherealC.Core.Enums;
+using EtherealC.Core.Delegates;
+using EtherealC.Core.Model;
+using EtherealC.RPCNet.Interface;
+using EtherealC.RPCRequest;
+using EtherealC.RPCRequest.Abstract;
+using EtherealC.RPCService;
+using EtherealC.RPCService.Abstract;
+using EtherealC.Core.Enums;
 
-namespace EtherealC.RPCNet
+namespace EtherealC.RPCNet.Abstract
 {
     public abstract class Net:IBaseNet
     {

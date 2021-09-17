@@ -1,7 +1,4 @@
-﻿using EtherealC.Core.Model;
-using System;
-
-namespace EtherealC.RPCRequest
+﻿namespace EtherealC.RPCRequest.Interface
 {
     public interface IRequestConfig
     {

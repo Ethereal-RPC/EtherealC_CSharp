@@ -1,11 +1,6 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.NativeClient;
-using EtherealC.RPCRequest;
-using EtherealC.RPCService;
-using System;
-using System.Collections.Generic;
+﻿using EtherealC.RPCNet.Abstract;
 
-namespace EtherealC.RPCNet
+namespace EtherealC.RPCNet.WebSocket
 {
     public class WebSocketNetConfig : NetConfig
     {

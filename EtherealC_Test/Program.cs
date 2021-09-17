@@ -10,6 +10,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.NativeClient.WebSocket;
+using EtherealC.RPCNet.Abstract;
+using EtherealC.RPCRequest.Abstract;
+using EtherealC.RPCService.Abstract;
 
 namespace EtherealC_Test
 {

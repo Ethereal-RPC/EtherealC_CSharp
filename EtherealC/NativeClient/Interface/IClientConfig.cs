@@ -1,10 +1,4 @@
-﻿using EtherealC.Core.Model;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace EtherealC.NativeClient
+﻿namespace EtherealC.NativeClient.Interface
 {
     public interface IClientConfig
     {

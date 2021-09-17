@@ -1,7 +1,4 @@
-﻿using EtherealC.Core.Model;
-using System;
-
-namespace EtherealC.RPCService
+﻿namespace EtherealC.RPCService.Interface
 {
     public interface IServiceConfig
     {

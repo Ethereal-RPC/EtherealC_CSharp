@@ -1,10 +1,11 @@
-﻿using EtherealC.Core.Model;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Reflection;
 using System.Text;
+using EtherealC.Core.Model;
+using EtherealC.RPCRequest.Abstract;
+using Newtonsoft.Json;
 
-namespace EtherealC.RPCRequest
+namespace EtherealC.RPCRequest.WebSocket
 {
     public class WebSocketRequest:Request
     {

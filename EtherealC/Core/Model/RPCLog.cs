@@ -1,7 +1,11 @@
 ﻿using EtherealC.NativeClient;
+using EtherealC.NativeClient.Abstract;
 using EtherealC.RPCNet;
+using EtherealC.RPCNet.Abstract;
 using EtherealC.RPCRequest;
+using EtherealC.RPCRequest.Abstract;
 using EtherealC.RPCService;
+using EtherealC.RPCService.Abstract;
 
 namespace EtherealC.Core.Model
 {

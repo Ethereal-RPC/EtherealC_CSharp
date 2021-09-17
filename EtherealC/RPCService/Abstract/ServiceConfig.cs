@@ -1,7 +1,7 @@
 ﻿using EtherealC.Core.Model;
-using System;
+using EtherealC.RPCService.Interface;
 
-namespace EtherealC.RPCService
+namespace EtherealC.RPCService.Abstract
 {
     public abstract class ServiceConfig: IServiceConfig
     {

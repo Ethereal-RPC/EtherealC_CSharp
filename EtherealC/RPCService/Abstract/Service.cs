@@ -1,11 +1,11 @@
-﻿using EtherealC.Core.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using static EtherealC.Core.Delegate.Delegates;
+using EtherealC.Core.Delegates;
+using EtherealC.Core.Model;
+using EtherealC.RPCService.Interface;
 
-namespace EtherealC.RPCService
+namespace EtherealC.RPCService.Abstract
 {
     public abstract class Service:IService
     {

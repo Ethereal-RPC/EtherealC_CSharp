@@ -1,7 +1,7 @@
 ﻿using EtherealC.Core.Model;
-using System;
+using EtherealC.RPCService.Abstract;
 
-namespace EtherealC.RPCService
+namespace EtherealC.RPCService.WebSocket
 {
     public class WebSocketServiceConfig:ServiceConfig
     {

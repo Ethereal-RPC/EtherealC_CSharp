@@ -1,15 +1,12 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.NativeClient;
-using EtherealC.RPCNet;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static EtherealC.Core.Delegate.Delegates;
+using EtherealC.Core.Delegates;
+using EtherealC.Core.Model;
+using EtherealC.NativeClient.Abstract;
+using EtherealC.RPCRequest.WebSocket;
 
-namespace EtherealC.RPCRequest
+namespace EtherealC.RPCRequest.Abstract
 {
     public abstract class Request : DispatchProxy
     {

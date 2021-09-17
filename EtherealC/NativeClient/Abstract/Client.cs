@@ -1,8 +1,9 @@
-using EtherealC.Core.Model;
 using System;
-using static EtherealC.Core.Delegate.Delegates;
+using EtherealC.Core.Delegates;
+using EtherealC.Core.Model;
+using EtherealC.NativeClient.Interface;
 
-namespace EtherealC.NativeClient
+namespace EtherealC.NativeClient.Abstract
 {
 
     public abstract class Client:IClient

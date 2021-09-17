@@ -3,6 +3,9 @@ using EtherealC.NativeClient;
 using EtherealC.RPCNet;
 using System;
 using System.Collections.Generic;
+using EtherealC.RPCNet.Abstract;
+using EtherealC.RPCRequest.Abstract;
+using EtherealC.RPCRequest.WebSocket;
 
 namespace EtherealC.RPCRequest
 {

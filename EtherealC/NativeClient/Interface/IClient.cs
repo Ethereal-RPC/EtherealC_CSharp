@@ -1,7 +1,7 @@
 using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 
-namespace EtherealC.NativeClient
+namespace EtherealC.NativeClient.Interface
 {
 
     public interface IClient:ILogEvent,IExceptionEvent

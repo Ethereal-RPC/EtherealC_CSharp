@@ -1,7 +1,7 @@
 ﻿using EtherealC.Core.Model;
-using System;
+using EtherealC.RPCRequest.Interface;
 
-namespace EtherealC.RPCRequest
+namespace EtherealC.RPCRequest.Abstract
 {
     public abstract class RequestConfig: IRequestConfig
     {

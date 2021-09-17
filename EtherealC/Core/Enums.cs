@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core
+namespace EtherealC.Core.Enums
 {
-    public class Enums
-    {
-        public enum NetType { WebSocket }
-    }
+    public enum NetType { WebSocket }
 }

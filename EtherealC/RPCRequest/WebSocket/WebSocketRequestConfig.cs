@@ -1,7 +1,7 @@
 ﻿using EtherealC.Core.Model;
-using System;
+using EtherealC.RPCRequest.Abstract;
 
-namespace EtherealC.RPCRequest
+namespace EtherealC.RPCRequest.WebSocket
 {
     public class WebSocketRequestConfig : RequestConfig
     {
