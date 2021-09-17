@@ -1,20 +1,20 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.NativeClient;
-using EtherealC.RPCNet;
-using EtherealC.RPCRequest;
-using EtherealC.RPCService;
-using EtherealC_Test.Model;
+﻿using EtherealC_Test.Model;
 using EtherealC_Test.ServiceDemo;
 using EtherealS_Test.RequestDemo;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using EtherealC.NativeClient.Abstract;
-using EtherealC.NativeClient.WebSocket;
-using EtherealC.RPCNet.Abstract;
-using EtherealC.RPCRequest.Abstract;
-using EtherealC.RPCService.Abstract;
+using EtherealC.Client;
+using EtherealC.Client.Abstract;
+using EtherealC.Client.WebSocket;
+using EtherealC.Core.Model;
+using EtherealC.Net;
+using EtherealC.Net.Abstract;
+using EtherealC.Request;
+using EtherealC.Request.Abstract;
+using EtherealC.Service;
+using EtherealC.Service.Abstract;
 
 namespace EtherealC_Test
 {
@@ -31,7 +31,7 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName, EtherealC.Core.Enums.NetType.WebSocket);
+            Net net = NetCore.Register(netName, Net.NetType.WebSocket);
             net.ExceptionEvent += Config_ExceptionEvent;
             net.LogEvent += Net_LogEvent;
             //向网关注册服务
@@ -68,7 +68,7 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName, EtherealC.Core.Enums.NetType.WebSocket);
+            Net net = NetCore.Register(netName, Net.NetType.WebSocket);
             net.ExceptionEvent += Config_ExceptionEvent;
             //向网关注册服务
             Service service = ServiceCore.Register<ClientService>(net, "Client", types);

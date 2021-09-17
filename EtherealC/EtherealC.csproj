@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>0.4.0</Version>
+    <Version>0.4.2</Version>
     <Authors>Jianxian</Authors>
     <Company>XianYu</Company>
     <AssemblyName>EtherealC</AssemblyName>
@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Utils\" />
   </ItemGroup>
 
 </Project>

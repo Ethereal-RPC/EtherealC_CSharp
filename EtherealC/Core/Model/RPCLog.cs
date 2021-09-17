@@ -1,13 +1,4 @@
-﻿using EtherealC.NativeClient;
-using EtherealC.NativeClient.Abstract;
-using EtherealC.RPCNet;
-using EtherealC.RPCNet.Abstract;
-using EtherealC.RPCRequest;
-using EtherealC.RPCRequest.Abstract;
-using EtherealC.RPCService;
-using EtherealC.RPCService.Abstract;
-
-namespace EtherealC.Core.Model
+﻿namespace EtherealC.Core.Model
 {
     public class RPCLog
     {
@@ -17,10 +8,10 @@ namespace EtherealC.Core.Model
         private string message;
         private LogCode code;
 
-        private Net net;
-        private Client client;
-        private Service service;
-        private Request request;
+        private Net.Abstract.Net net;
+        private Client.Abstract.Client client;
+        private Service.Abstract.Service service;
+        private Request.Abstract.Request request;
         #endregion
 
 
@@ -28,10 +19,10 @@ namespace EtherealC.Core.Model
         #region --属性--
         public string Message { get => message; set => message = value; }
         public LogCode Code { get => code; set => code = value; }
-        public Net Net { get => net; set => net = value; }
-        public Service Service { get => service; set => service = value; }
-        public Request Request { get => request; set => request = value; }
-        public Client Client { get => client; set => client = value; }
+        public Net.Abstract.Net Net { get => net; set => net = value; }
+        public Service.Abstract.Service Service { get => service; set => service = value; }
+        public Request.Abstract.Request Request { get => request; set => request = value; }
+        public Client.Abstract.Client Client { get => client; set => client = value; }
         #endregion
 
         public RPCLog(LogCode code,string message)
