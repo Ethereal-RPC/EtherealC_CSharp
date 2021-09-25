@@ -9,11 +9,11 @@ namespace EtherealC.Request
     {
         #region --方法--
 
-        public static bool Get(string netName, string requestName, out Request.Abstract.Request reqeust)
+        public static bool Get(string netName, string serviceName, out Request.Abstract.Request reqeust)
         {
             if (NetCore.Get(netName, out Net.Abstract.Net net))
             {
-                return Get(net, requestName, out reqeust);
+                return Get(net, serviceName, out reqeust);
             }
             else
             {
@@ -21,9 +21,9 @@ namespace EtherealC.Request
                 return false;
             }
         }
-        public static bool Get(Net.Abstract.Net net, string requestName, out Request.Abstract.Request reqeust)
+        public static bool Get(Net.Abstract.Net net, string serviceName, out Request.Abstract.Request reqeust)
         {
-            return net.Requests.TryGetValue(requestName, out reqeust);
+            return net.Requests.TryGetValue(serviceName, out reqeust);
         }
 
         /// <summary>
@@ -33,11 +33,11 @@ namespace EtherealC.Request
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(Net.Abstract.Net net, string requestname,AbstractTypes type) where T : class
+        public static T Register<T>(Net.Abstract.Net net, string serviceName, AbstractTypes type) where T : class
         {
             if(net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
-                return Register<T>(net, requestname, new WebSocketRequestConfig(type));
+                return Register<T>(net, serviceName, new WebSocketRequestConfig(type));
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
         }

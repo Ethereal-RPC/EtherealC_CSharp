@@ -75,7 +75,7 @@ namespace EtherealC.Client
                     {
                         config = new WebSocketClientConfig();
                     }
-                    _request.Client = new WebSocketClient(_request.NetName, _request.Name, prefixes, config);
+                    _request.Client = new WebSocketClient(_request.NetName, _request.ServiceName, prefixes, config);
                 }
                 else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Client-Register处理");
             }

@@ -54,7 +54,7 @@ namespace EtherealC.Request.Abstract
 
         #region --字段--
         protected Client.Abstract.Client client;
-        protected string name;
+        protected string serviceName;
         protected string netName;
         protected RequestConfig config;
         protected ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
@@ -64,7 +64,7 @@ namespace EtherealC.Request.Abstract
         public RequestConfig Config { get => config; set => config = value; }
         public Client.Abstract.Client Client { get => client; set => client = value; }
         public string NetName { get => netName; set => netName = value; }
-        public string Name { get => name; set => name = value; }
+        public string ServiceName { get => serviceName; set => serviceName = value; }
         #endregion
 
         #region --方法--
@@ -78,7 +78,7 @@ namespace EtherealC.Request.Abstract
         {
             Request proxy = (Request)(Create<T, Request>() as object);
             proxy.NetName = netName;
-            proxy.Name = servicename;
+            proxy.ServiceName = servicename;
             proxy.Config = config;
             return proxy;
         }

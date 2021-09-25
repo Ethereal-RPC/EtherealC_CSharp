@@ -131,7 +131,7 @@ namespace EtherealC.Net.WebSocket
                                 if (request.Client == null)
                                 {
                                     //获取服务节点
-                                    NetNode node = (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.Name);
+                                    NetNode node = (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.ServiceName);
                                     if (node != null)
                                     {
                                         //注册连接并启动连接
@@ -139,7 +139,7 @@ namespace EtherealC.Net.WebSocket
                                         requestClient.DisConnectEvent += ClientConnectFailEvent;
                                         requestClient.Connect();
                                     }
-                                    else throw new TrackException(TrackException.ErrorCode.Runtime,$"{name}-{request.Name}-在NetNode分布式中未找到节点");
+                                    else throw new TrackException(TrackException.ErrorCode.Runtime,$"{name}-{request.ServiceName}-在NetNode分布式中未找到节点");
                                 }
                             }
                         }

@@ -51,14 +51,14 @@ namespace EtherealC.Service.Abstract
         //string连接的时候使用引用要比tuple慢很多
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         protected object instance;
-        protected string name;
+        protected string serviceName;
         protected string netName;
         protected ServiceConfig config;
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public object Instance { get => instance; set => instance = value; }
         public ServiceConfig Config { get => config; set => config = value; }
-        public string Name { get => name; set => name = value; }
+        public string ServiceName { get => serviceName; set => serviceName = value; }
         public string NetName { get => netName; set => netName = value; }
 
         public abstract void Register<T>(T instance, string netName, string servicename, ServiceConfig config);

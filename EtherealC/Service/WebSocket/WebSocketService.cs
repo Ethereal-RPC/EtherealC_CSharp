@@ -17,7 +17,7 @@ namespace EtherealC.Service.WebSocket
             this.instance = instance;
             this.config = config;
             this.netName = netName;
-            this.name = servicename;
+            this.serviceName = servicename;
             //遍历所有字段
             foreach(FieldInfo field in instance.GetType().GetFields())
             {
