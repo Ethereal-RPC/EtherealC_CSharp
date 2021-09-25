@@ -13,7 +13,7 @@ namespace EtherealC.Core.Model
         private string id;
         private string service;
         private AutoResetEvent sign = new AutoResetEvent(false);
-        public ClientResponseModel Result { get => result; set => result = value; } 
+        public ClientResponseModel Result { get => result; set => result = value; }
         public string Type { get => type; set => type = value; }
         public string MethodId { get => methodId; set => methodId = value; }
         public object[] Params { get => @params; set => @params = value; }
@@ -36,7 +36,7 @@ namespace EtherealC.Core.Model
         public ClientResponseModel Get(int timeout)
         {
             //暂停当前进程，等待返回.
-            while (Result == null)
+            if (Result == null)
             {
                 if (timeout == -1) Sign.WaitOne();
                 else Sign.WaitOne(timeout);
