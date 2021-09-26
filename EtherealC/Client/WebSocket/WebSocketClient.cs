@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
+using System.Threading.Tasks;
 using EtherealC.Client.Abstract;
 using EtherealC.Core.Model;
 using EtherealC.Net;
@@ -47,6 +48,28 @@ namespace EtherealC.Client.WebSocket
         }
 
         public async override void Connect()
+        {
+            try
+            {
+                await Accept.ConnectAsync(new Uri("ws://" + Prefixes), cancellationToken);
+                if (Accept.State == WebSocketState.Open)
+                {
+                    ReceiveAsync();
+                    OnConnect();
+                }
+                else
+                {
+                    OnDisConnect();
+                }
+            }
+            catch (Exception e)
+            {
+                OnException(new TrackException(e));
+                DisConnect();
+            }
+        }
+
+        public async Task ConnectSync()
         {
             try
             {

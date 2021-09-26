@@ -54,7 +54,7 @@ namespace EtherealC.Net.Abstract
         /// <summary>
         /// Net网关名
         /// </summary>
-        protected string name;
+        protected string net_name;
         /// <summary>
         /// Service映射表
         /// </summary>
@@ -70,7 +70,7 @@ namespace EtherealC.Net.Abstract
         #region --属性--
         public ConcurrentDictionary<string, Service.Abstract.Service> Services { get => services; set => services = value; }
         public Dictionary<string, Request.Abstract.Request> Requests { get => requests; set => requests = value; }
-        public string Name { get => name; set => name = value; }
+        public string Name { get => net_name; set => net_name = value; }
         public NetType Type { get => type; set => type = value; }
         public NetConfig Config { get => config; set => config = value; }
 
@@ -108,7 +108,7 @@ namespace EtherealC.Net.Abstract
                 {
                     string log = "";
                     log += "---------------------------------------------------------\n";
-                    log += $"{DateTime.Now}::{name}::[服-指令]\n{request}\n";
+                    log += $"{DateTime.Now}::{net_name}::[服-指令]\n{request}\n";
                     log += "---------------------------------------------------------\n";
                     OnLog(TrackLog.LogCode.Runtime,log);
                     string[] param_id = request.MethodId.Split('-');
@@ -122,15 +122,15 @@ namespace EtherealC.Net.Abstract
                     }
                     method.Invoke(service, request.Params);
                 }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{net_name}-{request.Service}-{request.MethodId}未找到!");
             }
-            else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
+            else throw new TrackException(TrackException.ErrorCode.Runtime, $"{net_name}-{request.Service} 未找到!");
         }
         public void ClientResponseReceiveProcess(ClientResponseModel response)
         {
             string log = "";
             log += "---------------------------------------------------------\n";
-            log += $"{DateTime.Now}::{name}::[服-返回]\n{response}\n";
+            log += $"{DateTime.Now}::{net_name}::[服-返回]\n{response}\n";
             log += "---------------------------------------------------------\n";
             OnLog(TrackLog.LogCode.Runtime, log);
             if (int.TryParse(response.Id, out int id) && Requests.TryGetValue(response.Service, out Request.Abstract.Request request))
@@ -139,7 +139,7 @@ namespace EtherealC.Net.Abstract
                 {
                     model.Set(response);
                 }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{net_name}-{response.Service}-{id}返回的请求ID未找到!");
             }
             else
             {
@@ -147,7 +147,7 @@ namespace EtherealC.Net.Abstract
                 {
                     throw new TrackException(TrackException.ErrorCode.Runtime, $"Server:\n{response.Error}");
                 }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
+                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{net_name}-{response.Service}未找到!");
             }
         }
         #endregion

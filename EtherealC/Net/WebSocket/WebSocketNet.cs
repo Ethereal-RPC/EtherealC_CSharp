@@ -16,7 +16,6 @@ namespace EtherealC.Net.WebSocket
     {
         #region --字段--
         private AutoResetEvent connectSign = new AutoResetEvent(false);
-
         #endregion
 
         #region --属性--
@@ -37,14 +36,10 @@ namespace EtherealC.Net.WebSocket
                 types.Add<string>("String");
                 types.Add<bool>("Bool");
                 types.Add<NetNode>("NetNode");
-                //注册网关
-                Abstract.Net net = NetCore.Register($"NetNode-{name}",NetType.WebSocket);//防止重名
-                net.LogEvent += OnLog;
-                net.ExceptionEvent += OnException;
                 //向网关注册服务
-                Service.Abstract.Service netNodeService = ServiceCore.Register<ClientNetNodeService>(net, "ClientNetNodeService", types);
+                Service.Abstract.Service netNodeService = ServiceCore.Register<ClientNetNodeService>(this, "ClientNetNodeService", types);
                 //向网关注册请求
-                ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest>(net, "ServerNetNodeService", types);
+                ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest>(this, "ServerNetNodeService", types);
                 new Thread(() =>
                 {
                     try
@@ -52,7 +47,7 @@ namespace EtherealC.Net.WebSocket
                         while (true)
                         {
                             NetNodeSearch();
-                            Thread.Sleep(Config.NetNodeHeartInterval);
+                            connectSign.WaitOne(Config.NetNodeHeartInterval);
                         }
                     }
                     catch(Exception e)
@@ -77,90 +72,70 @@ namespace EtherealC.Net.WebSocket
             }
             return true;
         }
-        public void NetNodeSearch()
+        public async void NetNodeSearch()
         {
-            lock (connectSign)
+            bool flag = false;
+            foreach (Request.Abstract.Request request in Requests.Values)
             {
-                bool flag = false;
-                foreach (Request.Abstract.Request request in Requests.Values)
+                if (request.Client == null && request.ServiceName != "ServerNetNodeService")
                 {
-                    if (request.Client == null)
-                    {
-                        flag = true;
-                        break;
-                    }
+                    flag = true;
+                    break;
                 }
-                if (flag)
+            }
+            if (flag)
+            {
+                //搜寻正常启动的注册中心
+                foreach (Tuple<string, ClientConfig> item in Config.NetNodeIps)
                 {
-                    WebSocketClient client = null;
-                    if (!NetCore.Get($"NetNode-{name}", out Abstract.Net net)) throw new TrackException(TrackException.ErrorCode.Runtime, $"NetNode-{name} 未找到");
-                    //搜寻正常启动的注册中心
-                    foreach (Tuple<string,ClientConfig> item in Config.NetNodeIps)
+                    string prefixe = item.Item1;
+                    ClientConfig config = item.Item2;
+                    //向网关注册连接
+                    WebSocketClient client = (WebSocketClient)ClientCore.Register(this, "ServerNetNodeService", prefixe, config);
+                    try
                     {
-                        string prefixe = item.Item1;
-                        ClientConfig config = item.Item2;
-
-                        //向网关注册连接
-                        client = (WebSocketClient)ClientCore.Register(net, "ServerNetNodeService",prefixe,config);
-                        //关闭分布式模式
-                        net.Config.NetNodeMode = false;
-                        client.ConnectEvent += SignConnectSuccessEvent;
-                        client.DisConnectEvent += SignConnectFailEvent;
-                        //启动连接
-                        net.Publish();
-                        connectSign.WaitOne();
-                        client.ConnectEvent -= SignConnectSuccessEvent;
-                        client.DisConnectEvent -= SignConnectFailEvent;
+                        await client.ConnectSync();
                         //连接成功
                         if (client?.Accept?.State == System.Net.WebSockets.WebSocketState.Open)
                         {
-                            break;
-                        }
-                        else
-                        {
-                            ClientCore.UnRegister(net, "ServerNetNodeService");
-                        }
-                    }
-
-                    if (client?.Accept?.State == System.Net.WebSockets.WebSocketState.Open)
-                    {
-                        if(RequestCore.Get(net, "ServerNetNodeService", out Request.Abstract.Request netNodeRequest))
-                        {
-                            foreach (Request.Abstract.Request request in Requests.Values)
+                            if (RequestCore.Get(this, "ServerNetNodeService",
+                                out Request.Abstract.Request netNodeRequest))
                             {
-                                if (request.Client == null)
+                                foreach (Request.Abstract.Request request in Requests.Values)
                                 {
-                                    //获取服务节点
-                                    NetNode node = (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.ServiceName);
-                                    if (node != null)
+                                    if (request.Client == null)
                                     {
-                                        //注册连接并启动连接
-                                        Client.Abstract.Client requestClient = ClientCore.Register(request, node.Prefixes[0]);
-                                        requestClient.DisConnectEvent += ClientConnectFailEvent;
-                                        requestClient.Connect();
+                                        //获取服务节点
+                                        NetNode node =
+                                            (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.ServiceName);
+                                        if (node != null)
+                                        {
+                                            //注册连接并启动连接
+                                            Client.Abstract.Client requestClient =
+                                                ClientCore.Register(request, node.Prefixes[0]);
+                                            requestClient.DisConnectEvent += ClientConnectFailEvent;
+                                            requestClient.Connect();
+                                        }
+                                        else
+                                            throw new TrackException(TrackException.ErrorCode.Runtime,
+                                                $"{net_name}-{request.ServiceName}-在NetNode分布式中未找到节点");
                                     }
-                                    else throw new TrackException(TrackException.ErrorCode.Runtime,$"{name}-{request.ServiceName}-在NetNode分布式中未找到节点");
                                 }
+                                return;
                             }
+                            throw new TrackException(TrackException.ErrorCode.Runtime, $"无法找到{net_name}-ServerNetNodeService");
                         }
                     }
-                    ClientCore.UnRegister(net, "ServerNodeService");
+                    finally
+                    {
+                        ClientCore.UnRegister(this, "ServerNetNodeService");
+                    }
                 }
             }
         }
-        private  void ClientConnectFailEvent(Client.Abstract.Client client)
+        private void ClientConnectFailEvent(Client.Abstract.Client client)
         {
-            client.DisConnectEvent -= ClientConnectFailEvent;
             ClientCore.UnRegister(client.NetName, client.ServiceName);
-            NetNodeSearch();
-        }
-        private void SignConnectFailEvent(Client.Abstract.Client client)
-        {
-            connectSign.Set();
-        }
-
-        private void SignConnectSuccessEvent(Client.Abstract.Client client)
-        {
             connectSign.Set();
         }
         #endregion
