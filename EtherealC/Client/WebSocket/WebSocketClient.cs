@@ -195,6 +195,7 @@ namespace EtherealC.Client.WebSocket
                 catch (Exception e)
                 {
                     DisConnect(WebSocketCloseStatus.NormalClosure, $"{e.Message}");
+                    OnException(TrackException.ErrorCode.Runtime,e.Message);
                 }
             }
         }

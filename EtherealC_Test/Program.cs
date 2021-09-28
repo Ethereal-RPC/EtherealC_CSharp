@@ -109,8 +109,8 @@ namespace EtherealC_Test
 
         public static void Main()
         {
-            //Single("127.0.0.1", "28015","1");
-            NetNode("demo", "127.0.0.1");
+            Single("127.0.0.1", "28015","1");
+            //NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }
 

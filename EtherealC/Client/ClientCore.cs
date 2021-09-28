@@ -119,7 +119,7 @@ namespace EtherealC.Client
                 request.Client.ExceptionEvent -= request.OnException;
                 var temp = request.Client;
                 request.Client = null;
-                temp.DisConnect();
+                temp?.DisConnect();
             }
             return true;
         }
