@@ -39,7 +39,7 @@ namespace EtherealC.Net.WebSocket
                 //向网关注册服务
                 Service.Abstract.Service netNodeService = ServiceCore.Register<ClientNetNodeService>(this, "ClientNetNodeService", types);
                 //向网关注册请求
-                ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest>(this, "ServerNetNodeService", types);
+                ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest,IServerNetNodeRequest>(this, "ServerNetNodeService", types);
                 new Thread(() =>
                 {
                     try

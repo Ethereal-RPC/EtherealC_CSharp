@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using EtherealC.Core;
 using EtherealC.Core.Model;
 using EtherealC.Service.Interface;
@@ -61,7 +62,64 @@ namespace EtherealC.Service.Abstract
         public string ServiceName { get => serviceName; set => serviceName = value; }
         public string NetName { get => netName; set => netName = value; }
 
-        public abstract void Register<T>(T instance, string netName, string servicename, ServiceConfig config);
+        public static void Register<T>(T instance, string netName, string servicename, ServiceConfig config)where T:Service
+        {
+            instance.config = config;
+            instance.netName = netName;
+            instance.serviceName = servicename;
+            //遍历所有字段
+            foreach (FieldInfo field in instance.GetType().GetFields())
+            {
+                Attribute.ServiceConfig rpcAttribute = field.GetCustomAttribute<Attribute.ServiceConfig>();
+                if (rpcAttribute != null)
+                {
+                    //将config赋值入该Service
+                    field.SetValue(instance, config);
+                }
+            }
+
+            StringBuilder methodid = new StringBuilder();
+            foreach (MethodInfo method in instance.GetType().GetMethods())
+            {
+                Attribute.Service rpcAttribute = method.GetCustomAttribute<Attribute.Service>();
+                if (rpcAttribute != null)
+                {
+                    if (!method.IsAbstract)
+                    {
+                        methodid.Append(method.Name);
+                        ParameterInfo[] parameters = method.GetParameters();
+                        if (rpcAttribute.Paramters == null)
+                        {
+                            foreach (ParameterInfo param in parameters)
+                            {
+                                if (config.Types.TypesByType.TryGetValue(param.ParameterType, out AbstractType type))
+                                {
+                                    methodid.Append("-" + type.Name);
+                                }
+                                else throw new TrackException(TrackException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
+                            }
+                        }
+                        else
+                        {
+                            string[] types_name = rpcAttribute.Paramters;
+                            if (parameters.Length == types_name.Length)
+                            {
+                                foreach (string type_name in types_name)
+                                {
+                                    if (config.Types.TypesByName.TryGetValue(type_name, out AbstractType type))
+                                    {
+                                        methodid.Append("-").Append(type.Name);
+                                    }
+                                    else throw new TrackException(TrackException.ErrorCode.Core, $"C#对应的{types_name}类型参数尚未注册");
+                                }
+                            }
+                        }
+                        instance.methods.TryAdd(methodid.ToString(), method);
+                        methodid.Length = 0;
+                    }
+                }
+            }
+        }
         public void OnException(TrackException.ErrorCode code, string message)
         {
             OnException(new TrackException(code, message));

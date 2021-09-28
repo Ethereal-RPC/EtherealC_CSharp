@@ -74,9 +74,9 @@ namespace EtherealC.Request.Abstract
             return tasks.TryGetValue(id, out model);
         }
 
-        public static Request Register<T>(string netName, string servicename, WebSocketRequestConfig config)
+        public static R Register<R,T>(string netName, string servicename, WebSocketRequestConfig config)where R:Request
         {
-            Request proxy = (Request)(Create<T, Request>() as object);
+            R proxy = Create<T, R>() as R;
             proxy.NetName = netName;
             proxy.ServiceName = servicename;
             proxy.Config = config;

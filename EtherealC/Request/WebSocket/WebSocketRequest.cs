@@ -24,15 +24,6 @@ namespace EtherealC.Request.WebSocket
 
         #region --方法--
 
-        public static new Abstract.Request Register<T>(string netName, string serviceName, WebSocketRequestConfig config)
-        {
-            Abstract.Request proxy = (Abstract.Request)(Create<T, WebSocketRequest>() as object);
-            proxy.NetName = netName;
-            proxy.ServiceName = serviceName;
-            proxy.Config = config;
-            return proxy;
-        }
-
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             Attribute.Request rpcAttribute = targetMethod.GetCustomAttribute<Attribute.Request>();

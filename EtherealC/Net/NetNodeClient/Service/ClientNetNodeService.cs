@@ -1,6 +1,8 @@
-﻿namespace EtherealC.Net.NetNodeClient.Service
+﻿using EtherealC.Service.WebSocket;
+
+namespace EtherealC.Net.NetNodeClient.Service
 {
-    public class ClientNetNodeService
+    public class ClientNetNodeService:WebSocketService
     {
 
     }

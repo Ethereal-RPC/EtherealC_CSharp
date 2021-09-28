@@ -1,17 +1,25 @@
 ﻿using EtherealC.Request.Attribute;
+using EtherealC.Request.WebSocket;
 using EtherealC_Test.Model;
+using Request = EtherealC.Request.Abstract.Request;
 
 namespace EtherealC_Test.ServiceDemo
 {
-    public interface ServerRequest
+    public class ServerRequest: WebSocketRequest,IServerRequest
     {
-        [Request]
-        public bool Register(string username,long id);
+        public virtual bool Register(string username, long id)
+        {
+            throw new System.NotImplementedException();
+        }
 
-        [Request]
-        public bool SendSay(long listener_id, string message);
-        //参数级 方法级 服务级
-        [Request]
-        public int Add(int a, int b);
+        public virtual bool SendSay(long listener_id, string message)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public virtual int Add(int a, int b)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

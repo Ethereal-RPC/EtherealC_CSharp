@@ -9,11 +9,11 @@ namespace EtherealC.Request
     {
         #region --方法--
 
-        public static bool Get(string netName, string serviceName, out Request.Abstract.Request reqeust)
+        public static bool Get<T>(string netName, string serviceName, out T reqeust)where T:Abstract.Request
         {
             if (NetCore.Get(netName, out Net.Abstract.Net net))
             {
-                return Get(net, serviceName, out reqeust);
+                return Get<T>(net, serviceName, out reqeust);
             }
             else
             {
@@ -21,9 +21,11 @@ namespace EtherealC.Request
                 return false;
             }
         }
-        public static bool Get(Net.Abstract.Net net, string serviceName, out Request.Abstract.Request reqeust)
+        public static bool Get<T>(Net.Abstract.Net net, string serviceName, out T reqeust) where T : Abstract.Request
         {
-            return net.Requests.TryGetValue(serviceName, out reqeust);
+            bool result = net.Requests.TryGetValue(serviceName, out Abstract.Request value);
+            reqeust = (T)value;
+            return result;
         }
 
         /// <summary>
@@ -33,11 +35,11 @@ namespace EtherealC.Request
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(Net.Abstract.Net net, string serviceName, AbstractTypes type) where T : class
+        public static R Register<R,T>(Net.Abstract.Net net, string serviceName, AbstractTypes type) where R : Abstract.Request
         {
             if(net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
-                return Register<T>(net, serviceName, new WebSocketRequestConfig(type));
+                return Register<R,T>(net, serviceName, new WebSocketRequestConfig(type));
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
         }
@@ -48,21 +50,17 @@ namespace EtherealC.Request
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static T Register<T>(Net.Abstract.Net net, string servicename, WebSocketRequestConfig config) where T : class
+        public static R Register<R,T>(Net.Abstract.Net net, string servicename, WebSocketRequestConfig config) where R : Abstract.Request
         {
-            net.Requests.TryGetValue(servicename, out Request.Abstract.Request request);
+            net.Requests.TryGetValue(servicename, out Abstract.Request request);
             if (request == null)
             {
-                if(net.Type == Net.Abstract.Net.NetType.WebSocket)
-                {
-                    request = WebSocketRequest.Register<T>(net.Name, servicename, config);
-                }
-                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
+                request = Abstract.Request.Register<R, T>(net.Name, servicename, config);
                 net.Requests[servicename] = request;
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;
             }
-            return (T)(request as object);
+            return (R)request;
         }
 
         public static bool UnRegister(string netName, string serviceName)

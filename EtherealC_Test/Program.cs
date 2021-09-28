@@ -37,7 +37,7 @@ namespace EtherealC_Test
             //向网关注册服务
             Service service = ServiceCore.Register<ClientService>(net, "Client", types);
             //向网关注册请求
-            ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server", types);
+            ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
             (request as Request).ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
             Client client = ClientCore.Register(request, "127.0.0.1:28015/NetDemo/");
@@ -73,7 +73,7 @@ namespace EtherealC_Test
             //向网关注册服务
             Service service = ServiceCore.Register<ClientService>(net, "Client", types);
             //向网关注册请求
-            Request request = RequestCore.Register<ServerRequest>(net, "Server", types) as Request;
+            Request request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types) as Request;
 
             /*
              * 配置分布式

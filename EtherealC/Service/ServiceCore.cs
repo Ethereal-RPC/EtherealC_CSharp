@@ -8,11 +8,11 @@ namespace EtherealC.Service
 {
     public class ServiceCore
     {
-        public static bool Get(string netName, string serviceName, out Service.Abstract.Service service)
+        public static bool Get<R>(string netName, string serviceName, out R service)where R:Abstract.Service
         {
             if (NetCore.Get(netName, out Net.Abstract.Net net))
             {
-                return Get(net, serviceName, out service);
+                return Get<R>(net, serviceName, out service);
             }
             else
             {
@@ -20,32 +20,34 @@ namespace EtherealC.Service
                 return false;
             }
         }
-        public static bool Get(Net.Abstract.Net net, string serviceName, out Service.Abstract.Service service)
+        public static bool Get<R>(Net.Abstract.Net net, string serviceName, out R service) where R : Abstract.Service
         {
-            return net.Services.TryGetValue(serviceName, out service);
+            bool result = net.Services.TryGetValue(serviceName, out Abstract.Service value);
+            service = value as R;
+            return result;
         }
-        public static WebSocketService Register(object instance, Net.Abstract.Net net, string servicename, AbstractTypes type)
+        public static R Register<R>(Net.Abstract.Net net, string servicename, ServiceConfig config) where R : Abstract.Service, new()
         {
-            if(net.Type == Net.Abstract.Net.NetType.WebSocket)
+            return Register<R>(new R(), net, servicename, config);
+        }
+        public static R Register<R>(Net.Abstract.Net net, string servicename, AbstractTypes type) where R : Abstract.Service, new()
+        {
+            if (net.Type == Net.Abstract.Net.NetType.WebSocket)
+            {
+                return Register(new R(), net, servicename, new WebSocketServiceConfig(type));
+            }
+            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
+            
+        }
+        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, AbstractTypes type) where R : Abstract.Service
+        {
+            if (net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
                 return Register(instance, net, servicename, new WebSocketServiceConfig(type));
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
         }
-        public static WebSocketService Register<T>(Net.Abstract.Net net, string servicename, ServiceConfig config) where T : new()
-        {
-            return Register(new T(), net, servicename, config);
-        }
-        public static WebSocketService Register<T>(Net.Abstract.Net net, string servicename, AbstractTypes type) where T : new()
-        {
-            if (net.Type == Net.Abstract.Net.NetType.WebSocket)
-            {
-                return Register(new T(), net, servicename, new WebSocketServiceConfig(type));
-            }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
-            
-        }
-        public static WebSocketService Register(object instance, Net.Abstract.Net net, string servicename, ServiceConfig config)
+        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, ServiceConfig config) where R:Abstract.Service
         {
             if (string.IsNullOrEmpty(servicename))
             {
@@ -57,19 +59,14 @@ namespace EtherealC.Service
                 throw new ArgumentNullException(nameof(config.Types));
             }
 
-            net.Services.TryGetValue(servicename, out Service.Abstract.Service service);
+            net.Services.TryGetValue(servicename, out Abstract.Service service);
             if(service == null)
             {
-                if (net.Type == Net.Abstract.Net.NetType.WebSocket)
-                {
-                    service = new WebSocketService();
-                }
-                else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
-                service.Register(instance, net.Name, servicename, config);
-                net.Services[servicename] = service;
-                service.LogEvent += net.OnLog;
-                service.ExceptionEvent += net.OnException;
-                return service as WebSocketService;
+                Abstract.Service.Register(instance, net.Name, servicename, config);
+                net.Services[servicename] = instance;
+                instance.LogEvent += net.OnLog;
+                instance.ExceptionEvent += net.OnException;
+                return instance;
             }
             return null;
         }
