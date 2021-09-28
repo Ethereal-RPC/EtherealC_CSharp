@@ -27,6 +27,10 @@ namespace EtherealC.Request.WebSocket
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             Attribute.Request rpcAttribute = targetMethod.GetCustomAttribute<Attribute.Request>();
+            if (rpcAttribute == null)
+            {
+                return targetMethod.Invoke(this, args);
+            }
             object localResult = null;
             object remoteResult = null;
             if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Local) == 0)
