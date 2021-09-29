@@ -26,43 +26,23 @@ namespace EtherealC.Service
             service = value as R;
             return result;
         }
-        public static R Register<R>(Net.Abstract.Net net, string servicename, ServiceConfig config) where R : Abstract.Service, new()
-        {
-            return Register<R>(new R(), net, servicename, config);
-        }
-        public static R Register<R>(Net.Abstract.Net net, string servicename, AbstractTypes type) where R : Abstract.Service, new()
+
+        public static R Register<R>(Net.Abstract.Net net, string servicename, AbstractTypes types, ServiceConfig config=null) where R : Abstract.Service, new()
         {
             if (net.Type == Net.Abstract.Net.NetType.WebSocket)
             {
-                return Register(new R(), net, servicename, new WebSocketServiceConfig(type));
+                return Register(new R(), net, servicename, types, config);
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
             
         }
-        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, AbstractTypes type) where R : Abstract.Service
-        {
-            if (net.Type == Net.Abstract.Net.NetType.WebSocket)
-            {
-                return Register(instance, net, servicename, new WebSocketServiceConfig(type));
-            }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
-        }
-        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, ServiceConfig config) where R:Abstract.Service
-        {
-            if (string.IsNullOrEmpty(servicename))
-            {
-                throw new ArgumentException("参数为空", nameof(servicename));
-            }
 
-            if (config.Types is null)
-            {
-                throw new ArgumentNullException(nameof(config.Types));
-            }
-
+        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, AbstractTypes types, ServiceConfig config=null) where R:Abstract.Service
+        {
             net.Services.TryGetValue(servicename, out Abstract.Service service);
             if(service == null)
             {
-                Abstract.Service.Register(instance, net.Name, servicename, config);
+                Abstract.Service.Register(instance, net.Name, servicename,types, config);
                 net.Services[servicename] = instance;
                 instance.LogEvent += net.OnLog;
                 instance.ExceptionEvent += net.OnException;

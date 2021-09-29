@@ -55,17 +55,17 @@ namespace EtherealC.Client.WebSocket
                 if (Accept.State == WebSocketState.Open)
                 {
                     ReceiveAsync();
-                    OnConnect();
+                    OnConnectSuccess();
                 }
                 else
                 {
-                    OnDisConnect();
+                    OnConnnectFail();
                 }
             }
             catch (Exception e)
             {
                 OnException(new TrackException(e));
-                DisConnect();
+                OnConnnectFail();
             }
         }
 
@@ -77,7 +77,7 @@ namespace EtherealC.Client.WebSocket
                 if (Accept.State == WebSocketState.Open)
                 {
                     ReceiveAsync();
-                    OnConnect();
+                    OnConnectSuccess();
                 }
                 else
                 {

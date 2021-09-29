@@ -27,22 +27,6 @@ namespace EtherealC.Request
             reqeust = (T)value;
             return result;
         }
-
-        /// <summary>
-        /// 获取RPC代理
-        /// </summary>
-        /// <param name="requestname">服务名</param>
-        /// <param name="serverIp">远程服务IP</param>
-        /// <param name="port">远程服务端口</param>
-        /// <returns>客户端</returns>
-        public static R Register<R,T>(Net.Abstract.Net net, string serviceName, AbstractTypes type) where R : Abstract.Request
-        {
-            if(net.Type == Net.Abstract.Net.NetType.WebSocket)
-            {
-                return Register<R,T>(net, serviceName, new WebSocketRequestConfig(type));
-            }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Request-Register处理");
-        }
         /// <summary>
         /// 获取RPC代理
         /// </summary>
@@ -50,12 +34,12 @@ namespace EtherealC.Request
         /// <param name="serverIp">远程服务IP</param>
         /// <param name="port">远程服务端口</param>
         /// <returns>客户端</returns>
-        public static R Register<R,T>(Net.Abstract.Net net, string servicename, WebSocketRequestConfig config) where R : Abstract.Request
+        public static R Register<R,T>(Net.Abstract.Net net, string servicename, AbstractTypes types, WebSocketRequestConfig config=null) where R : Abstract.Request
         {
             net.Requests.TryGetValue(servicename, out Abstract.Request request);
             if (request == null)
             {
-                request = Abstract.Request.Register<R, T>(net.Name, servicename, config);
+                request = Abstract.Request.Register<R, T>(net.Name, servicename, types, config);
                 net.Requests[servicename] = request;
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;

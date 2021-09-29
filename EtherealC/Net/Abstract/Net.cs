@@ -114,7 +114,7 @@ namespace EtherealC.Net.Abstract
                     string[] param_id = request.MethodId.Split('-');
                     for (int i = 1, j = 0; i < param_id.Length; i++, j++)
                     {
-                        if (service.Config.Types.TypesByName.TryGetValue(param_id[i], out AbstractType type))
+                        if (service.Types.TypesByName.TryGetValue(param_id[i], out AbstractType type))
                         {
                             request.Params[j] = type.Deserialize((string)request.Params[j]);
                         }

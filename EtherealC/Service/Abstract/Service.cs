@@ -54,15 +54,18 @@ namespace EtherealC.Service.Abstract
         protected string serviceName;
         protected string netName;
         protected ServiceConfig config;
+        protected AbstractTypes types;
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public ServiceConfig Config { get => config; set => config = value; }
         public string ServiceName { get => serviceName; set => serviceName = value; }
         public string NetName { get => netName; set => netName = value; }
+        public AbstractTypes Types { get => types; set => types = value; }
 
-        public static void Register<T>(T instance, string netName, string servicename, ServiceConfig config)where T:Service
+        public static void Register<T>(T instance, string netName, string servicename,AbstractTypes types, ServiceConfig config)where T:Service
         {
-            instance.config = config;
+            if(config != null)instance.config = config;
+            instance.types = types;
             instance.netName = netName;
             instance.serviceName = servicename;
             //遍历所有字段
@@ -90,7 +93,7 @@ namespace EtherealC.Service.Abstract
                         {
                             foreach (ParameterInfo param in parameters)
                             {
-                                if (config.Types.TypesByType.TryGetValue(param.ParameterType, out AbstractType type))
+                                if (instance.Types.TypesByType.TryGetValue(param.ParameterType, out AbstractType type))
                                 {
                                     methodid.Append("-" + type.Name);
                                 }
@@ -104,7 +107,7 @@ namespace EtherealC.Service.Abstract
                             {
                                 foreach (string type_name in types_name)
                                 {
-                                    if (config.Types.TypesByName.TryGetValue(type_name, out AbstractType type))
+                                    if (instance.Types.TypesByName.TryGetValue(type_name, out AbstractType type))
                                     {
                                         methodid.Append("-").Append(type.Name);
                                     }

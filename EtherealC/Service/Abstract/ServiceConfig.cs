@@ -7,24 +7,15 @@ namespace EtherealC.Service.Abstract
     {
 
         #region --字段--
-        protected AbstractTypes types;
+
         #endregion
 
         #region --属性--
-        public AbstractTypes Types { get => types; set => types = value; }
 
         #endregion
 
         #region --方法--
-        public ServiceConfig(AbstractTypes types)
-        {
-            this.types = types;
-        }
 
-        public ServiceConfig(AbstractTypes types, bool tokenEnable)
-        {
-            this.types = types;
-        }
 
         #endregion
     }

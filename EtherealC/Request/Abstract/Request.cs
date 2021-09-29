@@ -58,13 +58,17 @@ namespace EtherealC.Request.Abstract
         protected string netName;
         protected RequestConfig config;
         protected ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
+        protected AbstractTypes types;
         #endregion
 
         #region --属性--
+
         public RequestConfig Config { get => config; set => config = value; }
         public Client.Abstract.Client Client { get => client; set => client = value; }
         public string NetName { get => netName; set => netName = value; }
         public string ServiceName { get => serviceName; set => serviceName = value; }
+        public AbstractTypes Types { get => types; set => types = value; }
+
         #endregion
 
         #region --方法--
@@ -74,12 +78,13 @@ namespace EtherealC.Request.Abstract
             return tasks.TryGetValue(id, out model);
         }
 
-        public static R Register<R,T>(string netName, string servicename, WebSocketRequestConfig config)where R:Request
+        public static R Register<R,T>(string netName, string servicename, AbstractTypes types, RequestConfig config)where R:Request
         {
             R proxy = Create<T, R>() as R;
             proxy.NetName = netName;
             proxy.ServiceName = servicename;
-            proxy.Config = config;
+            proxy.types = types;
+            if(config != null) proxy.Config = config;
             return proxy;
         }
 

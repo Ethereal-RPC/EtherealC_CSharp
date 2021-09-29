@@ -12,7 +12,12 @@ namespace EtherealC.Client.Abstract
         /// 连接委托
         /// </summary>
         /// <param name="token"></param>
-        public delegate void ConnectDelegate(Client client);
+        public delegate void ConnectSuccessDelegate(Client client);
+        /// <summary>
+        /// 连接委托
+        /// </summary>
+        /// <param name="token"></param>
+        public delegate void ConnectFailDelegate(Client client);
         /// <summary>
         ///     
         /// </summary>
@@ -60,7 +65,11 @@ namespace EtherealC.Client.Abstract
         /// <summary>
         /// 连接事件
         /// </summary>
-        public event ConnectDelegate ConnectEvent;
+        public event ConnectSuccessDelegate ConnectEvent;
+        /// <summary>
+        /// 断开连接事件
+        /// </summary>
+        public event ConnectFailDelegate ConnectFailEvent;
         /// <summary>
         /// 断开连接事件
         /// </summary>
@@ -110,9 +119,16 @@ namespace EtherealC.Client.Abstract
         /// <summary>
         /// 连接时激活连接事件
         /// </summary>
-        protected void OnConnect()
+        protected void OnConnectSuccess()
         {
             ConnectEvent?.Invoke(this);
+        }
+        /// <summary>
+        /// 连接时激活连接事件
+        /// </summary>
+        protected void OnConnnectFail()
+        {
+            ConnectFailEvent?.Invoke(this);
         }
         /// <summary>
         /// 断开连接时激活断开连接事件

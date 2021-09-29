@@ -15,10 +15,6 @@ namespace EtherealC.Service.WebSocket
         #endregion
 
         #region --方法--
-        public WebSocketServiceConfig(AbstractTypes types):base(types)
-        {
-
-        }
 
 
         #endregion

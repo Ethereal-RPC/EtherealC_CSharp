@@ -24,6 +24,10 @@ namespace EtherealC.Request.WebSocket
 
         #region --方法--
 
+        public WebSocketRequest()
+        {
+            config = new WebSocketRequestConfig();
+        }
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             Attribute.Request rpcAttribute = targetMethod.GetCustomAttribute<Attribute.Request>();
@@ -46,7 +50,7 @@ namespace EtherealC.Request.WebSocket
                     ParameterInfo[] parameters = targetMethod.GetParameters();
                     for (int i = 0, j = 1; i < param_count; i++, j++)
                     {
-                        if (Config.Types.TypesByType.TryGetValue(parameters[i].ParameterType, out AbstractType type))
+                        if (Types.TypesByType.TryGetValue(parameters[i].ParameterType, out AbstractType type))
                         {
                             methodid.Append("-" + type.Name);
                             obj[j] = type.Serialize(args[i]);
@@ -103,7 +107,7 @@ namespace EtherealC.Request.WebSocket
                                 }
                                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            else if (Config.Types.TypesByName.TryGetValue(result.ResultType, out AbstractType type))
+                            else if (Types.TypesByName.TryGetValue(result.ResultType, out AbstractType type))
                             {
                                 remoteResult = type.Deserialize((string)result.Result);
                                 if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Success) != 0

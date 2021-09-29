@@ -113,7 +113,8 @@ namespace EtherealC.Net.WebSocket
                                             //注册连接并启动连接
                                             Client.Abstract.Client requestClient =
                                                 ClientCore.Register(request, node.Prefixes[0]);
-                                            requestClient.DisConnectEvent += ClientConnectFailEvent;
+                                            requestClient.ConnectFailEvent += ClientConnectFailEvent;
+                                            requestClient.DisConnectEvent += ClientDisConnectEvent; ;
                                             requestClient.Connect();
                                         }
                                         else
@@ -133,10 +134,16 @@ namespace EtherealC.Net.WebSocket
                 }
             }
         }
-        private void ClientConnectFailEvent(Client.Abstract.Client client)
+
+        private void ClientDisConnectEvent(Client.Abstract.Client client)
         {
             ClientCore.UnRegister(client.NetName, client.ServiceName);
             connectSign.Set();
+        }
+
+        private void ClientConnectFailEvent(Client.Abstract.Client client)
+        {
+            ClientCore.UnRegister(client.NetName, client.ServiceName);
         }
         #endregion
     }

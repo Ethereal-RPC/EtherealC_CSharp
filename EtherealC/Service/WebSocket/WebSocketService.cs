@@ -12,5 +12,13 @@ namespace EtherealC.Service.WebSocket
         public new WebSocketServiceConfig Config { get => (WebSocketServiceConfig)config; set => config = value; }
 
         #endregion
+
+        #region --方法--
+
+        public WebSocketService()
+        {
+            config = new WebSocketServiceConfig();
+        }
+        #endregion
     }
 }
