@@ -36,7 +36,5 @@ namespace EtherealC.Client.Abstract
 
 
         #endregion
-
-
     }
 }

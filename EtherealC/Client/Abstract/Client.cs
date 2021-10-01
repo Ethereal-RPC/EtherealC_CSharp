@@ -80,18 +80,20 @@ namespace EtherealC.Client.Abstract
         protected string netName;
         protected string serviceName;
         protected ClientConfig config;
+        protected string prefixes;
         #endregion
 
         #region --ÊôÐÔ--
         public string NetName { get => netName; set => netName = value; }
         public string ServiceName { get => serviceName; set => serviceName = value; }
         public ClientConfig Config { get => config; set => config = value; }
+        public string Prefixes { get => prefixes; set => prefixes = value; }
         #endregion
 
-        public Client(string netName, string serviceName)
+        public Client(string prefixes)
         {
-            this.NetName = netName;
             this.ServiceName = serviceName;
+            this.prefixes = prefixes;
         }
         public abstract void Connect();
         public abstract void DisConnect();

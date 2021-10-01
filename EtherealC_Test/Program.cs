@@ -11,6 +11,7 @@ using EtherealC.Client.WebSocket;
 using EtherealC.Core.Model;
 using EtherealC.Net;
 using EtherealC.Net.Abstract;
+using EtherealC.Net.WebSocket;
 using EtherealC.Request;
 using EtherealC.Request.Abstract;
 using EtherealC.Service;
@@ -31,16 +32,16 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName, Net.NetType.WebSocket);
+            Net net = NetCore.Register(new WebSocketNet(netName));
             net.ExceptionEvent += Config_ExceptionEvent;
             net.LogEvent += Net_LogEvent;
             //向网关注册服务
-            Service service = ServiceCore.Register<ClientService>(net, "Client", types);
+            Service service = ServiceCore.Register(net, new ClientService(), "Client", types);
             //向网关注册请求
             ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
-            (request as Request).ConnectSuccessEvent += Request_ConnectSuccessEvent;
+            request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            Client client = ClientCore.Register(request, "127.0.0.1:28015/NetDemo/");
+            Client client = ClientCore.Register(request, new WebSocketClient("127.0.0.1:28015/NetDemo/"));
             client.ConnectEvent += Config_ConnectSuccessEvent;
             client.DisConnectEvent += Client_ConnectFailEvent;
             //启动连接
@@ -68,10 +69,10 @@ namespace EtherealC_Test
             types.Add<string>("String");
             types.Add<bool>("Bool");
             //建立网关
-            Net net = NetCore.Register(netName, Net.NetType.WebSocket);
+            Net net = NetCore.Register(new WebSocketNet(netName));
             net.ExceptionEvent += Config_ExceptionEvent;
             //向网关注册服务
-            Service service = ServiceCore.Register<ClientService>(net, "Client", types);
+            Service service = ServiceCore.Register<ClientService>(net, new ClientService(), "Client", types);
             //向网关注册请求
             Request request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types) as Request;
 

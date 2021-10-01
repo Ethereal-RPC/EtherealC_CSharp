@@ -78,7 +78,7 @@ namespace EtherealC.Request.WebSocket
                     }
                     else throw new TrackException(TrackException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
-                ClientRequestModel request = new ClientRequestModel(ServiceName, methodid.ToString(), obj);
+                ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), obj);
                 if (targetMethod.ReturnType == typeof(void))
                 {
                     client.SendClientRequestModel(request);

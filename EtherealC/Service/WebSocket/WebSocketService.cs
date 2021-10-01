@@ -14,11 +14,8 @@ namespace EtherealC.Service.WebSocket
         #endregion
 
         #region --方法--
-
-        public WebSocketService()
-        {
-            config = new WebSocketServiceConfig();
-        }
+        
         #endregion
+
     }
 }

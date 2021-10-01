@@ -14,8 +14,6 @@ namespace EtherealC.Client.WebSocket
     public class WebSocketClient : Abstract.Client
     {
         #region --×Ö¶Î--
-
-        private string prefixes;
         private ClientWebSocket accept;
         private CancellationToken cancellationToken = CancellationToken.None;
         private bool isDisConnect = false;
@@ -25,12 +23,11 @@ namespace EtherealC.Client.WebSocket
         #region --ÊôÐÔ--
 
         public ClientWebSocket Accept { get => accept; set => accept = value; }
-        public string Prefixes { get => prefixes; set => prefixes = value; }
         public new WebSocketClientConfig Config { get => (WebSocketClientConfig)config; set => config = value; }
 
         #endregion
 
-        public WebSocketClient(string netName,string serviceName,string prefixes, ClientConfig config):base(netName,serviceName)
+        public WebSocketClient(string prefixes):base(prefixes)
         {
             if (!HttpListener.IsSupported)
             {
@@ -42,7 +39,7 @@ namespace EtherealC.Client.WebSocket
             this.Prefixes = prefixes;
             // Create a listener.
             Accept = new ClientWebSocket();
-            this.config = config as WebSocketClientConfig;
+            this.config = new WebSocketClientConfig();
             // Add the prefixes.
             Accept.Options.KeepAliveInterval = Config.KeepAliveInterval;
         }

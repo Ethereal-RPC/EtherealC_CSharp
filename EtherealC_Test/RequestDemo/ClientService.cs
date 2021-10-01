@@ -1,5 +1,6 @@
 ﻿using EtherealC_Test.Model;
 using System;
+using EtherealC.Core.Model;
 using EtherealC.Service.Attribute;
 using EtherealC.Service.WebSocket;
 
@@ -12,6 +13,6 @@ namespace EtherealS_Test.RequestDemo
         {
             Console.WriteLine(sender.Username + ":" + message);
         }
-
+        
     }
 }

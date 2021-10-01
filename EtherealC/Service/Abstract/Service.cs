@@ -51,31 +51,26 @@ namespace EtherealC.Service.Abstract
         //原作者的思想是Type调用Invoke，这里是在注册的时候就预存方法，1e6情况下调用速度的话是快了4-5倍左右，比正常调用慢10倍
         //string连接的时候使用引用要比tuple慢很多
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
-        protected string serviceName;
+        protected string name;
         protected string netName;
         protected ServiceConfig config;
         protected AbstractTypes types;
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public ServiceConfig Config { get => config; set => config = value; }
-        public string ServiceName { get => serviceName; set => serviceName = value; }
+        public string Name { get => name; set => name = value; }
         public string NetName { get => netName; set => netName = value; }
         public AbstractTypes Types { get => types; set => types = value; }
-
-        public static void Register<T>(T instance, string netName, string servicename,AbstractTypes types, ServiceConfig config)where T:Service
+        
+        public static void Register<T>(T instance)where T:Service
         {
-            if(config != null)instance.config = config;
-            instance.types = types;
-            instance.netName = netName;
-            instance.serviceName = servicename;
             //遍历所有字段
             foreach (FieldInfo field in instance.GetType().GetFields())
             {
                 Attribute.ServiceConfig rpcAttribute = field.GetCustomAttribute<Attribute.ServiceConfig>();
                 if (rpcAttribute != null)
                 {
-                    //将config赋值入该Service
-                    field.SetValue(instance, config);
+
                 }
             }
 

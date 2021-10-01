@@ -24,52 +24,71 @@ namespace EtherealC.Net.WebSocket
         #endregion
 
         #region --方法--
+        public WebSocketNet(string name) : base(name)
+        {
+            config = new WebSocketNetConfig();
+        }
         public override bool Publish()
         {
-            //开启分布式模式
-            if (Config.NetNodeMode)
+            try
             {
-                //注册数据类型
-                AbstractTypes types = new AbstractTypes();
-                types.Add<int>("Int");
-                types.Add<long>("Long");
-                types.Add<string>("String");
-                types.Add<bool>("Bool");
-                types.Add<NetNode>("NetNode");
-                //向网关注册服务
-                Service.Abstract.Service netNodeService = ServiceCore.Register<ClientNetNodeService>(this, "ClientNetNodeService", types);
-                //向网关注册请求
-                ServerNetNodeRequest netNodeRequest = RequestCore.Register<ServerNetNodeRequest,IServerNetNodeRequest>(this, "ServerNetNodeService", types);
-                new Thread(() =>
+                //开启分布式模式
+                if (Config.NetNodeMode)
+                {
+                    //注册数据类型
+                    AbstractTypes types = new AbstractTypes();
+                    types.Add<int>("Int");
+                    types.Add<long>("Long");
+                    types.Add<string>("String");
+                    types.Add<bool>("Bool");
+                    types.Add<NetNode>("NetNode");
+                    //向网关注册服务
+                    Service.Abstract.Service netNodeService = ServiceCore.Register(this, new ClientNetNodeService(),
+                        "ClientNetNodeService", types);
+                    //向网关注册请求
+                    ServerNetNodeRequest netNodeRequest =
+                        RequestCore.Register<ServerNetNodeRequest, IServerNetNodeRequest>(this, "ServerNetNodeService",
+                            types);
+                    new Thread(() =>
+                    {
+                        try
+                        {
+                            while (NetCore.Get(name, out Abstract.Net net))
+                            {
+                                NetNodeSearch();
+                                connectSign.WaitOne(Config.NetNodeHeartInterval);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            OnException(new TrackException(e));
+                        }
+                    }).Start();
+                }
+                else
                 {
                     try
                     {
-                        while (true)
+                        foreach (Request.Abstract.Request request in Requests.Values)
                         {
-                            NetNodeSearch();
-                            connectSign.WaitOne(Config.NetNodeHeartInterval);
+                            request.Client.Connect();
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         OnException(new TrackException(e));
                     }
-                }).Start();
+                }
             }
-            else
+            catch (TrackException e)
             {
-                try
-                {
-                    foreach (Request.Abstract.Request request in Requests.Values)
-                    {
-                        request.Client.Connect();
-                    }
-                }
-                catch(Exception e)
-                {
-                    OnException(new TrackException(e));
-                }
+                OnException(e);
             }
+            catch (Exception e)
+            {
+                OnException((TrackException)e);
+            }
+
             return true;
         }
         public async void NetNodeSearch()
@@ -77,7 +96,7 @@ namespace EtherealC.Net.WebSocket
             bool flag = false;
             foreach (Request.Abstract.Request request in Requests.Values)
             {
-                if (request.Client == null && request.ServiceName != "ServerNetNodeService")
+                if (request.Client == null && request.Name != "ServerNetNodeService")
                 {
                     flag = true;
                     break;
@@ -88,10 +107,10 @@ namespace EtherealC.Net.WebSocket
                 //搜寻正常启动的注册中心
                 foreach (Tuple<string, ClientConfig> item in Config.NetNodeIps)
                 {
-                    string prefixe = item.Item1;
+                    string prefixes = item.Item1;
                     ClientConfig config = item.Item2;
                     //向网关注册连接
-                    WebSocketClient client = (WebSocketClient)ClientCore.Register(this, "ServerNetNodeService", prefixe, config);
+                    WebSocketClient client = (WebSocketClient)ClientCore.Register(this, "ServerNetNodeService",new WebSocketClient(prefixes));
                     try
                     {
                         await client.ConnectSync();
@@ -107,24 +126,23 @@ namespace EtherealC.Net.WebSocket
                                     {
                                         //获取服务节点
                                         NetNode node =
-                                            (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.ServiceName);
+                                            (netNodeRequest as ServerNetNodeRequest).GetNetNode(request.Name);
                                         if (node != null)
                                         {
                                             //注册连接并启动连接
-                                            Client.Abstract.Client requestClient =
-                                                ClientCore.Register(request, node.Prefixes[0]);
+                                            Client.Abstract.Client requestClient = ClientCore.Register(request, new WebSocketClient(node.Prefixes[0]));
                                             requestClient.ConnectFailEvent += ClientConnectFailEvent;
                                             requestClient.DisConnectEvent += ClientDisConnectEvent; ;
                                             requestClient.Connect();
                                         }
                                         else
                                             throw new TrackException(TrackException.ErrorCode.Runtime,
-                                                $"{net_name}-{request.ServiceName}-在NetNode分布式中未找到节点");
+                                                $"{name}-{request.Name}-在NetNode分布式中未找到节点");
                                     }
                                 }
                                 return;
                             }
-                            throw new TrackException(TrackException.ErrorCode.Runtime, $"无法找到{net_name}-ServerNetNodeService");
+                            throw new TrackException(TrackException.ErrorCode.Runtime, $"无法找到{name}-ServerNetNodeService");
                         }
                     }
                     finally
@@ -146,5 +164,7 @@ namespace EtherealC.Net.WebSocket
             ClientCore.UnRegister(client.NetName, client.ServiceName);
         }
         #endregion
+
+        
     }
 }

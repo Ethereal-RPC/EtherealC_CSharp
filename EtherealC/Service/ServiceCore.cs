@@ -26,29 +26,24 @@ namespace EtherealC.Service
             service = value as R;
             return result;
         }
-
-        public static R Register<R>(Net.Abstract.Net net, string servicename, AbstractTypes types, ServiceConfig config=null) where R : Abstract.Service, new()
+        public static T Register<T>(Net.Abstract.Net net, T service) where T : Abstract.Service
         {
-            if (net.Type == Net.Abstract.Net.NetType.WebSocket)
-            {
-                return Register(new R(), net, servicename, types, config);
-            }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"未有针对{net.Type}的Service-Register处理");
-            
+            return Register(net, service, null, null);
         }
-
-        public static R Register<R>(R instance, Net.Abstract.Net net, string servicename, AbstractTypes types, ServiceConfig config=null) where R:Abstract.Service
+        public static T Register<T>(Net.Abstract.Net net, T service, string serviceName, AbstractTypes types) where T : Abstract.Service
         {
-            net.Services.TryGetValue(servicename, out Abstract.Service service);
-            if(service == null)
+            if (serviceName != null) service.Name = serviceName;
+            if (types != null) service.Types = types;
+            Abstract.Service.Register(service);
+            if (!net.Services.ContainsKey(service.Name))
             {
-                Abstract.Service.Register(instance, net.Name, servicename,types, config);
-                net.Services[servicename] = instance;
-                instance.LogEvent += net.OnLog;
-                instance.ExceptionEvent += net.OnException;
-                return instance;
+                service.NetName = net.Name;
+                service.LogEvent += net.OnLog;
+                service.ExceptionEvent += net.OnException;
+                net.Services[service.Name] = service;
+                return service;
             }
-            return null;
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}-{service.Name}已注册！");
         }
         public static bool UnRegister(string netName, string serviceName)
         {
