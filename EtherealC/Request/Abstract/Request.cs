@@ -57,8 +57,8 @@ namespace EtherealC.Request.Abstract
         protected string name;
         protected string netName;
         protected RequestConfig config;
-        protected ConcurrentDictionary<int, ClientRequestModel> tasks = new ConcurrentDictionary<int, ClientRequestModel>();
-        protected AbstractTypes types;
+        protected ConcurrentDictionary<int, ClientRequestModel> tasks = new();
+        protected AbstractTypes types = new();
         #endregion
 
         #region --属性--

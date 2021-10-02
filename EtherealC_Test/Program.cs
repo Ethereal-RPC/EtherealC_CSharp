@@ -41,9 +41,10 @@ namespace EtherealC_Test
             ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            Client client = ClientCore.Register(request, new WebSocketClient("127.0.0.1:28015/NetDemo/"));
+            Client client = ClientCore.Register(request, new WebSocketClient("ethereal://127.0.0.1:28015/NetDemo/"));
             client.ConnectEvent += Config_ConnectSuccessEvent;
             client.DisConnectEvent += Client_ConnectFailEvent;
+            client.Config.Debug = true;
             //启动连接
             net.Publish();
 
@@ -51,9 +52,8 @@ namespace EtherealC_Test
 
         private static void Net_LogEvent(TrackLog log)
         {
-            Console.WriteLine(log.Message);
+            Console.WriteLine($"---------------------------------\n{log.Message}\n---------------------------------\n");
         }
-
         /// <summary>
         /// 分布式模式Demo
         /// </summary>
@@ -72,9 +72,9 @@ namespace EtherealC_Test
             Net net = NetCore.Register(new WebSocketNet(netName));
             net.ExceptionEvent += Config_ExceptionEvent;
             //向网关注册服务
-            Service service = ServiceCore.Register<ClientService>(net, new ClientService(), "Client", types);
+            Service service = ServiceCore.Register(net, new ClientService(), "Client", types);
             //向网关注册请求
-            Request request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types) as Request;
+            Request request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
 
             /*
              * 配置分布式
@@ -83,10 +83,10 @@ namespace EtherealC_Test
             net.Config.NetNodeMode = true;
             //添加分布式地址
             List<Tuple<string,ClientConfig>> ips = new();
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28015}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28016}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28017}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"{ip}:{28018}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28015}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28016}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28017}/NetDemo/", new WebSocketClientConfig()));
+            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28018}/NetDemo/", new WebSocketClientConfig()));
             net.Config.NetNodeIps = ips;
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             net.Publish();
@@ -103,15 +103,15 @@ namespace EtherealC_Test
             ClientCore.UnRegister(client.NetName, client.ServiceName);
         }
 
-        private static void Config_ExceptionEvent(Exception exception)
+        private static void Config_ExceptionEvent(TrackException exception)
         {
-            Console.WriteLine(exception.Message);
+            Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n---------------------------------\n");
         }
 
         public static void Main()
         {
-            Single("127.0.0.1", "28015","1");
-            //NetNode("demo", "127.0.0.1");
+            //Single("127.0.0.1", "28015","1");
+            NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }
 

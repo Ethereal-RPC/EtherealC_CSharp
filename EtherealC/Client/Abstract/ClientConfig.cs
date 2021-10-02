@@ -17,6 +17,7 @@ namespace EtherealC.Client.Abstract
         private ClientRequestModelSerializeDelegate clientRequestModelSerialize;
         private ServerRequestModelDeserializeDelegate serverRequestModelDeserialize;
         private ClientResponseModelDeserializeDelegate clientResponseModelDeserialize;
+        private bool debug;
         #endregion
 
         #region --属性--
@@ -24,6 +25,8 @@ namespace EtherealC.Client.Abstract
         public ClientRequestModelSerializeDelegate ClientRequestModelSerialize { get => clientRequestModelSerialize; set => clientRequestModelSerialize = value; }
         public ServerRequestModelDeserializeDelegate ServerRequestModelDeserialize { get => serverRequestModelDeserialize; set => serverRequestModelDeserialize = value; }
         public ClientResponseModelDeserializeDelegate ClientResponseModelDeserialize { get => clientResponseModelDeserialize; set => clientResponseModelDeserialize = value; }
+        public bool Debug { get => debug; set => debug = value; }
+
         #endregion
 
         #region --方法--

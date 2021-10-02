@@ -54,7 +54,7 @@ namespace EtherealC.Service.Abstract
         protected string name;
         protected string netName;
         protected ServiceConfig config;
-        protected AbstractTypes types;
+        protected AbstractTypes types = new AbstractTypes();
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public ServiceConfig Config { get => config; set => config = value; }

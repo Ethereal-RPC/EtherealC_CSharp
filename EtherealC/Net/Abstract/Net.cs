@@ -110,11 +110,6 @@ namespace EtherealC.Net.Abstract
             {
                 if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
                 {
-                    string log = "";
-                    log += "---------------------------------------------------------\n";
-                    log += $"{DateTime.Now}::{name}::[服-指令]\n{request}\n";
-                    log += "---------------------------------------------------------\n";
-                    OnLog(TrackLog.LogCode.Runtime,log);
                     string[] param_id = request.MethodId.Split('-');
                     for (int i = 1, j = 0; i < param_id.Length; i++, j++)
                     {
@@ -132,11 +127,6 @@ namespace EtherealC.Net.Abstract
         }
         public void ClientResponseReceiveProcess(ClientResponseModel response)
         {
-            string log = "";
-            log += "---------------------------------------------------------\n";
-            log += $"{DateTime.Now}::{name}::[服-返回]\n{response}\n";
-            log += "---------------------------------------------------------\n";
-            OnLog(TrackLog.LogCode.Runtime, log);
             if (int.TryParse(response.Id, out int id) && Requests.TryGetValue(response.Service, out Request.Abstract.Request request))
             {
                 if (request.GetTask(id, out ClientRequestModel model))

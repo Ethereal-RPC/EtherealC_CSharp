@@ -45,10 +45,14 @@ namespace EtherealC.Core.Model
         }
         public override string ToString()
         {
-            return "Type:" + Type + "\n"
-                + "Service:" + Service + "\n"
-                + "Methodid:" + MethodId + "\n"
-                + "Params:" + JsonConvert.SerializeObject(Params);
+            return "ClientRequestModel{" +
+                    "result=" + result +
+                    ", type='" + type + '\'' +
+                    ", methodId='" + methodId + '\'' +
+                    ", params=" + string.Join("参数：", @params) +
+                    ", id='" + id + '\'' +  
+                    ", service='" + service + '\'' +
+                    '}';
         }
     }
 }

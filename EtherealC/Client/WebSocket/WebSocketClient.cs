@@ -16,7 +16,6 @@ namespace EtherealC.Client.WebSocket
         #region --字段--
         private ClientWebSocket accept;
         private CancellationToken cancellationToken = CancellationToken.None;
-        private bool isDisConnect = false;
 
         #endregion
 
@@ -48,7 +47,7 @@ namespace EtherealC.Client.WebSocket
         {
             try
             {
-                await Accept.ConnectAsync(new Uri("ws://" + Prefixes), cancellationToken);
+                await Accept.ConnectAsync(new Uri(Prefixes.Replace("ethereal://", "ws://")), cancellationToken);
                 if (Accept.State == WebSocketState.Open)
                 {
                     ReceiveAsync();
@@ -70,7 +69,7 @@ namespace EtherealC.Client.WebSocket
         {
             try
             {
-                await Accept.ConnectAsync(new Uri("ws://" + Prefixes), cancellationToken);
+                await Accept.ConnectAsync(new Uri(Prefixes.Replace("ethereal://", "ws://")), cancellationToken);
                 if (Accept.State == WebSocketState.Open)
                 {
                     ReceiveAsync();
@@ -78,13 +77,13 @@ namespace EtherealC.Client.WebSocket
                 }
                 else
                 {
-                    OnDisConnect();
+                    OnConnnectFail();
                 }
             }
             catch (Exception e)
             {
                 OnException(new TrackException(e));
-                DisConnect();
+                OnConnnectFail();
             }
         }
         public override void DisConnect()
@@ -93,32 +92,20 @@ namespace EtherealC.Client.WebSocket
         }
         public async void DisConnect(WebSocketCloseStatus status,string message)
         {
-            bool temp = isDisConnect;
             try
             {
-                if (!isDisConnect)
+                if (Accept?.State == WebSocketState.Open)
                 {
-                    isDisConnect = true;
-                    if (Accept?.State == WebSocketState.Open)
-                    {
-                        await Accept?.CloseAsync(status, message, cancellationToken);
-                    }
-                    else
-                    {
-                        Accept?.Abort();
-                    }
+                    await Accept?.CloseAsync(status, message, cancellationToken);
+                }
+                else
+                {
+                    Accept?.Abort();
                 }
             }
-            catch(Exception e)
+            catch
             {
-                OnException(new TrackException(e));
-            }
-            finally
-            {
-                if (!temp)
-                {
-                    OnDisConnect();
-                }
+
             }
         }
         public async void ReceiveAsync()
@@ -149,6 +136,7 @@ namespace EtherealC.Client.WebSocket
                     if (receiveResult.EndOfMessage)
                     {
                         string data = Config.Encoding.GetString(receiveBuffer);
+                        if(config.Debug)OnLog(TrackLog.LogCode.Runtime,data);
                         JObject token = JObject.Parse(data);
                         offset = 0;
                         free = Config.BufferSize;
@@ -157,6 +145,9 @@ namespace EtherealC.Client.WebSocket
                             if (value.ToString() == "ER-1.0-ClientResponse")
                             {
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
+                                string log =
+                                    $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[服-返回]\n{response}\n";
+                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                                 if (!NetCore.Get(netName, out Net.Abstract.Net net))
                                 {
                                     throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
@@ -166,11 +157,19 @@ namespace EtherealC.Client.WebSocket
                             else if(value.ToString() == "ER-1.0-ServerRequest")
                             {
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
+                                string log =
+                                    $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[服-请求]\n{request}\n";
+                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                                 if (!NetCore.Get(netName, out Net.Abstract.Net net))
                                 {
                                     throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
                                 }
                                 net.ServerRequestReceiveProcess(request);
+                            }
+                            else
+                            {
+                                string log = $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[未知消息体]\n{data}\n";
+                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                             }
                         }
                     }
@@ -198,13 +197,12 @@ namespace EtherealC.Client.WebSocket
         }
         public override async void SendClientRequestModel(ClientRequestModel request)
         {
-            if (Accept.State == WebSocketState.Open)
+            if (Accept?.State == WebSocketState.Open)
             {
-                string log = "--------------------------------------------------\n" +
-                            $"{DateTime.Now}::{netName}::[客-请求]\n{request}\n" +
-                            "--------------------------------------------------\n";
-                OnLog(TrackLog.LogCode.Runtime, log);
-                await Accept.SendAsync(config.Encoding.GetBytes(config.ClientRequestModelSerialize(request)), WebSocketMessageType.Text, true, cancellationToken);
+                string log = $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[客-请求]\n{request}\n";
+                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
+                string data = config.ClientRequestModelSerialize(request);
+                await Accept?.SendAsync(config.Encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken);
             }
         }
     }
