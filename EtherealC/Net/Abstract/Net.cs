@@ -110,14 +110,25 @@ namespace EtherealC.Net.Abstract
             {
                 if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
                 {
-                    string[] param_id = request.MethodId.Split('-');
-                    for (int i = 1, j = 0; i < param_id.Length; i++, j++)
+                    ParameterInfo[] parameterInfos = method.GetParameters();
+                    List<object> parameters = new List<object>(parameterInfos.Length);
+                    int i = 0;
+                    foreach (ParameterInfo parameterInfo in parameterInfos)
                     {
-                        if (service.Types.TypesByName.TryGetValue(param_id[i], out AbstractType type))
+                        try
                         {
-                            request.Params[j] = type.Deserialize((string)request.Params[j]);
+                            if (service.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
+                                || service.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
+                            {
+                                parameters.Add(type.Deserialize(request.Params[i]));
+                                i++;
+                            }
+                            else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
                         }
-                        else throw new TrackException(TrackException.ErrorCode.Runtime,$"RPC中的{param_id[i]}类型转换器在TypeConvert字典中尚未被注册");
+                        catch (ArgumentNullException)
+                        {
+                            throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
+                        }
                     }
                     method.Invoke(service, request.Params);
                 }

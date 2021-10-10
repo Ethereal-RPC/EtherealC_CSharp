@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using EtherealC.Core;
@@ -83,31 +84,21 @@ namespace EtherealC.Service.Abstract
                     if (!method.IsAbstract)
                     {
                         methodid.Append(method.Name);
-                        ParameterInfo[] parameters = method.GetParameters();
-                        if (rpcAttribute.Paramters == null)
+                        ParameterInfo[] parameterInfos = method.GetParameters();
+                        foreach (ParameterInfo parameterInfo in parameterInfos)
                         {
-                            foreach (ParameterInfo param in parameters)
+                            try
                             {
-                                if (instance.Types.TypesByType.TryGetValue(param.ParameterType, out AbstractType type))
+                                if (instance.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
+                                    || instance.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                                 {
                                     methodid.Append("-" + type.Name);
                                 }
-                                else throw new TrackException(TrackException.ErrorCode.Core, $"C#中的{param.ParameterType}类型参数尚未注册");
+                                else throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
                             }
-                        }
-                        else
-                        {
-                            string[] types_name = rpcAttribute.Paramters;
-                            if (parameters.Length == types_name.Length)
+                            catch (ArgumentNullException)
                             {
-                                foreach (string type_name in types_name)
-                                {
-                                    if (instance.Types.TypesByName.TryGetValue(type_name, out AbstractType type))
-                                    {
-                                        methodid.Append("-").Append(type.Name);
-                                    }
-                                    else throw new TrackException(TrackException.ErrorCode.Core, $"C#对应的{types_name}类型参数尚未注册");
-                                }
+                                throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
                             }
                         }
                         instance.methods.TryAdd(methodid.ToString(), method);

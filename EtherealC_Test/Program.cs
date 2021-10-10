@@ -106,6 +106,7 @@ namespace EtherealC_Test
         private static void Config_ExceptionEvent(TrackException exception)
         {
             Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n---------------------------------\n");
+            throw exception.Exception;
         }
 
         public static void Main()

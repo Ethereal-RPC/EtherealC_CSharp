@@ -123,7 +123,6 @@ namespace EtherealC.Client.WebSocket
                 try
                 {
                     WebSocketReceiveResult receiveResult = await Accept.ReceiveAsync(new ArraySegment<byte>(receiveBuffer, offset, free), cancellationToken);
-
                     offset += receiveResult.Count;
                     free -= receiveResult.Count;
                     if (receiveResult.MessageType == WebSocketMessageType.Close)

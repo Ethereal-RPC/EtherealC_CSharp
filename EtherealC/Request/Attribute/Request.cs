@@ -19,13 +19,10 @@ namespace EtherealC.Request.Attribute
         }
 
         private InvokeTypeFlags invokeType = InvokeTypeFlags.Remote | InvokeTypeFlags.ReturnRemote;
-
-        private string[] paramters = null;
         private int timeout = -1;
 
 
         public InvokeTypeFlags InvokeType { get => invokeType; set => invokeType = value; }
-        public string[] Paramters { get => paramters; set => paramters = value; }
         public int Timeout { get => timeout; set => timeout = value; }
     }
 }

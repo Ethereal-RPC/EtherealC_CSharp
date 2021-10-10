@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using EtherealC.Core.Model;
@@ -41,44 +42,27 @@ namespace EtherealC.Request.WebSocket
             {
                 //这里要连接字符串，发现StringBuilder效率高一些.
                 StringBuilder methodid = new StringBuilder(targetMethod.Name);
-                int param_count;
-                if (args != null) param_count = args.Length;
-                else param_count = 0;
-                object[] obj = new object[param_count + 1];
-                if (rpcAttribute.Paramters == null)
+                ParameterInfo[] parameterInfos = targetMethod.GetParameters();
+                //理想状态下为抛出Token的参数数量，但后期可能会存在不只是一个特殊类的问题，所以改为了动态数组。
+                List<string> @params = new List<string>(parameterInfos.Length - 1);
+                for (int i = 0; i < parameterInfos.Length; i++)
                 {
-                    ParameterInfo[] parameters = targetMethod.GetParameters();
-                    for (int i = 0, j = 1; i < param_count; i++, j++)
+                    try
                     {
-                        if (Types.TypesByType.TryGetValue(parameters[i].ParameterType, out AbstractType type))
+                        if (Types.TypesByType.TryGetValue(parameterInfos[i].ParameterType, out AbstractType type)
+                        || Types.TypesByName.TryGetValue(parameterInfos[i].GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                         {
                             methodid.Append("-" + type.Name);
-                            obj[j] = type.Serialize(args[i]);
+                            @params.Add(type.Serialize(args[i]));
                         }
-                        else throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
+                        else throw new TrackException($"{targetMethod.Name}方法中的{parameterInfos[i].ParameterType}类型参数尚未注册");
                     }
-                }
-                else
-                {
-                    string[] types_name = rpcAttribute.Paramters;
-                    if (types_name.Length == param_count)
+                    catch (ArgumentNullException)
                     {
-                        for (int i = 0, j = 1; i < param_count; i++, j++)
-                        {
-                            try
-                            {
-                                methodid.Append("-" + types_name[i]);
-                                obj[j] = JsonConvert.SerializeObject(args[i]);
-                            }
-                            catch (Exception)
-                            {
-                                throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{args[i].GetType()}类型参数尚未注册");
-                            }
-                        }
+                        throw new TrackException($"{targetMethod.Name}方法中的{parameterInfos[i].ParameterType}类型参数尚未注册");
                     }
-                    else throw new TrackException(TrackException.ErrorCode.Runtime, $"方法体{targetMethod.Name}中[RPCMethod]与实际参数数量不符,[RPCMethod]:{types_name.Length}个,Method:{param_count}个");
                 }
-                ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), obj);
+                ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), @params.ToArray());
                 if (targetMethod.ReturnType == typeof(void))
                 {
                     client.SendClientRequestModel(request);
@@ -107,17 +91,24 @@ namespace EtherealC.Request.WebSocket
                                 }
                                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            else if (Types.TypesByName.TryGetValue(result.ResultType, out AbstractType type))
+                            try
                             {
-                                remoteResult = type.Deserialize((string)result.Result);
-                                if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Success) != 0
-                                    || (rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.All) != 0
-                                    )
+                                if (Types.TypesByType.TryGetValue(targetMethod.ReturnType, out AbstractType type)
+                                || Types.TypesByName.TryGetValue(targetMethod.ReturnType.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                                 {
-                                    localResult = targetMethod.Invoke(this, args);
+                                    remoteResult = type.Deserialize(result.Result);
+                                    if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Success) != 0
+                                        || (rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.All) != 0)
+                                    {
+                                        localResult = targetMethod.Invoke(this, args);
+                                    }
                                 }
+                                else throw new TrackException($"{targetMethod.Name}方法中的{targetMethod.ReturnType}类型参数尚未注册");
                             }
-                            else throw new TrackException(TrackException.ErrorCode.Runtime, $"C#中的{result.ResultType}类型转换器尚未注册");
+                            catch (ArgumentNullException)
+                            {
+                                throw new TrackException($"{targetMethod.Name}方法中的{targetMethod.ReturnType}类型参数尚未注册");
+                            }
                         }
                         else if((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Timeout) != 0)
                         { 
