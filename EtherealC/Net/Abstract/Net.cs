@@ -115,20 +115,13 @@ namespace EtherealC.Net.Abstract
                     int i = 0;
                     foreach (ParameterInfo parameterInfo in parameterInfos)
                     {
-                        try
+                        if (service.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
+                            || service.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                         {
-                            if (service.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
-                                || service.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
-                            {
-                                parameters.Add(type.Deserialize(request.Params[i]));
-                                i++;
-                            }
-                            else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
+                            parameters.Add(type.Deserialize(request.Params[i]));
+                            i++;
                         }
-                        catch (ArgumentNullException)
-                        {
-                            throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
-                        }
+                        else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
                     }
                     method.Invoke(service, request.Params);
                 }

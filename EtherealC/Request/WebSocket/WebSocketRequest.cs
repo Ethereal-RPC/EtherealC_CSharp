@@ -91,24 +91,17 @@ namespace EtherealC.Request.WebSocket
                                 }
                                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            try
+                            if (Types.TypesByType.TryGetValue(targetMethod.ReturnType, out AbstractType type)
+                            || Types.TypesByName.TryGetValue(targetMethod.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                             {
-                                if (Types.TypesByType.TryGetValue(targetMethod.ReturnType, out AbstractType type)
-                                || Types.TypesByName.TryGetValue(targetMethod.ReturnType.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
+                                remoteResult = type.Deserialize(result.Result);
+                                if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Success) != 0
+                                    || (rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.All) != 0)
                                 {
-                                    remoteResult = type.Deserialize(result.Result);
-                                    if ((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Success) != 0
-                                        || (rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.All) != 0)
-                                    {
-                                        localResult = targetMethod.Invoke(this, args);
-                                    }
+                                    localResult = targetMethod.Invoke(this, args);
                                 }
-                                else throw new TrackException($"{targetMethod.Name}方法中的{targetMethod.ReturnType}类型参数尚未注册");
                             }
-                            catch (ArgumentNullException)
-                            {
-                                throw new TrackException($"{targetMethod.Name}方法中的{targetMethod.ReturnType}类型参数尚未注册");
-                            }
+                            else throw new TrackException($"{targetMethod.Name}方法中的{targetMethod.ReturnType}类型参数尚未注册");
                         }
                         else if((rpcAttribute.InvokeType & Attribute.Request.InvokeTypeFlags.Timeout) != 0)
                         { 

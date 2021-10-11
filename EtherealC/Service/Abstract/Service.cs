@@ -87,19 +87,12 @@ namespace EtherealC.Service.Abstract
                         ParameterInfo[] parameterInfos = method.GetParameters();
                         foreach (ParameterInfo parameterInfo in parameterInfos)
                         {
-                            try
+                            if (instance.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
+                                || instance.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                             {
-                                if (instance.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
-                                    || instance.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
-                                {
-                                    methodid.Append("-" + type.Name);
-                                }
-                                else throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
+                                methodid.Append("-" + type.Name);
                             }
-                            catch (ArgumentNullException)
-                            {
-                                throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
-                            }
+                            else throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
                         }
                         instance.methods.TryAdd(methodid.ToString(), method);
                         methodid.Length = 0;
