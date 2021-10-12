@@ -118,8 +118,7 @@ namespace EtherealC.Net.Abstract
                         if (service.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
                             || service.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
                         {
-                            parameters.Add(type.Deserialize(request.Params[i]));
-                            i++;
+                            parameters.Add(type.Deserialize(request.Params[i++]));
                         }
                         else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
                     }
