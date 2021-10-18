@@ -2,11 +2,12 @@
 using System.Reflection;
 using EtherealC.Core;
 using EtherealC.Core.Model;
+using EtherealC.Request.Interface;
 using EtherealC.Request.WebSocket;
 
 namespace EtherealC.Request.Abstract
 {
-    public abstract class Request : DispatchProxy
+    public abstract class Request : DispatchProxy,IRequest
     {
         #region --委托--
         public delegate void OnConnnectSuccessDelegate(Request request);
@@ -108,6 +109,9 @@ namespace EtherealC.Request.Abstract
         {
             ConnectSuccessEvent?.Invoke(this);
         }
+
+        public abstract void Initialization();
+        public abstract void UnInitialization();
         #endregion
     }
 }

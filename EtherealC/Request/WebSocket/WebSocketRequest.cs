@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace EtherealC.Request.WebSocket
 {
-    public class WebSocketRequest:Abstract.Request
+    public abstract class WebSocketRequest:Abstract.Request
     {
         #region --字段--
 

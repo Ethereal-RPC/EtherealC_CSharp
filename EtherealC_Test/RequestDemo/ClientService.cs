@@ -13,6 +13,14 @@ namespace EtherealS_Test.RequestDemo
         {
             Console.WriteLine(sender.Username + ":" + message);
         }
-        
+        public override void Initialization()
+        {
+
+        }
+
+        public override void UnInitialization()
+        {
+
+        }
     }
 }

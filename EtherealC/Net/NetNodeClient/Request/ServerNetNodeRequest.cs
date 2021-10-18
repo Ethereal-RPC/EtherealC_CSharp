@@ -14,5 +14,15 @@ namespace EtherealC.Net.NetNodeClient.Request
         {
             throw new NotImplementedException();
         }
+
+        public override void Initialization()
+        {
+
+        }
+
+        public override void UnInitialization()
+        {
+
+        }
     }
 }

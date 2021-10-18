@@ -5,6 +5,14 @@ namespace EtherealC.Net.NetNodeClient.Service
 {
     public class ClientNetNodeService:WebSocketService
     {
+        public override void Initialization()
+        {
 
+        }
+
+        public override void UnInitialization()
+        {
+
+        }
     }
 }
