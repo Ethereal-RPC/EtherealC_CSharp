@@ -22,12 +22,12 @@ namespace EtherealC_Test.ServiceDemo
             throw new System.NotImplementedException();
         }
 
-        public override void Initialization()
+        public override void Initializate()
         {
 
         }
 
-        public override void UnInitialization()
+        public override void UnInitialize()
         {
 
         }

@@ -8,17 +8,17 @@ namespace EtherealS_Test.RequestDemo
 {
     public class ClientService:WebSocketService
     {
-        [Service]
+        [ServiceMethod]
         public void Say(User sender,string message)
         {
             Console.WriteLine(sender.Username + ":" + message);
         }
-        public override void Initialization()
+        public override void Initialize()
         {
 
         }
 
-        public override void UnInitialization()
+        public override void UnInitialize()
         {
 
         }

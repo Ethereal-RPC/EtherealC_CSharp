@@ -9,13 +9,13 @@ namespace EtherealC_Test.ServiceDemo
 {
     public interface IServerRequest
     {
-        [Request]
+        [RequestMethod]
         public bool Register(string username, long id);
 
-        [Request]
+        [RequestMethod]
         public bool SendSay(long listener_id, string message);
         //参数级 方法级 服务级
-        [Request]
+        [RequestMethod]
         public int Add(int a, int b);
     }
 }

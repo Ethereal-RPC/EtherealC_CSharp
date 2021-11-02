@@ -54,44 +54,6 @@ namespace EtherealC_Test
         {
             Console.WriteLine($"---------------------------------\n{log.Message}\n---------------------------------\n");
         }
-        /// <summary>
-        /// 分布式模式Demo
-        /// </summary>
-        /// <param name="netName">网关名</param>
-        /// <param name="ip">本地集群地址</param>
-        public static void NetNode(string netName,string ip)
-        {
-            //注册数据类型
-            AbstractTypes types = new AbstractTypes();
-            types.Add<int>("Int");
-            types.Add<User>("User");
-            types.Add<long>("Long");
-            types.Add<string>("String");
-            types.Add<bool>("Bool");
-            //建立网关
-            Net net = NetCore.Register(new WebSocketNet(netName));
-            net.ExceptionEvent += Config_ExceptionEvent;
-            //向网关注册服务
-            Service service = ServiceCore.Register(net, new ClientService(), "Client", types);
-            //向网关注册请求
-            Request request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
-
-            /*
-             * 配置分布式
-             */
-            //开启分布式模式
-            net.Config.NetNodeMode = true;
-            //添加分布式地址
-            List<Tuple<string,ClientConfig>> ips = new();
-            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28015}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28016}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28017}/NetDemo/", new WebSocketClientConfig()));
-            ips.Add(new Tuple<string,ClientConfig>($"ethereal://{ip}:{28018}/NetDemo/", new WebSocketClientConfig()));
-            net.Config.NetNodeIps = ips;
-            request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
-            net.Publish();
-            Console.Read();
-        }
 
         private static void Request_ConnectSuccessEvent(Request request)
         {
@@ -111,13 +73,15 @@ namespace EtherealC_Test
 
         public static void Main()
         {
-            //Single("127.0.0.1", "28015","1");
-            NetNode("demo", "127.0.0.1");
+            Single("127.0.0.1", "28015","1");
+            //NetNode("demo", "127.0.0.1");
             Console.ReadKey();
         }
 
         private static void Config_ConnectSuccessEvent(Client client)
         {
+            RequestCore.Get<ServerRequest>(client.NetName, "Server", out ServerRequest request);
+            request.SendSay(1235,"白阳"); 
             Console.WriteLine("启动成功");
         }
 

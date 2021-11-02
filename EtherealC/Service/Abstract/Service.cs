@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using EtherealC.Core;
 using EtherealC.Core.Model;
+using EtherealC.Net.Extension.Plugins;
 using EtherealC.Service.Interface;
 
 namespace EtherealC.Service.Abstract
@@ -56,29 +57,21 @@ namespace EtherealC.Service.Abstract
         protected string netName;
         protected ServiceConfig config;
         protected AbstractTypes types = new AbstractTypes();
+        protected PluginDomain pluginDomain;
 
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public ServiceConfig Config { get => config; set => config = value; }
         public string Name { get => name; set => name = value; }
         public string NetName { get => netName; set => netName = value; }
         public AbstractTypes Types { get => types; set => types = value; }
-        
+        public PluginDomain PluginDomain { get => pluginDomain; set => pluginDomain = value; }
+
         public static void Register<T>(T instance)where T:Service
         {
-            //遍历所有字段
-            foreach (FieldInfo field in instance.GetType().GetFields())
-            {
-                Attribute.ServiceConfig rpcAttribute = field.GetCustomAttribute<Attribute.ServiceConfig>();
-                if (rpcAttribute != null)
-                {
-
-                }
-            }
-
             StringBuilder methodid = new StringBuilder();
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.Service rpcAttribute = method.GetCustomAttribute<Attribute.Service>();
+                Attribute.ServiceMethod rpcAttribute = method.GetCustomAttribute<Attribute.ServiceMethod>();
                 if (rpcAttribute != null)
                 {
                     if (!method.IsAbstract)
@@ -119,7 +112,7 @@ namespace EtherealC.Service.Abstract
             logEvent?.Invoke(log);
         }
 
-        public abstract void Initialization();
-        public abstract void UnInitialization();
+        public abstract void Initialize();
+        public abstract void UnInitialize();
     }
 }

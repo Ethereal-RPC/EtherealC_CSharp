@@ -53,6 +53,14 @@ namespace EtherealC.Service
             }
             return true;
         }
+        public static bool UnRegister(Abstract.Service service)
+        {
+            if (NetCore.Get(service.NetName, out Net.Abstract.Net net))
+            {
+                return UnRegister(net, service.Name);
+            }
+            return true;
+        }
         public static bool UnRegister(Net.Abstract.Net net, string serviceName)
         {
             if (net != null)

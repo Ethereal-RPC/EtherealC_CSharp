@@ -2,11 +2,13 @@
 
 namespace EtherealC.Service.Attribute
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    /// <summary>
+    /// 作为服务器服务方法的标注类
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
     public class Service : System.Attribute
     {
-        private bool tokenEnable = true;
-
-        public bool TokenEnable { get => tokenEnable; set => tokenEnable = value; }
+        private bool plugin = true;
+        public bool Plugin { get => plugin; set => plugin = value; }
     }
 }

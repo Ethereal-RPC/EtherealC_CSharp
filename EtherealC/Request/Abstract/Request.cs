@@ -110,8 +110,8 @@ namespace EtherealC.Request.Abstract
             ConnectSuccessEvent?.Invoke(this);
         }
 
-        public abstract void Initialization();
-        public abstract void UnInitialization();
+        public abstract void Initializate();
+        public abstract void UnInitialize();
         #endregion
     }
 }
