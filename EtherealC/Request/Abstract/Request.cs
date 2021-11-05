@@ -56,7 +56,7 @@ namespace EtherealC.Request.Abstract
         #region --字段--
         protected Client.Abstract.Client client;
         protected string name;
-        protected string netName;
+        protected Net.Abstract.Net net;
         protected RequestConfig config;
         protected ConcurrentDictionary<int, ClientRequestModel> tasks = new();
         protected AbstractTypes types = new();
@@ -66,7 +66,7 @@ namespace EtherealC.Request.Abstract
 
         public RequestConfig Config { get => config; set => config = value; }
         public Client.Abstract.Client Client { get => client; set => client = value; }
-        public string NetName { get => netName; set => netName = value; }
+        public Net.Abstract.Net Net { get => net; set => net = value; }
         public string Name { get => name; set => name = value; }
         public AbstractTypes Types { get => types; set => types = value; }
 

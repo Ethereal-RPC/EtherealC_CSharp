@@ -45,8 +45,7 @@ namespace EtherealC.Client
         {
             //当连接建立时，请求中的连接成功事件将会发生
             request.Client = client;
-            client.ServiceName = request.Name;
-            client.NetName = request.NetName;
+            client.Request = request;
             request.Client.LogEvent += request.OnLog;
             request.Client.ExceptionEvent += request.OnException;
             request.Client.ConnectEvent += Client_ConnectEvent;
@@ -55,38 +54,17 @@ namespace EtherealC.Client
 
         private static void Client_ConnectEvent(Abstract.Client client)
         {
-            if(RequestCore.Get(client.NetName,client.ServiceName,out Request.Abstract.Request request))
-            {
-                request.OnConnectSuccess();
-            }
+            client.Request.OnConnectSuccess();
         }
 
-        public static bool UnRegister(string netName,string serviceName)
-        {
-            if (NetCore.Get(netName, out Net.Abstract.Net net))
-            {
-                return UnRegister(net,serviceName);
-            }
-            else return true;
-        }
-        public static bool UnRegister(Net.Abstract.Net net, string serviceName)
-        {
-            if (net != null && RequestCore.Get(net, serviceName, out Request.Abstract.Request request))
-            {
-                return UnRegister(request);
-            }
-            return true;
-        }
         public static bool UnRegister(Request.Abstract.Request request)
         {
-            if (request?.Client != null)
-            {
-                request.Client.LogEvent -= request.OnLog;
-                request.Client.ExceptionEvent -= request.OnException;
-                var temp = request.Client;
-                request.Client = null;
-                temp.DisConnect();
-            }
+            request.Client.LogEvent -= request.OnLog;
+            request.Client.ExceptionEvent -= request.OnException;
+            request.Client.Request = null;
+            var temp = request.Client;
+            request.Client = null;
+            temp.DisConnect();
             return true;
         }
     }

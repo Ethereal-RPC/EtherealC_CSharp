@@ -145,29 +145,21 @@ namespace EtherealC.Client.WebSocket
                             {
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
                                 string log =
-                                    $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[服-返回]\n{response}\n";
+                                    $"{DateTime.Now}::{base.net}::{request}::{prefixes}::[服-返回]\n{response}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
-                                if (!NetCore.Get(netName, out Net.Abstract.Net net))
-                                {
-                                    throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
-                                }
                                 net.ClientResponseReceiveProcess(response);
                             }
                             else if(value.ToString() == "ER-1.0-ServerRequest")
                             {
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                                 string log =
-                                    $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[服-请求]\n{request}\n";
+                                    $"{DateTime.Now}::{base.net}::{base.request}::{prefixes}::[服-请求]\n{request}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
-                                if (!NetCore.Get(netName, out Net.Abstract.Net net))
-                                {
-                                    throw new TrackException(TrackException.ErrorCode.Runtime, $"查询{netName} Net时 不存在");
-                                }
                                 net.ServerRequestReceiveProcess(request);
                             }
                             else
                             {
-                                string log = $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[未知消息体]\n{data}\n";
+                                string log = $"{DateTime.Now}::{net}::{request}::{prefixes}::[未知消息体]\n{data}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                             }
                         }
@@ -198,7 +190,7 @@ namespace EtherealC.Client.WebSocket
         {
             if (Accept?.State == WebSocketState.Open)
             {
-                string log = $"{DateTime.Now}::{netName}::{serviceName}::{prefixes}::[客-请求]\n{request}\n";
+                string log = $"{DateTime.Now}::{net}::{base.request}::{prefixes}::[客-请求]\n{request}\n";
                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                 string data = config.ClientRequestModelSerialize(request);
                 await Accept?.SendAsync(config.Encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken);

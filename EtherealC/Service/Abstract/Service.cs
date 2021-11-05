@@ -54,7 +54,7 @@ namespace EtherealC.Service.Abstract
         //string连接的时候使用引用要比tuple慢很多
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         protected string name;
-        protected string netName;
+        protected Net.Abstract.Net net;
         protected ServiceConfig config;
         protected AbstractTypes types = new AbstractTypes();
         protected PluginDomain pluginDomain;
@@ -62,9 +62,9 @@ namespace EtherealC.Service.Abstract
         public Dictionary<string, MethodInfo> Methods { get => methods;  }
         public ServiceConfig Config { get => config; set => config = value; }
         public string Name { get => name; set => name = value; }
-        public string NetName { get => netName; set => netName = value; }
         public AbstractTypes Types { get => types; set => types = value; }
         public PluginDomain PluginDomain { get => pluginDomain; set => pluginDomain = value; }
+        public Net.Abstract.Net Net { get => net; set => net = value; }
 
         public static void Register<T>(T instance)where T:Service
         {
