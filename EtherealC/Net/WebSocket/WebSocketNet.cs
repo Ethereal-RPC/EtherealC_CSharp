@@ -31,7 +31,7 @@ namespace EtherealC.Net.WebSocket
             {
                 foreach (Request.Abstract.Request request in Requests.Values)
                 {
-                    request.Client.Connect();
+                    request.Client?.Connect();
                 }
             }
             catch (TrackException e)

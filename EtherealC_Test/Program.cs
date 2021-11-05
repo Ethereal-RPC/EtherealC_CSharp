@@ -40,14 +40,8 @@ namespace EtherealC_Test
             //向网关注册请求
             ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
-            //注册连接
-            Client client = ClientCore.Register(request, new WebSocketClient("ethereal://127.0.0.1:28015/NetDemo/"));
-            client.ConnectEvent += Config_ConnectSuccessEvent;
-            client.DisConnectEvent += Client_ConnectFailEvent;
-            client.Config.Debug = true;
             //启动连接
             net.Publish();
-
         }
 
         private static void Net_LogEvent(TrackLog log)
@@ -60,11 +54,6 @@ namespace EtherealC_Test
             Console.WriteLine(((request) as ServerRequest).Add(2, 3));
         }
 
-        private static void Client_ConnectFailEvent(Client client)
-        {
-            ClientCore.UnRegister(client.NetName, client.ServiceName);
-        }
-
         private static void Config_ExceptionEvent(TrackException exception)
         {
             Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n---------------------------------\n");
@@ -73,17 +62,8 @@ namespace EtherealC_Test
 
         public static void Main()
         {
-            Single("127.0.0.1", "28015","1");
-            //NetNode("demo", "127.0.0.1");
+            Single("127.0.0.1", "28015","demo");
             Console.ReadKey();
         }
-
-        private static void Config_ConnectSuccessEvent(Client client)
-        {
-            RequestCore.Get<ServerRequest>(client.NetName, "Server", out ServerRequest request);
-            request.SendSay(1235,"白阳"); 
-            Console.WriteLine("启动成功");
-        }
-
     }
 }
