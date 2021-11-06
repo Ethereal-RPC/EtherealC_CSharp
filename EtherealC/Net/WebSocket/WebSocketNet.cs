@@ -29,10 +29,7 @@ namespace EtherealC.Net.WebSocket
         {
             try
             {
-                foreach (Request.Abstract.Request request in Requests.Values)
-                {
-                    request.Client?.Connect();
-                }
+                Client?.Connect();
             }
             catch (TrackException e)
             {

@@ -54,7 +54,6 @@ namespace EtherealC.Request.Abstract
         #endregion
 
         #region --字段--
-        protected Client.Abstract.Client client;
         protected string name;
         protected Net.Abstract.Net net;
         protected RequestConfig config;
@@ -65,7 +64,6 @@ namespace EtherealC.Request.Abstract
         #region --属性--
 
         public RequestConfig Config { get => config; set => config = value; }
-        public Client.Abstract.Client Client { get => client; set => client = value; }
         public Net.Abstract.Net Net { get => net; set => net = value; }
         public string Name { get => name; set => name = value; }
         public AbstractTypes Types { get => types; set => types = value; }

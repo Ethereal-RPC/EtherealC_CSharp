@@ -77,15 +77,15 @@ namespace EtherealC.Client.Abstract
         #endregion
 
         #region --×Ö¶Î--
-        protected Request.Abstract.Request request;
+        protected Net.Abstract.Net net;
         protected ClientConfig config;
         protected string prefixes;
         #endregion
 
         #region --ÊôÐÔ--
-        public Request.Abstract.Request Request { get => request; set => request = value; }
         public ClientConfig Config { get => config; set => config = value; }
         public string Prefixes { get => prefixes; set => prefixes = value; }
+        public Net.Abstract.Net Net { get => net; set => net = value; }
         #endregion
 
         public Client(string prefixes)

@@ -65,6 +65,7 @@ namespace EtherealC.Net.Abstract
         protected Dictionary<string, Request.Abstract.Request> requests = new Dictionary<string, Request.Abstract.Request>();
         protected NetType type = NetType.WebSocket;
         protected NetConfig config;
+        protected Client.Abstract.Client client;
         #endregion
 
         #region --属性--
@@ -73,6 +74,7 @@ namespace EtherealC.Net.Abstract
         public string Name { get => name; set => name = value; }
         public NetType Type { get => type; set => type = value; }
         public NetConfig Config { get => config; set => config = value; }
+        public Client.Abstract.Client Client { get => client; set => client = value; }
 
         #endregion
 

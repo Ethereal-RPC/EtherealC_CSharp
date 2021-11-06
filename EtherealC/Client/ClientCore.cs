@@ -8,63 +8,45 @@ namespace EtherealC.Client
 {
     public class ClientCore
     {
-        public static bool Get(string netName,string serviceName, out Abstract.Client client)
+        public static bool Get(string netName, out Abstract.Client client)
         {
             if (NetCore.Get(netName, out Net.Abstract.Net net))
             {
-                return Get(net, serviceName, out client);
+                client = net.Client;
+                return true;
             }
-            else
-            {
-                client = null;
-                return false;
-            }
+            client = null;
+            return false;
         }
-        public static bool Get(Net.Abstract.Net net,string serviceName, out Abstract.Client client)
+        public static Abstract.Client Register(Net.Abstract.Net net,Abstract.Client client)
         {
-            if(RequestCore.Get(net, serviceName, out Request.Abstract.Request request))
+            if (net.Client == null)
             {
-                client = request.Client;
-                return client != null;
+                //当连接建立时，请求中的连接成功事件将会发生
+                net.Client = client;
+                client.Net = net;
+                client.LogEvent += net.OnLog;
+                client.ExceptionEvent += net.OnException;
+                client.ConnectEvent += Client_ConnectEvent;
+                return net.Client;
             }
-            else
-            {
-                client = null;
-                return false;
-            }
-        }
-        public static Abstract.Client Register(Net.Abstract.Net net, string serviceName, Abstract.Client client)
-        {
-            if (RequestCore.Get(net, serviceName, out Request.Abstract.Request request))
-            {
-                return Register(request, client);
-            }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}-{serviceName} 未找到");
-        }
-        public static Abstract.Client Register(Request.Abstract.Request request,Abstract.Client client)
-        {
-            //当连接建立时，请求中的连接成功事件将会发生
-            request.Client = client;
-            client.Request = request;
-            request.Client.LogEvent += request.OnLog;
-            request.Client.ExceptionEvent += request.OnException;
-            request.Client.ConnectEvent += Client_ConnectEvent;
-            return request.Client;
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}已注册Client！");
         }
 
         private static void Client_ConnectEvent(Abstract.Client client)
         {
-            client.Request.OnConnectSuccess();
+            foreach(Request.Abstract.Request request in client.Net.Requests.Values)
+            {
+                request.OnConnectSuccess();
+            }
         }
 
-        public static bool UnRegister(Request.Abstract.Request request)
+        public static bool UnRegister(Abstract.Client client)
         {
-            request.Client.LogEvent -= request.OnLog;
-            request.Client.ExceptionEvent -= request.OnException;
-            request.Client.Request = null;
-            var temp = request.Client;
-            request.Client = null;
-            temp.DisConnect();
+            client.LogEvent -= client.Net.OnLog;
+            client.ExceptionEvent -= client.Net.OnException;
+            client.Net.Client = null;
+            client.DisConnect();
             return true;
         }
     }

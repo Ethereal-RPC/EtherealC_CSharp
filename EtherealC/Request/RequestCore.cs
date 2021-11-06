@@ -53,7 +53,6 @@ namespace EtherealC.Request
             request.LogEvent -= request.Net.OnLog;
             request.ExceptionEvent -= request.Net.OnException;
             request.Net = null;
-            ClientCore.UnRegister(request);
             return true;
         }
         #endregion

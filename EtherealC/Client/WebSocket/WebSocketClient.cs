@@ -16,7 +16,6 @@ namespace EtherealC.Client.WebSocket
         #region --字段--
         private ClientWebSocket accept;
         private CancellationToken cancellationToken = CancellationToken.None;
-
         #endregion
 
         #region --属性--
@@ -145,7 +144,7 @@ namespace EtherealC.Client.WebSocket
                             {
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
                                 string log =
-                                    $"{DateTime.Now}::{base.net}::{request}::{prefixes}::[服-返回]\n{response}\n";
+                                    $"{DateTime.Now}::{Net.Name}::{response.Service}::[服-返回]\n{response}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                                 net.ClientResponseReceiveProcess(response);
                             }
@@ -153,13 +152,13 @@ namespace EtherealC.Client.WebSocket
                             {
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                                 string log =
-                                    $"{DateTime.Now}::{base.net}::{base.request}::{prefixes}::[服-请求]\n{request}\n";
+                                    $"{DateTime.Now}::{Net.Name}::{request.Service}::[服-请求]\n{request}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                                 net.ServerRequestReceiveProcess(request);
                             }
                             else
                             {
-                                string log = $"{DateTime.Now}::{net}::{request}::{prefixes}::[未知消息体]\n{data}\n";
+                                string log = $"{DateTime.Now}::{net.Name}::[未知消息体]\n{data}\n";
                                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                             }
                         }
@@ -190,7 +189,7 @@ namespace EtherealC.Client.WebSocket
         {
             if (Accept?.State == WebSocketState.Open)
             {
-                string log = $"{DateTime.Now}::{net}::{base.request}::{prefixes}::[客-请求]\n{request}\n";
+                string log = $"{DateTime.Now}::{net.Name}::[客-请求]\n{request}\n";
                 if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                 string data = config.ClientRequestModelSerialize(request);
                 await Accept?.SendAsync(config.Encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken);

@@ -65,7 +65,7 @@ namespace EtherealC.Request.WebSocket
                 ClientRequestModel request = new ClientRequestModel(Name, methodid.ToString(), @params.ToArray());
                 if (targetMethod.ReturnType == typeof(void))
                 {
-                    client.SendClientRequestModel(request);
+                    Net.Client.SendClientRequestModel(request);
                 }
                 else
                 {
@@ -79,7 +79,7 @@ namespace EtherealC.Request.WebSocket
                         request.Id = id.ToString();
                         int timeout = Config.Timeout;
                         if (rpcAttribute.Timeout != -1) timeout = rpcAttribute.Timeout;
-                        client.SendClientRequestModel(request);
+                        Net.Client.SendClientRequestModel(request);
                         ClientResponseModel result = request.Get(timeout);
                         if (result != null)
                         {

@@ -27,26 +27,13 @@ namespace EtherealC.Net
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name} Net已经注册");
         }
-        public static bool UnRegister(string name)
-        {
-            if (Get(name, out Net.Abstract.Net net))
-            {
-                return UnRegister(net);
-            }
-            else return true;
-        }
-        public static bool UnRegister(Net.Abstract.Net net)
+        public static bool UnRegister(Abstract.Net net)
         {
             if(net != null)
             {
-                //清理请求上的连接
-                foreach (Request.Abstract.Request request in net.Requests.Values)
+                if (net.Type == Net.Abstract.Net.NetType.WebSocket)
                 {
-                    if(net.Type == Net.Abstract.Net.NetType.WebSocket)
-                    {
-                        (request.Client as WebSocketClient).DisConnect(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
-                    }
-                    request.Client = null;
+                    (net.Client as WebSocketClient).DisConnect(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
                 }
                 net.Requests.Clear();
                 net.Services.Clear();

@@ -40,6 +40,8 @@ namespace EtherealC_Test
             //向网关注册请求
             ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
+            //注册连接
+            ClientCore.Register(net, new WebSocketClient($"ethereal://{ip}:{port}/NetDemo"));
             //启动连接
             net.Publish();
         }
