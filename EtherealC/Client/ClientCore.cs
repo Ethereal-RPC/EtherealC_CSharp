@@ -46,6 +46,7 @@ namespace EtherealC.Client
             client.LogEvent -= client.Net.OnLog;
             client.ExceptionEvent -= client.Net.OnException;
             client.Net.Client = null;
+            client.Net = null;
             client.DisConnect();
             return true;
         }

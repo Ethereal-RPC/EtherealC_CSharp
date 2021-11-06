@@ -48,9 +48,9 @@ namespace EtherealC.Service
         public static bool UnRegister(Abstract.Service service)
         {
             service.Net.Services.TryRemove(service.Name, out service);
-            service.Net = null;
             service.LogEvent -= service.Net.OnLog;
             service.ExceptionEvent -= service.Net.OnException;
+            service.Net = null;
             return true;
         }
     }
