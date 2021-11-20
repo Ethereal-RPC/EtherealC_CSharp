@@ -115,7 +115,7 @@ namespace EtherealC.Net.Extension.Plugins
 				Directory.CreateDirectory(this.ShadowCopyDirectory);
             #endregion
 		}
-		public bool Initialize(Abstract.Net net)
+		public bool Initialize(Request.Abstract.Request	request)
         {
 			assemlyLoad = new AssemblyLoadContext(null,true);
 			#region 加载Lib
@@ -145,7 +145,7 @@ namespace EtherealC.Net.Extension.Plugins
 				if (serviceAttribute != null && serviceAttribute.Plugin)
 				{
 					Service.Abstract.Service service = Activator.CreateInstance(type) as Service.Abstract.Service;
-					ServiceCore.Register(net, service);
+					ServiceCore.Register(request, service);
 					services.Add(service);
 					service.PluginDomain = this;
 				}

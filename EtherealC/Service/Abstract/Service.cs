@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using EtherealC.Core;
+﻿using EtherealC.Core;
+using EtherealC.Core.Event;
+using EtherealC.Core.Event.Attribute;
+using EtherealC.Core.Event.Model;
+using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 using EtherealC.Net.Extension.Plugins;
 using EtherealC.Service.Interface;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace EtherealC.Service.Abstract
 {
-    public abstract class Service:IService
+    public abstract class Service:IService,IBaseIoc
     {
         #region --事件字段--
         private OnLogDelegate logEvent;
@@ -54,7 +57,7 @@ namespace EtherealC.Service.Abstract
         //string连接的时候使用引用要比tuple慢很多
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         protected string name;
-        protected Net.Abstract.Net net;
+        protected Request.Abstract.Request request;
         protected ServiceConfig config;
         protected AbstractTypes types = new AbstractTypes();
         protected PluginDomain pluginDomain;
@@ -64,35 +67,87 @@ namespace EtherealC.Service.Abstract
         public string Name { get => name; set => name = value; }
         public AbstractTypes Types { get => types; set => types = value; }
         public PluginDomain PluginDomain { get => pluginDomain; set => pluginDomain = value; }
-        public Net.Abstract.Net Net { get => net; set => net = value; }
+        public Request.Abstract.Request Request { get => request; set => request = value; }
+        internal protected Dictionary<string, object> IocContainer { get; set; }
+        public EventManager EventManager { get; set; } = new EventManager();
 
-        public static void Register<T>(T instance)where T:Service
+        internal static void Register<T>(T instance)where T:Service
         {
-            StringBuilder methodid = new StringBuilder();
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.ServiceMethod rpcAttribute = method.GetCustomAttribute<Attribute.ServiceMethod>();
-                if (rpcAttribute != null)
+                Attribute.ServiceMapping attribute = method.GetCustomAttribute<Attribute.ServiceMapping>();
+                if (attribute != null)
                 {
-                    if (!method.IsAbstract)
+                    ParameterInfo[] parameterInfos = method.GetParameters();
+                    foreach (ParameterInfo parameterInfo in parameterInfos)
                     {
-                        methodid.Append(method.Name);
-                        ParameterInfo[] parameterInfos = method.GetParameters();
-                        foreach (ParameterInfo parameterInfo in parameterInfos)
+                        Core.Attribute.Param ParamsAttribute = parameterInfo.GetCustomAttribute<Core.Attribute.Param>(true);
+                        if ((ParamsAttribute != null && instance.Types.TypesByName.TryGetValue(ParamsAttribute.Name, out AbstractType type))
+                            || instance.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out type))
                         {
-                            if (instance.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
-                                || instance.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
-                            {
-                                methodid.Append("-" + type.Name);
-                            }
-                            else throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
+                            continue;
                         }
-                        instance.methods.TryAdd(methodid.ToString(), method);
-                        methodid.Length = 0;
+                        else throw new TrackException($"{method.Name}方法中的{parameterInfo.ParameterType}类型参数尚未注册");
                     }
+                    instance.methods.TryAdd(attribute.Mapping, method);
                 }
             }
         }
+        internal void ServerRequestReceiveProcess(ServerRequestModel request)
+        {
+            EventContext eventContext;
+            EventSender eventSender;
+            Dictionary<string, object> @params = null;
+            if (!Methods.TryGetValue(request.Mapping, out MethodInfo method))
+            {
+               throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{request.Service}-{request.Mapping}未找到!");
+            }
+            try
+            {
+                ParameterInfo[] parameterInfos = method.GetParameters();
+                List<object> parameters = new List<object>(parameterInfos.Length);
+                int i = 0;
+                @params = new(parameterInfos.Length);
+                foreach (ParameterInfo parameterInfo in parameterInfos)
+                {
+                    Core.Attribute.Param abstractTypeAttribute = parameterInfo.GetCustomAttribute<Core.Attribute.Param>(true);
+                    if ((abstractTypeAttribute != null && Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out Core.Model.AbstractType type))
+                        || Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out type))
+                    {
+                        object param = type.Deserialize(request.Params[i++]);
+                        parameters.Add(param);
+                        @params.Add(parameterInfo.Name, param);
+                    }
+                    else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
+                }
+                eventSender = method.GetCustomAttribute<BeforeEvent>();
+                if (eventSender != null)
+                {
+                    eventContext = new BeforeEventContext(@params, method);
+                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                }
+                object result = method.Invoke(this, request.Params);
+                eventSender = method.GetCustomAttribute<AfterEvent>();
+                if (eventSender != null)
+                {
+                    eventContext = new AfterEventContext(@params, method,result);
+                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                }
+            }
+            catch(Exception e)
+            {
+                eventSender = method.GetCustomAttribute<ExceptionEvent>();
+                if (eventSender != null)
+                {
+                    (eventSender as ExceptionEvent).Exception = e;
+                    eventContext = new ExceptionEventContext(@params, method, e);
+                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                    if ((eventSender as ExceptionEvent).IsThrow) throw;
+                }
+                else throw;
+            }
+        }
+        
         public void OnException(TrackException.ErrorCode code, string message)
         {
             OnException(new TrackException(code, message));
@@ -114,5 +169,26 @@ namespace EtherealC.Service.Abstract
 
         public abstract void Initialize();
         public abstract void UnInitialize();
+
+        public void RegisterIoc(string name, object instance)
+        {
+            if (IocContainer.ContainsKey(name))
+            {
+                throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}请求中的{name}实例已注册");
+            }
+            IocContainer.Add(name, instance);
+        }
+        public void UnRegisterIoc(string name)
+        {
+            if (IocContainer.TryGetValue(name, out object instance))
+            {
+                IocContainer.Remove(name);
+                EventManager.UnRegisterEventMethod(name, instance);
+            }
+        }
+        public bool GetIocObject(string name, out object instance)
+        {
+            return IocContainer.TryGetValue(name, out instance);
+        }
     }
 }

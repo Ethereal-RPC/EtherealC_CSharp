@@ -1,31 +1,49 @@
-﻿using EtherealC.Request.Attribute;
+﻿using EtherealC.Core.Event.Attribute;
+using EtherealC.Request.Attribute;
 using EtherealC.Request.WebSocket;
 using EtherealC_Test.Model;
-using Request = EtherealC.Request.Abstract.Request;
+using EtherealC_Test.ServiceDemo;
+using System;
 
-namespace EtherealC_Test.ServiceDemo
+namespace EtherealS_Test.RequestDemo
 {
-    public class ServerRequest: WebSocketRequest,IServerRequest
+    public class ServerRequest:WebSocketRequest
     {
-        public virtual bool Register(string username, long id)
+        public ServerRequest()
         {
-            throw new System.NotImplementedException();
+            Types.Add<int>("Int");
+            Types.Add<long>("Long");
+            Types.Add<string>("String");
+            Types.Add<bool>("Bool");
+            Types.Add<User>("User");
+        }
+        public override void Initialize()
+        {
+            object instance = new EventClass();
+            RegisterIoc("instance", instance);
+            EventManager.RegisterEventMethod("instance",instance);
         }
 
+        [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Local)]
         public virtual bool SendSay(long listener_id, string message)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public virtual int Add(int a, int b)
+            Console.WriteLine("Add");
+            return false;
+        }        
+        [RequestMapping(Mapping: "SendSay1", InvokeType = RequestMapping.InvokeTypeFlags.Local)]
+        public virtual bool SendSay(string listener_id, string message)
         {
-            throw new System.NotImplementedException();
+            Console.WriteLine("Add");
+            return false;
         }
-
-        public override void Initializate()
+        [AfterEvent("instance","after", "[ddd:d],s:s")]
+        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
+        public virtual bool test(int d,string s)
         {
-
+            Console.WriteLine("Add");
+            return true;
         }
+
 
         public override void UnInitialize()
         {

@@ -25,22 +25,6 @@ namespace EtherealC.Net.WebSocket
         {
             config = new WebSocketNetConfig();
         }
-        public override bool Publish()
-        {
-            try
-            {
-                Client?.Connect();
-            }
-            catch (TrackException e)
-            {
-                OnException(e);
-            }
-            catch (Exception e)
-            {
-                OnException((TrackException)e);
-            }
-            return true;
-        }
 
         #endregion
 

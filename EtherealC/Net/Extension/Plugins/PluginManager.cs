@@ -1,4 +1,5 @@
 ﻿using EtherealC.Core.Model;
+using EtherealC.Request;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,7 +49,10 @@ namespace EtherealC.Net.Extension.Plugins
                 //初始扫描所有文件，寻找入口
                 foreach(FileInfo fileInfo in new DirectoryInfo(config.BaseDirectory).GetFiles("*.services", SearchOption.AllDirectories))
                 {
-                    if(!fileInfo.Directory.Name.Equals("shadow"))LoadPlugin(net, fileInfo);
+                    if (!fileInfo.Directory.Name.Equals("shadow") && RequestCore.Get(net, fileInfo.Directory.Name,out Request.Abstract.Request request)) 
+                    {
+                        LoadPlugin(request, fileInfo);
+                    }
                 }
             }
             else throw new TrackException(TrackException.ErrorCode.Runtime, $"PluginManager未找到Net:{netName}");
@@ -58,11 +62,10 @@ namespace EtherealC.Net.Extension.Plugins
         {
             DirectoryInfo directory = new DirectoryInfo(e.FullPath).Parent;
             if (directory.Name.Equals("shadow")) return;
-            if (!NetCore.Get(netName, out Abstract.Net net))
+            if (!directory.Name.Equals("shadow") && RequestCore.Get(netName, directory.Name, out Request.Abstract.Request request))
             {
-                throw new TrackException(TrackException.ErrorCode.Runtime, $"PluginManager未找到Net:{netName}");
+                LoadPlugin(request, new FileInfo(e.FullPath));
             }
-            LoadPlugin(net, new FileInfo(e.FullPath));
         }
 
         private void Deleted(object sender, FileSystemEventArgs e)
@@ -85,9 +88,9 @@ namespace EtherealC.Net.Extension.Plugins
         {
             DirectoryInfo directory = new DirectoryInfo(e.FullPath).Parent;
             if (directory.Name.Equals("shadow")) return;
-            if (!NetCore.Get(netName, out Abstract.Net net))
+            if (!Request.RequestCore.Get(netName,directory.Name, out Request.Abstract.Request request))
             {
-                throw new TrackException(TrackException.ErrorCode.Runtime, $"PluginManager未找到Net:{netName}");
+                throw new TrackException(TrackException.ErrorCode.Runtime, $"PluginManager未找到Request:{netName}-{directory.Name}");
             }
             //判断是否已载入该插件
             PluginDomain plugin = plugins.Where(plugin => plugin.AssemblyPath == e.OldFullPath).FirstOrDefault();
@@ -95,16 +98,16 @@ namespace EtherealC.Net.Extension.Plugins
             {
                 UnPlugin(plugin);
             }
-            LoadPlugin(net, new FileInfo(e.FullPath));
+            LoadPlugin(request, new FileInfo(e.FullPath));
         }
-        private bool LoadPlugin(Abstract.Net net,FileInfo fileInfo)
+        private bool LoadPlugin(Request.Abstract.Request request,FileInfo fileInfo)
         {
             //判断是否已载入该插件
             PluginDomain plugin = new PluginDomain(fileInfo.FullName, fileInfo.DirectoryName,
             fileInfo.DirectoryName + @"\lib", fileInfo.DirectoryName + @"\config", fileInfo.DirectoryName + @"\cache",
             fileInfo.DirectoryName + @"\shadow");
             plugins.Add(plugin);
-            plugin.Initialize(net);
+            plugin.Initialize(request);
             return true;
         }
         private bool UnPlugin(PluginDomain plugin)

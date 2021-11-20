@@ -8,6 +8,5 @@ namespace EtherealC.Client.Interface
     {
         public void Connect();
         public void DisConnect();
-        public void SendClientRequestModel(ClientRequestModel request);
     }
 }

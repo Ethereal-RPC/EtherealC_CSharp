@@ -46,6 +46,8 @@ namespace EtherealC.Client.WebSocket
         {
             try
             {
+                if(Prefixes.LastIndexOf('/') != Prefixes.Length - 1)Prefixes += $"/{Request.Name}";
+                else Prefixes += $"{Request.Name}";
                 await Accept.ConnectAsync(new Uri(Prefixes.Replace("ethereal://", "ws://")), cancellationToken);
                 if (Accept.State == WebSocketState.Open)
                 {
@@ -143,23 +145,16 @@ namespace EtherealC.Client.WebSocket
                             if (value.ToString() == "ER-1.0-ClientResponse")
                             {
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
-                                string log =
-                                    $"{DateTime.Now}::{Net.Name}::{response.Service}::[服-返回]\n{response}\n";
-                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
-                                net.ClientResponseReceiveProcess(response);
+                                Request.ClientResponseReceiveProcess(response);
                             }
                             else if(value.ToString() == "ER-1.0-ServerRequest")
                             {
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
-                                string log =
-                                    $"{DateTime.Now}::{Net.Name}::{request.Service}::[服-请求]\n{request}\n";
-                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
-                                net.ServerRequestReceiveProcess(request);
-                            }
-                            else
-                            {
-                                string log = $"{DateTime.Now}::{net.Name}::[未知消息体]\n{data}\n";
-                                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
+                                if (Request.Services.TryGetValue(request.Service, out Service.Abstract.Service service))
+                                {
+                                    service.ServerRequestReceiveProcess(request);
+                                }
+                                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{Request.Name}-{request.Service} 未找到!");
                             }
                         }
                     }
@@ -185,12 +180,10 @@ namespace EtherealC.Client.WebSocket
                 }
             }
         }
-        public override async void SendClientRequestModel(ClientRequestModel request)
+        internal override async void SendClientRequestModel(ClientRequestModel request)
         {
             if (Accept?.State == WebSocketState.Open)
             {
-                string log = $"{DateTime.Now}::{net.Name}::[客-请求]\n{request}\n";
-                if (config.Debug) OnLog(TrackLog.LogCode.Runtime, log);
                 string data = config.ClientRequestModelSerialize(request);
                 await Accept?.SendAsync(config.Encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken);
             }

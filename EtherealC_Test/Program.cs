@@ -1,12 +1,4 @@
-﻿using EtherealC_Test.Model;
-using EtherealC_Test.ServiceDemo;
-using EtherealS_Test.RequestDemo;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using EtherealC.Client;
-using EtherealC.Client.Abstract;
+﻿using EtherealC.Client;
 using EtherealC.Client.WebSocket;
 using EtherealC.Core.Model;
 using EtherealC.Net;
@@ -16,12 +8,15 @@ using EtherealC.Request;
 using EtherealC.Request.Abstract;
 using EtherealC.Service;
 using EtherealC.Service.Abstract;
+using EtherealC_Test.Model;
+using EtherealC_Test.ServiceDemo;
+using EtherealS_Test.RequestDemo;
+using System;
 
 namespace EtherealC_Test
 {
     public class Program
     {
-
         public static void Single(string ip,string port,string netName)
         {   
             //注册数据类型
@@ -35,15 +30,15 @@ namespace EtherealC_Test
             Net net = NetCore.Register(new WebSocketNet(netName));
             net.ExceptionEvent += Config_ExceptionEvent;
             net.LogEvent += Net_LogEvent;
-            //向网关注册服务
-            Service service = ServiceCore.Register(net, new ClientService(), "Client", types);
             //向网关注册请求
-            ServerRequest request = RequestCore.Register<ServerRequest,IServerRequest>(net, "Server", types);
+            ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server");
+            request.test(4, "你好");
+
+            //向网关注册服务
+            Service service = ServiceCore.Register(request,new ClientService(), "Client");
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            ClientCore.Register(net, new WebSocketClient($"ethereal://{ip}:{port}/NetDemo"));
-            //启动连接
-            net.Publish();
+            //ClientCore.Register(request, new WebSocketClient($"ethereal://{ip}:{port}/NetDemo"));
         }
 
         private static void Net_LogEvent(TrackLog log)
@@ -53,7 +48,7 @@ namespace EtherealC_Test
 
         private static void Request_ConnectSuccessEvent(Request request)
         {
-            Console.WriteLine(((request) as ServerRequest).Add(2, 3));
+            (request as ServerRequest).test(4, "你好");
         }
 
         private static void Config_ExceptionEvent(TrackException exception)

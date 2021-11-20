@@ -5,18 +5,18 @@ namespace EtherealC.Core.Model
     public class ServerRequestModel
     {
         private string type= "ER-1.0-ServerRequest";
-        private string methodId;
+        private string mapping;
         private string[] @params;
         private string service;
 
         public string Type { get => type; set => type = value; }
-        public string MethodId { get => methodId; set => methodId = value; }
+        public string Mapping { get => mapping; set => mapping = value; }
         public string[] Params { get => @params; set => @params = value; }
         public string Service { get => service; set => service = value; }
 
         public ServerRequestModel(string service,string id,string methodid, string[] @params)
         {
-            MethodId = methodid;
+            Mapping = methodid;
             Params = @params;
             Service = service;
         }
@@ -24,7 +24,7 @@ namespace EtherealC.Core.Model
         {
             return "ServerRequestModel{" +
                     "type='" + type + '\'' +
-                    ", methodId='" + methodId + '\'' +
+                    ", methodId='" + mapping + '\'' +
                     ", params=" + string.Join(",", @params) +
                     ", service='" + service + '\'' +
                     '}';

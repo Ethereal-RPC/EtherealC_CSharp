@@ -4,6 +4,7 @@ using EtherealC.Client.WebSocket;
 using EtherealC.Core.Model;
 using EtherealC.Net.Abstract;
 using EtherealC.Net.WebSocket;
+using EtherealC.Request;
 
 namespace EtherealC.Net
 {
@@ -31,12 +32,11 @@ namespace EtherealC.Net
         {
             if(net != null)
             {
-                if (net.Type == Net.Abstract.Net.NetType.WebSocket)
+                foreach(Request.Abstract.Request request in net.Requests.Values)
                 {
-                    (net.Client as WebSocketClient).DisConnect(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "UnRegister");
+                    RequestCore.UnRegister(request);
                 }
                 net.Requests.Clear();
-                net.Services.Clear();
                 nets.Remove(net.Name);
             }
             return true;

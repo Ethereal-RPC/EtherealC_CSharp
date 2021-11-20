@@ -8,45 +8,46 @@ namespace EtherealC.Client
 {
     public class ClientCore
     {
-        public static bool Get(string netName, out Abstract.Client client)
+        public static bool Get(string net_name,string request_name, out Abstract.Client client)
         {
-            if (NetCore.Get(netName, out Net.Abstract.Net net))
+            if (RequestCore.Get(net_name,request_name, out Request.Abstract.Request request))
             {
-                client = net.Client;
+                client = request.Client;
                 return true;
             }
             client = null;
             return false;
         }
-        public static Abstract.Client Register(Net.Abstract.Net net,Abstract.Client client)
+        public static Abstract.Client Register(Request.Abstract.Request request,Abstract.Client client,bool startClient = true)
         {
-            if (net.Client == null)
+            if (request.Client == null)
             {
                 //当连接建立时，请求中的连接成功事件将会发生
-                net.Client = client;
-                client.Net = net;
-                client.LogEvent += net.OnLog;
-                client.ExceptionEvent += net.OnException;
+                request.Client = client;
+                client.Request = request;
+                client.LogEvent += request.OnLog;
+                client.ExceptionEvent += request.OnException;
                 client.ConnectEvent += Client_ConnectEvent;
-                return net.Client;
+                if (startClient)
+                {
+                    client.Connect();
+                }
+                return request.Client;
             }
-            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}已注册Client！");
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{request.Name}已注册Client！");
         }
 
         private static void Client_ConnectEvent(Abstract.Client client)
         {
-            foreach(Request.Abstract.Request request in client.Net.Requests.Values)
-            {
-                request.OnConnectSuccess();
-            }
+            client.Request.OnConnectSuccess();
         }
 
         public static bool UnRegister(Abstract.Client client)
         {
-            client.LogEvent -= client.Net.OnLog;
-            client.ExceptionEvent -= client.Net.OnException;
-            client.Net.Client = null;
-            client.Net = null;
+            client.LogEvent -= client.Request.OnLog;
+            client.ExceptionEvent -= client.Request.OnException;
+            client.Request.Client = null;
+            client.Request = null;
             client.DisConnect();
             return true;
         }

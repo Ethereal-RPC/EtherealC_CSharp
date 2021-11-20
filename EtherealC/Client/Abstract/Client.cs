@@ -1,6 +1,8 @@
 using EtherealC.Client.Interface;
 using EtherealC.Core;
 using EtherealC.Core.Model;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace EtherealC.Client.Abstract
 {
@@ -77,7 +79,7 @@ namespace EtherealC.Client.Abstract
         #endregion
 
         #region --字段--
-        protected Net.Abstract.Net net;
+        private Request.Abstract.Request request;
         protected ClientConfig config;
         protected string prefixes;
         #endregion
@@ -85,7 +87,8 @@ namespace EtherealC.Client.Abstract
         #region --属性--
         public ClientConfig Config { get => config; set => config = value; }
         public string Prefixes { get => prefixes; set => prefixes = value; }
-        public Net.Abstract.Net Net { get => net; set => net = value; }
+        public Request.Abstract.Request Request { get => request; set => request = value; }
+
         #endregion
 
         public Client(string prefixes)
@@ -94,7 +97,7 @@ namespace EtherealC.Client.Abstract
         }
         public abstract void Connect();
         public abstract void DisConnect();
-        public abstract void SendClientRequestModel(ClientRequestModel request);
+        internal abstract void SendClientRequestModel(ClientRequestModel request);
         public void OnException(TrackException.ErrorCode code, string message)
         {
             OnException(new TrackException(code, message));
@@ -118,24 +121,24 @@ namespace EtherealC.Client.Abstract
         /// <summary>
         /// 连接时激活连接事件
         /// </summary>
-        protected void OnConnectSuccess()
+        internal void OnConnectSuccess()
         {
             ConnectEvent?.Invoke(this);
         }
         /// <summary>
         /// 连接时激活连接事件
         /// </summary>
-        protected void OnConnnectFail()
+        internal void OnConnnectFail()
         {
             ConnectFailEvent?.Invoke(this);
         }
         /// <summary>
         /// 断开连接时激活断开连接事件
         /// </summary>
-        protected void OnDisConnect()
+        internal void OnDisConnect()
         {
             DisConnectEvent?.Invoke(this);
         }
-
+        
     }
 }

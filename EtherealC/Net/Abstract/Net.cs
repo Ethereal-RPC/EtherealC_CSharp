@@ -56,25 +56,18 @@ namespace EtherealC.Net.Abstract
         /// </summary>
         protected string name;
         /// <summary>
-        /// Service映射表
-        /// </summary>
-        protected ConcurrentDictionary<string, Service.Abstract.Service> services = new ConcurrentDictionary<string, Service.Abstract.Service>();
-        /// <summary>
         /// Reqeust映射表
         /// </summary>
         protected Dictionary<string, Request.Abstract.Request> requests = new Dictionary<string, Request.Abstract.Request>();
         protected NetType type = NetType.WebSocket;
         protected NetConfig config;
-        protected Client.Abstract.Client client;
         #endregion
 
         #region --属性--
-        public ConcurrentDictionary<string, Service.Abstract.Service> Services { get => services; set => services = value; }
         public Dictionary<string, Request.Abstract.Request> Requests { get => requests; set => requests = value; }
         public string Name { get => name; set => name = value; }
         public NetType Type { get => type; set => type = value; }
         public NetConfig Config { get => config; set => config = value; }
-        public Client.Abstract.Client Client { get => client; set => client = value; }
 
         #endregion
 
@@ -84,7 +77,6 @@ namespace EtherealC.Net.Abstract
         {
             this.name = name;
         }
-        public abstract bool Publish();
 
         public void OnException(TrackException.ErrorCode code, string message)
         {
@@ -104,50 +96,6 @@ namespace EtherealC.Net.Abstract
         public void OnLog(TrackLog log)
         {
             logEvent?.Invoke(log);
-        }
-
-        public void ServerRequestReceiveProcess(ServerRequestModel request)
-        {
-            if (Services.TryGetValue(request.Service, out Service.Abstract.Service service))
-            {
-                if (service.Methods.TryGetValue(request.MethodId, out MethodInfo method))
-                {
-                    ParameterInfo[] parameterInfos = method.GetParameters();
-                    List<object> parameters = new List<object>(parameterInfos.Length);
-                    int i = 0;
-                    foreach (ParameterInfo parameterInfo in parameterInfos)
-                    {
-                        if (service.Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out AbstractType type)
-                            || service.Types.TypesByName.TryGetValue(parameterInfo.GetCustomAttribute<Core.Attribute.AbstractType>(true)?.AbstractName, out type))
-                        {
-                            parameters.Add(type.Deserialize(request.Params[i++]));
-                        }
-                        else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
-                    }
-                    method.Invoke(service, request.Params);
-                }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service}-{request.MethodId}未找到!");
-            }
-            else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{request.Service} 未找到!");
-        }
-        public void ClientResponseReceiveProcess(ClientResponseModel response)
-        {
-            if (int.TryParse(response.Id, out int id) && Requests.TryGetValue(response.Service, out Request.Abstract.Request request))
-            {
-                if (request.GetTask(id, out ClientRequestModel model))
-                {
-                    model.Set(response);
-                }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}-{id}返回的请求ID未找到!");
-            }
-            else
-            {
-                if(response.Error != null)
-                {
-                    throw new TrackException(TrackException.ErrorCode.Runtime, $"Server:\n{response.Error}");
-                }
-                else throw new TrackException(TrackException.ErrorCode.Runtime, $"{name}-{response.Service}未找到!");
-            }
         }
         #endregion
     }
