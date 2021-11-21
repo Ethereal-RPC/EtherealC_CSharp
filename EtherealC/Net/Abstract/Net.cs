@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Reflection;
-using EtherealC.Core;
+﻿using EtherealC.Core;
 using EtherealC.Core.Model;
 using EtherealC.Net.Interface;
+using System.Collections.Generic;
 
 namespace EtherealC.Net.Abstract
 {
-    public abstract class Net:INet
+    public abstract class Net : INet
     {
         public enum NetType { WebSocket }
         #region --事件字段--

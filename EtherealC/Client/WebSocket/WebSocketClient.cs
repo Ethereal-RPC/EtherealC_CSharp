@@ -1,12 +1,10 @@
+using EtherealC.Core.Model;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using EtherealC.Client.Abstract;
-using EtherealC.Core.Model;
-using EtherealC.Net;
-using Newtonsoft.Json.Linq;
 
 namespace EtherealC.Client.WebSocket
 {
@@ -25,11 +23,11 @@ namespace EtherealC.Client.WebSocket
 
         #endregion
 
-        public WebSocketClient(string prefixes):base(prefixes)
+        public WebSocketClient(string prefixes) : base(prefixes)
         {
             if (!HttpListener.IsSupported)
             {
-                OnLog(TrackLog.LogCode.Runtime,"Windows XP SP2 or Server 2003 is required to use the HttpListener class.");
+                OnLog(TrackLog.LogCode.Runtime, "Windows XP SP2 or Server 2003 is required to use the HttpListener class.");
                 return;
             }
             if (prefixes == null)
@@ -46,7 +44,7 @@ namespace EtherealC.Client.WebSocket
         {
             try
             {
-                if(Prefixes.LastIndexOf('/') != Prefixes.Length - 1)Prefixes += $"/{Request.Name}";
+                if (Prefixes.LastIndexOf('/') != Prefixes.Length - 1) Prefixes += $"/{Request.Name}";
                 else Prefixes += $"{Request.Name}";
                 await Accept.ConnectAsync(new Uri(Prefixes.Replace("ethereal://", "ws://")), cancellationToken);
                 if (Accept.State == WebSocketState.Open)
@@ -91,7 +89,7 @@ namespace EtherealC.Client.WebSocket
         {
             DisConnect(WebSocketCloseStatus.NormalClosure, "Õý³£¹Ø±Õ");
         }
-        public async void DisConnect(WebSocketCloseStatus status,string message)
+        public async void DisConnect(WebSocketCloseStatus status, string message)
         {
             try
             {
@@ -110,7 +108,7 @@ namespace EtherealC.Client.WebSocket
             }
         }
         public async void ReceiveAsync()
-        {   
+        {
             byte[] receiveBuffer = null;
             int offset = 0;
             int free = Config.BufferSize;
@@ -136,18 +134,18 @@ namespace EtherealC.Client.WebSocket
                     if (receiveResult.EndOfMessage)
                     {
                         string data = Config.Encoding.GetString(receiveBuffer);
-                        if(config.Debug)OnLog(TrackLog.LogCode.Runtime,data);
+                        if (config.Debug) OnLog(TrackLog.LogCode.Runtime, data);
                         JObject token = JObject.Parse(data);
                         offset = 0;
                         free = Config.BufferSize;
-                        if(token.TryGetValue("Type",out JToken value))
+                        if (token.TryGetValue("Type", out JToken value))
                         {
                             if (value.ToString() == "ER-1.0-ClientResponse")
                             {
                                 ClientResponseModel response = Config.ClientResponseModelDeserialize(data);
                                 Request.ClientResponseReceiveProcess(response);
                             }
-                            else if(value.ToString() == "ER-1.0-ServerRequest")
+                            else if (value.ToString() == "ER-1.0-ServerRequest")
                             {
                                 ServerRequestModel request = config.ServerRequestModelDeserialize(data);
                                 if (Request.Services.TryGetValue(request.Service, out Service.Abstract.Service service))
@@ -176,7 +174,7 @@ namespace EtherealC.Client.WebSocket
                 catch (Exception e)
                 {
                     DisConnect(WebSocketCloseStatus.NormalClosure, $"{e.Message}");
-                    OnException(TrackException.ErrorCode.Runtime,e.Message);
+                    OnException(TrackException.ErrorCode.Runtime, e.Message);
                 }
             }
         }

@@ -1,12 +1,11 @@
-﻿using EtherealC_Test.Model;
-using System;
-using EtherealC.Core.Model;
-using EtherealC.Service.Attribute;
+﻿using EtherealC.Service.Attribute;
 using EtherealC.Service.WebSocket;
+using EtherealC_Test.Model;
+using System;
 
 namespace EtherealS_Test.RequestDemo
 {
-    public class ClientService:WebSocketService
+    public class ClientService : WebSocketService
     {
         public ClientService()
         {
@@ -16,8 +15,8 @@ namespace EtherealS_Test.RequestDemo
             Types.Add<bool>("Bool");
             Types.Add<User>("User");
         }
-        [ServiceMapping(Mapping:"Say")]
-        public void Say(User sender,string message)
+        [ServiceMapping(Mapping: "Say")]
+        public void Say(User sender, string message)
         {
             Console.WriteLine(sender.Username + ":" + message);
         }

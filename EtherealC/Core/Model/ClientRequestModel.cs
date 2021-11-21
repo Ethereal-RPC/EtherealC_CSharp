@@ -1,5 +1,5 @@
-﻿using System.Threading;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Threading;
 
 namespace EtherealC.Core.Model
 {
@@ -41,7 +41,7 @@ namespace EtherealC.Core.Model
                     ", type='" + type + '\'' +
                     ", methodId='" + mapping + '\'' +
                     ", params=" + string.Join(",", @params) +
-                    ", id='" + id + '\'' +  
+                    ", id='" + id + '\'' +
                     '}';
         }
     }

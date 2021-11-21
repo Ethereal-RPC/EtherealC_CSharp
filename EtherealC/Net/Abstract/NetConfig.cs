@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using EtherealC.Client.Abstract;
-using EtherealC.Net.Interface;
+﻿using EtherealC.Net.Interface;
 
 namespace EtherealC.Net.Abstract
 {
-    public abstract class NetConfig: INetConfig
+    public abstract class NetConfig : INetConfig
     {
         #region --字段--
         /// <summary>

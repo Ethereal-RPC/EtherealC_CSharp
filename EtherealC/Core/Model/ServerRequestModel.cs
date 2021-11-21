@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json;
-
-namespace EtherealC.Core.Model
+﻿namespace EtherealC.Core.Model
 {
     public class ServerRequestModel
     {
-        private string type= "ER-1.0-ServerRequest";
+        private string type = "ER-1.0-ServerRequest";
         private string mapping;
         private string[] @params;
         private string service;
@@ -14,7 +12,7 @@ namespace EtherealC.Core.Model
         public string[] Params { get => @params; set => @params = value; }
         public string Service { get => service; set => service = value; }
 
-        public ServerRequestModel(string service,string id,string methodid, string[] @params)
+        public ServerRequestModel(string service, string id, string methodid, string[] @params)
         {
             Mapping = methodid;
             Params = @params;

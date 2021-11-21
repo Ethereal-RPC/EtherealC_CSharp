@@ -8,7 +8,7 @@ namespace EtherealC.Core.Model
     public class TrackException : Exception
     {
         #region --字段--
-        public enum ErrorCode { Core, Runtime , NotEthereal}
+        public enum ErrorCode { Core, Runtime, NotEthereal }
         /// <summary>
         /// 错误代码
         /// </summary>

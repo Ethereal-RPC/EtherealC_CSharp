@@ -1,6 +1,4 @@
-﻿using EtherealC.Core.Model;
-
-namespace EtherealC.Net.Interface
+﻿namespace EtherealC.Net.Interface
 {
     public interface INet
     {

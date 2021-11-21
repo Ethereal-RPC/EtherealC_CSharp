@@ -1,12 +1,7 @@
-﻿using System.Reflection;
-using System.Text;
-using EtherealC.Core.Model;
-using EtherealC.Service.Abstract;
-
-namespace EtherealC.Service.WebSocket
+﻿namespace EtherealC.Service.WebSocket
 {
 
-    public abstract class WebSocketService:Abstract.Service
+    public abstract class WebSocketService : Abstract.Service
     {
         #region --属性--
         public new WebSocketServiceConfig Config { get => (WebSocketServiceConfig)config; set => config = value; }
@@ -14,7 +9,7 @@ namespace EtherealC.Service.WebSocket
         #endregion
 
         #region --方法--
-        
+
         #endregion
 
     }

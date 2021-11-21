@@ -1,13 +1,11 @@
 using EtherealC.Client.Interface;
 using EtherealC.Core;
 using EtherealC.Core.Model;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace EtherealC.Client.Abstract
 {
 
-    public abstract class Client:IClient
+    public abstract class Client : IClient
     {
         #region --Î¯ÍÐ--
         /// <summary>
@@ -139,6 +137,6 @@ namespace EtherealC.Client.Abstract
         {
             DisConnectEvent?.Invoke(this);
         }
-        
+
     }
 }

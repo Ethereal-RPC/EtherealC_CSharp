@@ -1,24 +1,20 @@
-﻿using System;
-using EtherealC.Core.Model;
-using EtherealC.Net;
+﻿using EtherealC.Core.Model;
 using EtherealC.Request;
-using EtherealC.Service.Abstract;
-using EtherealC.Service.WebSocket;
 
 namespace EtherealC.Service
 {
     public class ServiceCore
     {
-        public static bool Get<R>(string net_name, string request_name,string service_name, out R service) where R : Abstract.Service
+        public static bool Get<R>(string net_name, string request_name, string service_name, out R service) where R : Abstract.Service
         {
-            if (RequestCore.Get(net_name,request_name, out Request.Abstract.Request request))
+            if (RequestCore.Get(net_name, request_name, out Request.Abstract.Request request))
             {
                 return Get<R>(request, service_name, out service);
             }
             service = null;
             return false;
         }
-        public static bool Get<R>(Request.Abstract.Request request,string service_name, out R service) where R : Abstract.Service
+        public static bool Get<R>(Request.Abstract.Request request, string service_name, out R service) where R : Abstract.Service
         {
             if (request.Services.TryGetValue(service_name, out Abstract.Service value))
             {
@@ -46,7 +42,7 @@ namespace EtherealC.Service
         public static bool UnRegister(Abstract.Service service)
         {
             service.UnInitialize();
-             service.Request.Services.Remove(service.Name, out service);
+            service.Request.Services.Remove(service.Name, out service);
             service.LogEvent -= service.Request.OnLog;
             service.ExceptionEvent -= service.Request.OnException;
             service.Request = null;

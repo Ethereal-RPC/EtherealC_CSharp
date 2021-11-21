@@ -2,7 +2,7 @@
 
 namespace EtherealC.Request.Interface
 {
-    public interface IRequest : ILogEvent,IExceptionEvent
+    public interface IRequest : ILogEvent, IExceptionEvent
     {
         #region --方法--
         public void Initialize();
@@ -10,4 +10,3 @@ namespace EtherealC.Request.Interface
         #endregion
     }
 }
-        

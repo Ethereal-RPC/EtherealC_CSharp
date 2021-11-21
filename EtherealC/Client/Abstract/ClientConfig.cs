@@ -1,6 +1,6 @@
-﻿using System.Text;
-using EtherealC.Core.Model;
+﻿using EtherealC.Core.Model;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace EtherealC.Client.Abstract
 {
@@ -9,7 +9,7 @@ namespace EtherealC.Client.Abstract
         #region --委托--
         public delegate string ClientRequestModelSerializeDelegate(ClientRequestModel requestModel);
         public delegate ServerRequestModel ServerRequestModelDeserializeDelegate(string json);
-        public delegate ClientResponseModel ClientResponseModelDeserializeDelegate (string json);
+        public delegate ClientResponseModel ClientResponseModelDeserializeDelegate(string json);
         #endregion
 
         #region --字段--

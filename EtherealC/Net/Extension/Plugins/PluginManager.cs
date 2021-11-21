@@ -47,9 +47,9 @@ namespace EtherealC.Net.Extension.Plugins
                 watcher.Deleted += Deleted;
                 watcher.EnableRaisingEvents = true;
                 //初始扫描所有文件，寻找入口
-                foreach(FileInfo fileInfo in new DirectoryInfo(config.BaseDirectory).GetFiles("*.services", SearchOption.AllDirectories))
+                foreach (FileInfo fileInfo in new DirectoryInfo(config.BaseDirectory).GetFiles("*.services", SearchOption.AllDirectories))
                 {
-                    if (!fileInfo.Directory.Name.Equals("shadow") && RequestCore.Get(net, fileInfo.Directory.Name,out Request.Abstract.Request request)) 
+                    if (!fileInfo.Directory.Name.Equals("shadow") && RequestCore.Get(net, fileInfo.Directory.Name, out Request.Abstract.Request request))
                     {
                         LoadPlugin(request, fileInfo);
                     }
@@ -88,7 +88,7 @@ namespace EtherealC.Net.Extension.Plugins
         {
             DirectoryInfo directory = new DirectoryInfo(e.FullPath).Parent;
             if (directory.Name.Equals("shadow")) return;
-            if (!Request.RequestCore.Get(netName,directory.Name, out Request.Abstract.Request request))
+            if (!Request.RequestCore.Get(netName, directory.Name, out Request.Abstract.Request request))
             {
                 throw new TrackException(TrackException.ErrorCode.Runtime, $"PluginManager未找到Request:{netName}-{directory.Name}");
             }
@@ -100,7 +100,7 @@ namespace EtherealC.Net.Extension.Plugins
             }
             LoadPlugin(request, new FileInfo(e.FullPath));
         }
-        private bool LoadPlugin(Request.Abstract.Request request,FileInfo fileInfo)
+        private bool LoadPlugin(Request.Abstract.Request request, FileInfo fileInfo)
         {
             //判断是否已载入该插件
             PluginDomain plugin = new PluginDomain(fileInfo.FullName, fileInfo.DirectoryName,

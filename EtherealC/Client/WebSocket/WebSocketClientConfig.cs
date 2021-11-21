@@ -1,9 +1,9 @@
-﻿using System;
-using EtherealC.Client.Abstract;
+﻿using EtherealC.Client.Abstract;
+using System;
 
 namespace EtherealC.Client.WebSocket
 {
-    public class WebSocketClientConfig:ClientConfig
+    public class WebSocketClientConfig : ClientConfig
     {
         #region --委托--
 

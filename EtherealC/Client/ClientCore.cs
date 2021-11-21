@@ -1,16 +1,13 @@
-﻿using EtherealC.Client.Abstract;
-using EtherealC.Client.WebSocket;
-using EtherealC.Core.Model;
-using EtherealC.Net;
+﻿using EtherealC.Core.Model;
 using EtherealC.Request;
 
 namespace EtherealC.Client
 {
     public class ClientCore
     {
-        public static bool Get(string net_name,string request_name, out Abstract.Client client)
+        public static bool Get(string net_name, string request_name, out Abstract.Client client)
         {
-            if (RequestCore.Get(net_name,request_name, out Request.Abstract.Request request))
+            if (RequestCore.Get(net_name, request_name, out Request.Abstract.Request request))
             {
                 client = request.Client;
                 return true;
@@ -18,7 +15,7 @@ namespace EtherealC.Client
             client = null;
             return false;
         }
-        public static Abstract.Client Register(Request.Abstract.Request request,Abstract.Client client,bool startClient = true)
+        public static Abstract.Client Register(Request.Abstract.Request request, Abstract.Client client, bool startClient = true)
         {
             if (request.Client == null)
             {

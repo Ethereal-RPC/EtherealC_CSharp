@@ -1,10 +1,5 @@
-﻿using EtherealC.Core.EventManage.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtherealC.Core.EventManage.Attribute
 {
@@ -18,9 +13,8 @@ namespace EtherealC.Core.EventManage.Attribute
     }
     public class AfterEvent : EventSender
     {
-        public AfterEvent(string instance, string mapping, string params_mapping = "") : base(instance, mapping, params_mapping)
+        public AfterEvent(string function) : base(function)
         {
-
         }
     }
 }

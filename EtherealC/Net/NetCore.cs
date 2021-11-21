@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using EtherealC.Client.WebSocket;
-using EtherealC.Core.Model;
-using EtherealC.Net.Abstract;
-using EtherealC.Net.WebSocket;
+﻿using EtherealC.Core.Model;
 using EtherealC.Request;
+using System.Collections.Generic;
 
 namespace EtherealC.Net
 {
@@ -30,9 +26,9 @@ namespace EtherealC.Net
         }
         public static bool UnRegister(Abstract.Net net)
         {
-            if(net != null)
+            if (net != null)
             {
-                foreach(Request.Abstract.Request request in net.Requests.Values)
+                foreach (Request.Abstract.Request request in net.Requests.Values)
                 {
                     RequestCore.UnRegister(request);
                 }

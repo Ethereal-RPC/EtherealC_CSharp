@@ -7,7 +7,7 @@ using System;
 
 namespace EtherealS_Test.RequestDemo
 {
-    public class ServerRequest:WebSocketRequest
+    public class ServerRequest : WebSocketRequest
     {
         public ServerRequest()
         {
@@ -29,16 +29,16 @@ namespace EtherealS_Test.RequestDemo
         {
             Console.WriteLine("Add");
             return false;
-        }        
+        }
         [RequestMapping(Mapping: "SendSay1", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(string listener_id, string message)
         {
             Console.WriteLine("Add");
             return false;
         }
-        [AfterEvent("instance","after", "[d:ddd],s:s")]
+        [AfterEvent("instance.after(d:ddd,s:s)")]
         [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Remote | RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
-        public virtual bool test(int d,string s)
+        public virtual bool test(int d, string s)
         {
             Console.WriteLine("Add");
             return false;

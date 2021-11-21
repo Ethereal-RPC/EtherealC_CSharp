@@ -25,7 +25,7 @@
         public Client.Abstract.Client Client { get => client; set => client = value; }
         #endregion
 
-        public TrackLog(LogCode code,string message)
+        public TrackLog(LogCode code, string message)
         {
             this.code = code;
             this.message = message;

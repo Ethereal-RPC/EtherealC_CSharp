@@ -1,10 +1,6 @@
 ﻿using EtherealC.Core.EventManage.Attribute;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtherealC.Request.Event
 {
@@ -17,7 +13,7 @@ namespace EtherealC.Request.Event
     }
     public class TimeoutEvent : EventSender
     {
-        public TimeoutEvent(string instance, string mapping, string params_mapping = "") : base(instance, mapping, params_mapping)
+        public TimeoutEvent(string function) : base(function)
         {
 
         }

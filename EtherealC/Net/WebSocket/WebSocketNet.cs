@@ -1,15 +1,8 @@
-﻿using System;
-using System.Threading;
-using EtherealC.Client;
-using EtherealC.Client.Abstract;
-using EtherealC.Client.WebSocket;
-using EtherealC.Core.Model;
-using EtherealC.Request;
-using EtherealC.Service;
+﻿using System.Threading;
 
 namespace EtherealC.Net.WebSocket
 {
-    public class WebSocketNet:Abstract.Net
+    public class WebSocketNet : Abstract.Net
     {
         #region --字段--
         private AutoResetEvent connectSign = new AutoResetEvent(false);
@@ -28,6 +21,6 @@ namespace EtherealC.Net.WebSocket
 
         #endregion
 
-        
+
     }
 }

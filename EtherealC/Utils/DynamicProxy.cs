@@ -6,15 +6,13 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtherealC.Utils
 {
     public class DynamicProxy
     {
         //代码参考 https://gitee.com/code2roc/FastIOC/blob/master/FastIOC/Proxy/DynamictProxy.cs
-        public static T CreateRequestProxy<T>() where T:Request.Abstract.Request
+        public static T CreateRequestProxy<T>() where T : Request.Abstract.Request
         {
             Type ImpType = typeof(T);
             string nameOfAssembly = ImpType.Name + "ProxyAssembly";
@@ -67,7 +65,7 @@ namespace EtherealC.Utils
                 #region - Local -
                 var localResult = ilOfMethod.DeclareLocal(typeof(object));
                 ilOfMethod.Emit(OpCodes.Ldnull);
-                ilOfMethod.Emit(OpCodes.Stloc,localResult);
+                ilOfMethod.Emit(OpCodes.Stloc, localResult);
                 if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Local))
                 {
                     //注入参数
@@ -77,12 +75,12 @@ namespace EtherealC.Utils
                         ilOfMethod.Emit(OpCodes.Ldarg, j + 1);
                     }
                     //调用本地方法
-                    ilOfMethod.Emit(OpCodes.Call,method);
+                    ilOfMethod.Emit(OpCodes.Call, method);
                     if (method.ReturnType != typeof(void))
                     {
                         if (method.ReturnType.IsValueType)
                         {
-                            ilOfMethod.Emit(OpCodes.Box,method.ReturnType);
+                            ilOfMethod.Emit(OpCodes.Box, method.ReturnType);
                         }
                         ilOfMethod.Emit(OpCodes.Stloc, localResult);
                     }
@@ -103,7 +101,7 @@ namespace EtherealC.Utils
                     ilOfMethod.Emit(OpCodes.Ldarg, j + 1);
                     if (methodParameterTypes[j].IsValueType)
                     {
-                        ilOfMethod.Emit(OpCodes.Box,methodParameterTypes[j]);
+                        ilOfMethod.Emit(OpCodes.Box, methodParameterTypes[j]);
                     }
                     ilOfMethod.Emit(OpCodes.Stelem_Ref);
                 }
@@ -113,7 +111,7 @@ namespace EtherealC.Utils
                 ilOfMethod.Emit(OpCodes.Ldloc, parameters);
                 ilOfMethod.Emit(OpCodes.Ldloc, localResult);
                 //调用拦截方法
-                ilOfMethod.Emit(OpCodes.Callvirt,ImpType.GetMethod("Invoke",new Type[] {typeof(string),typeof(object[]),typeof(object)}));
+                ilOfMethod.Emit(OpCodes.Callvirt, ImpType.GetMethod("Invoke", new Type[] { typeof(string), typeof(object[]), typeof(object) }));
                 // pop the stack if return void
                 if (method.ReturnType == typeof(void))
                 {

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using EtherealC.Core.Model;
-using Newtonsoft.Json;
-
-namespace EtherealC.Request.WebSocket
+﻿namespace EtherealC.Request.WebSocket
 {
-    public abstract class WebSocketRequest:Abstract.Request
+    public abstract class WebSocketRequest : Abstract.Request
     {
         #region --字段--
 
@@ -33,4 +26,3 @@ namespace EtherealC.Request.WebSocket
         #endregion
     }
 }
-        

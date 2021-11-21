@@ -1,11 +1,7 @@
 ﻿using EtherealC.Client;
-using EtherealC.Core.Attribute;
 using EtherealC.Core.Model;
 using EtherealC.Net;
-using EtherealC.Request.Attribute;
-using EtherealC.Request.WebSocket;
 using EtherealC.Service;
-using System.Reflection;
 
 namespace EtherealC.Request
 {
@@ -13,7 +9,7 @@ namespace EtherealC.Request
     {
         #region --方法--
 
-        public static bool Get<T>(string netName, string serviceName, out T reqeust) where T:Abstract.Request
+        public static bool Get<T>(string netName, string serviceName, out T reqeust) where T : Abstract.Request
         {
             if (NetCore.Get(netName, out Net.Abstract.Net net))
             {
@@ -51,7 +47,7 @@ namespace EtherealC.Request
         {
             request.UnInitialize();
             ClientCore.UnRegister(request.Client);
-            foreach(Service.Abstract.Service service in request.Services.Values)
+            foreach (Service.Abstract.Service service in request.Services.Values)
             {
                 ServiceCore.UnRegister(service);
             }

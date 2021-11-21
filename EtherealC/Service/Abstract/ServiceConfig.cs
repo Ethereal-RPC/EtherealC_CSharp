@@ -1,9 +1,8 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.Service.Interface;
+﻿using EtherealC.Service.Interface;
 
 namespace EtherealC.Service.Abstract
 {
-    public abstract class ServiceConfig: IServiceConfig
+    public abstract class ServiceConfig : IServiceConfig
     {
 
         #region --字段--

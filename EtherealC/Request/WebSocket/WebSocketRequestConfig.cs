@@ -1,5 +1,4 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.Request.Abstract;
+﻿using EtherealC.Request.Abstract;
 
 namespace EtherealC.Request.WebSocket
 {

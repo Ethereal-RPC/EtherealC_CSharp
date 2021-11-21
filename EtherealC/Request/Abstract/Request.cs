@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Reflection;
-using EtherealC.Core;
+﻿using EtherealC.Core;
 using EtherealC.Core.Attribute;
 using EtherealC.Core.EventManage;
 using EtherealC.Core.EventManage.Attribute;
-using EtherealC.Core.EventManage.Model;
 using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 using EtherealC.Request.Attribute;
 using EtherealC.Request.Event;
 using EtherealC.Request.Interface;
 using EtherealC.Utils;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace EtherealC.Request.Abstract
 {
-    public abstract class Request:IRequest,IBaseIoc
+    public abstract class Request : IRequest, IBaseIoc
     {
         #region --委托--
         public delegate void OnConnnectSuccessDelegate(Request request);
@@ -141,7 +138,7 @@ namespace EtherealC.Request.Abstract
             else throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{response.Id}返回的请求ID未找到!");
         }
 
-        public virtual object Invoke(string mapping, object[] args,object localResult)
+        public virtual object Invoke(string mapping, object[] args, object localResult)
         {
             MethodInfo method = null;
             RequestMapping attribute = null;
@@ -176,8 +173,8 @@ namespace EtherealC.Request.Abstract
                 eventSender = method.GetCustomAttribute<BeforeEvent>();
                 if (eventSender != null)
                 {
-                    eventContext = new BeforeEventContext(@params,method);
-                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params,eventContext);
+                    eventContext = new BeforeEventContext(@params, method);
+                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                 }
                 if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Remote))
                 {
@@ -207,7 +204,7 @@ namespace EtherealC.Request.Abstract
                                     eventSender = method.GetCustomAttribute<FailEvent>();
                                     if (eventSender != null)
                                     {
-                                        eventContext = new FailEventContext(@params, method,result.Error);
+                                        eventContext = new FailEventContext(@params, method, result.Error);
                                         EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                                     }
                                     else throw new TrackException(TrackException.ErrorCode.Runtime, $"来自服务器的报错消息:\nErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
@@ -220,7 +217,7 @@ namespace EtherealC.Request.Abstract
                                     eventSender = method.GetCustomAttribute<SuccessEvent>();
                                     if (eventSender != null)
                                     {
-                                        eventContext = new SuccessEventContext(@params, method,result.Result);
+                                        eventContext = new SuccessEventContext(@params, method, result.Result);
                                         EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                                     }
                                 }
@@ -253,17 +250,17 @@ namespace EtherealC.Request.Abstract
                 eventSender = method.GetCustomAttribute<AfterEvent>();
                 if (eventSender != null)
                 {
-                    eventContext = new AfterEventContext(@params, method,methodResult);
+                    eventContext = new AfterEventContext(@params, method, methodResult);
                     EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 eventSender = method.GetCustomAttribute<ExceptionEvent>();
                 if (eventSender != null)
                 {
                     (eventSender as ExceptionEvent).Exception = e;
-                    eventContext = new ExceptionEventContext(@params, method,e);
+                    eventContext = new ExceptionEventContext(@params, method, e);
                     EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                     if ((eventSender as ExceptionEvent).IsThrow) throw;
                 }
@@ -287,11 +284,10 @@ namespace EtherealC.Request.Abstract
                 EventManager.UnRegisterEventMethod(name, instance);
             }
         }
-        public bool GetIocObject(string name,out object instance)
+        public bool GetIocObject(string name, out object instance)
         {
             return IocContainer.TryGetValue(name, out instance);
         }
         #endregion
     }
 }
-        

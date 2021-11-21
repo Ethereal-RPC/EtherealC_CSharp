@@ -1,9 +1,8 @@
-﻿using EtherealC.Core.Model;
-using EtherealC.Request.Interface;
+﻿using EtherealC.Request.Interface;
 
 namespace EtherealC.Request.Abstract
 {
-    public abstract class RequestConfig: IRequestConfig
+    public abstract class RequestConfig : IRequestConfig
     {
 
         #region --字段--

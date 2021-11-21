@@ -1,7 +1,6 @@
 ﻿using EtherealC.Core;
 using EtherealC.Core.EventManage;
 using EtherealC.Core.EventManage.Attribute;
-using EtherealC.Core.EventManage.Model;
 using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 using EtherealC.Net.Extension.Plugins;
@@ -12,7 +11,7 @@ using System.Reflection;
 
 namespace EtherealC.Service.Abstract
 {
-    public abstract class Service:IService,IBaseIoc
+    public abstract class Service : IService, IBaseIoc
     {
         #region --事件字段--
         private OnLogDelegate logEvent;
@@ -52,7 +51,7 @@ namespace EtherealC.Service.Abstract
 
         }
         #endregion
-    
+
         //原作者的思想是Type调用Invoke，这里是在注册的时候就预存方法，1e6情况下调用速度的话是快了4-5倍左右，比正常调用慢10倍
         //string连接的时候使用引用要比tuple慢很多
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
@@ -62,7 +61,7 @@ namespace EtherealC.Service.Abstract
         protected AbstractTypes types = new AbstractTypes();
         protected PluginDomain pluginDomain;
 
-        public Dictionary<string, MethodInfo> Methods { get => methods;  }
+        public Dictionary<string, MethodInfo> Methods { get => methods; }
         public ServiceConfig Config { get => config; set => config = value; }
         public string Name { get => name; set => name = value; }
         public AbstractTypes Types { get => types; set => types = value; }
@@ -71,7 +70,7 @@ namespace EtherealC.Service.Abstract
         internal protected Dictionary<string, object> IocContainer { get; set; }
         public EventManager EventManager { get; set; } = new EventManager();
 
-        internal static void Register<T>(T instance)where T:Service
+        internal static void Register<T>(T instance) where T : Service
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
@@ -100,7 +99,7 @@ namespace EtherealC.Service.Abstract
             Dictionary<string, object> @params = null;
             if (!Methods.TryGetValue(request.Mapping, out MethodInfo method))
             {
-               throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{request.Service}-{request.Mapping}未找到!");
+                throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{request.Service}-{request.Mapping}未找到!");
             }
             ParameterInfo[] parameterInfos = method.GetParameters();
             List<object> parameters = new List<object>(parameterInfos.Length);
@@ -148,7 +147,7 @@ namespace EtherealC.Service.Abstract
                 EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
             }
         }
-        
+
         public void OnException(TrackException.ErrorCode code, string message)
         {
             OnException(new TrackException(code, message));
