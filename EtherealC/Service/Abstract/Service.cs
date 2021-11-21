@@ -102,39 +102,34 @@ namespace EtherealC.Service.Abstract
             {
                throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{request.Service}-{request.Mapping}未找到!");
             }
+            ParameterInfo[] parameterInfos = method.GetParameters();
+            List<object> parameters = new List<object>(parameterInfos.Length);
+            int i = 0;
+            @params = new(parameterInfos.Length);
+            foreach (ParameterInfo parameterInfo in parameterInfos)
+            {
+                Core.Attribute.Param abstractTypeAttribute = parameterInfo.GetCustomAttribute<Core.Attribute.Param>(true);
+                if ((abstractTypeAttribute != null && Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out Core.Model.AbstractType type))
+                    || Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out type))
+                {
+                    object param = type.Deserialize(request.Params[i++]);
+                    parameters.Add(param);
+                    @params.Add(parameterInfo.Name, param);
+                }
+                else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
+            }
+            eventSender = method.GetCustomAttribute<BeforeEvent>();
+            if (eventSender != null)
+            {
+                eventContext = new BeforeEventContext(@params, method);
+                EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+            }
+            object result = null;
             try
             {
-                ParameterInfo[] parameterInfos = method.GetParameters();
-                List<object> parameters = new List<object>(parameterInfos.Length);
-                int i = 0;
-                @params = new(parameterInfos.Length);
-                foreach (ParameterInfo parameterInfo in parameterInfos)
-                {
-                    Core.Attribute.Param abstractTypeAttribute = parameterInfo.GetCustomAttribute<Core.Attribute.Param>(true);
-                    if ((abstractTypeAttribute != null && Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out Core.Model.AbstractType type))
-                        || Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out type))
-                    {
-                        object param = type.Deserialize(request.Params[i++]);
-                        parameters.Add(param);
-                        @params.Add(parameterInfo.Name, param);
-                    }
-                    else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
-                }
-                eventSender = method.GetCustomAttribute<BeforeEvent>();
-                if (eventSender != null)
-                {
-                    eventContext = new BeforeEventContext(@params, method);
-                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
-                }
-                object result = method.Invoke(this, request.Params);
-                eventSender = method.GetCustomAttribute<AfterEvent>();
-                if (eventSender != null)
-                {
-                    eventContext = new AfterEventContext(@params, method,result);
-                    EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
-                }
+                result = method.Invoke(this, request.Params);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 eventSender = method.GetCustomAttribute<ExceptionEvent>();
                 if (eventSender != null)
@@ -145,6 +140,12 @@ namespace EtherealC.Service.Abstract
                     if ((eventSender as ExceptionEvent).IsThrow) throw;
                 }
                 else throw;
+            }
+            eventSender = method.GetCustomAttribute<AfterEvent>();
+            if (eventSender != null)
+            {
+                eventContext = new AfterEventContext(@params, method, result);
+                EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
             }
         }
         

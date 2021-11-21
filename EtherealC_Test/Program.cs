@@ -32,13 +32,11 @@ namespace EtherealC_Test
             net.LogEvent += Net_LogEvent;
             //向网关注册请求
             ServerRequest request = RequestCore.Register<ServerRequest>(net, "Server");
-            request.test(4, "你好");
-
             //向网关注册服务
             Service service = ServiceCore.Register(request,new ClientService(), "Client");
             request.ConnectSuccessEvent += Request_ConnectSuccessEvent;
             //注册连接
-            //ClientCore.Register(request, new WebSocketClient($"ethereal://{ip}:{port}/NetDemo"));
+            ClientCore.Register(request, new WebSocketClient($"ethereal://{ip}:{port}/NetDemo"));
         }
 
         private static void Net_LogEvent(TrackLog log)
@@ -53,7 +51,7 @@ namespace EtherealC_Test
 
         private static void Config_ExceptionEvent(TrackException exception)
         {
-            Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n---------------------------------\n");
+            Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n{exception.Exception.StackTrace}---------------------------------\n");
             throw exception.Exception;
         }
 

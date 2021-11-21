@@ -21,27 +21,27 @@ namespace EtherealS_Test.RequestDemo
         {
             object instance = new EventClass();
             RegisterIoc("instance", instance);
-            EventManager.RegisterEventMethod("instance",instance);
+            EventManager.RegisterEventMethod("instance", instance);
         }
 
-        [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Local)]
+        [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(long listener_id, string message)
         {
             Console.WriteLine("Add");
             return false;
         }        
-        [RequestMapping(Mapping: "SendSay1", InvokeType = RequestMapping.InvokeTypeFlags.Local)]
+        [RequestMapping(Mapping: "SendSay1", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(string listener_id, string message)
         {
             Console.WriteLine("Add");
             return false;
         }
-        [AfterEvent("instance","after", "[ddd:d],s:s")]
-        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
+        [AfterEvent("instance","after", "[d:ddd],s:s")]
+        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Remote | RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
         public virtual bool test(int d,string s)
         {
             Console.WriteLine("Add");
-            return true;
+            return false;
         }
 
 

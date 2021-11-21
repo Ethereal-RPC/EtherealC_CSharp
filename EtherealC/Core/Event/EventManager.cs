@@ -21,7 +21,7 @@ namespace EtherealC.Core.Event
             object[] eventParams = new object[parameterInfos.Length];
             for (int i = 0; i < eventParams.Length; i++)
             {
-                Attribute.EventContextParam context_attribute = parameterInfos[i].GetCustomAttribute<Attribute.EventContextParam>();
+                EventContextParam context_attribute = parameterInfos[i].GetCustomAttribute<EventContextParam>();
                 if (context_attribute != null)
                 {
                     eventParams[i] = context;

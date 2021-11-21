@@ -210,7 +210,7 @@ namespace EtherealC.Request.Abstract
                                         eventContext = new FailEventContext(@params, method,result.Error);
                                         EventManager.InvokeEvent(IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
                                     }
-                                    else throw new TrackException(TrackException.ErrorCode.Runtime, $"ErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
+                                    else throw new TrackException(TrackException.ErrorCode.Runtime, $"来自服务器的报错消息:\nErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                                 }
                                 Param abstractTypeAttribute = method.GetCustomAttribute<Param>(true);
                                 if ((abstractTypeAttribute != null && Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out AbstractType type))

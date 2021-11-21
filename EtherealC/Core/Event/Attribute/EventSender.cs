@@ -24,7 +24,7 @@ namespace EtherealC.Core.Event.Attribute
             {
                 string[] param_mapping = param.Split(":");
                 if (param_mapping.Length != 2) throw new TrackException(TrackException.ErrorCode.Core, $"{params_mapping}中{param}不合法");
-                paramsMapping.Add(param_mapping[0], param_mapping[1]);
+                paramsMapping.Add(param_mapping[1], param_mapping[0]);
             }
         }
     }

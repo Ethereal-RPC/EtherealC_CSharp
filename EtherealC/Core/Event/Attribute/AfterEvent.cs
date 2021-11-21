@@ -19,6 +19,7 @@ namespace EtherealC.Core.Event.Attribute
     {
         public AfterEvent(string instance, string mapping, string params_mapping = "") : base(instance, mapping, params_mapping)
         {
+
         }
     }
 }

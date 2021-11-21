@@ -20,7 +20,7 @@ namespace EtherealC.Service
         }
         public static bool Get<R>(Request.Abstract.Request request,string service_name, out R service) where R : Abstract.Service
         {
-            if (request.Services.TryGetValue(service_name, out Service.Abstract.Service value))
+            if (request.Services.TryGetValue(service_name, out Abstract.Service value))
             {
                 service = value as R;
                 return true;
