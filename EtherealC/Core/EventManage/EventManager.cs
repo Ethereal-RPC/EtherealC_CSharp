@@ -1,17 +1,17 @@
 ﻿using EtherealC.Core.Attribute;
-using EtherealC.Core.Event.Attribute;
-using EtherealC.Core.Event.Model;
+using EtherealC.Core.EventManage.Attribute;
+using EtherealC.Core.EventManage.Model;
 using EtherealC.Core.Model;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace EtherealC.Core.Event
+namespace EtherealC.Core.EventManage
 {
     public class EventManager
     {
         public Dictionary<(string, string), MethodInfo> MethodEvents { get; set; } = new Dictionary<(string, string), MethodInfo>();
 
-        internal void InvokeEvent(object instance, EventSender requestEvent, Dictionary<string, object> @params, Model.EventContext context)
+        internal void InvokeEvent(object instance, EventSender requestEvent, Dictionary<string, object> @params, EventContext context)
         {
             if (!MethodEvents.TryGetValue((requestEvent.InstanceName, requestEvent.Mapping), out MethodInfo method))
             {
@@ -42,7 +42,7 @@ namespace EtherealC.Core.Event
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.Event attribute = method.GetCustomAttribute<Attribute.Event>();
+                Event attribute = method.GetCustomAttribute<Event>();
                 if (attribute != null)
                 {
                     MethodEvents.Add((name, attribute.Mapping), method);
@@ -53,7 +53,7 @@ namespace EtherealC.Core.Event
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.Event attribute = method.GetCustomAttribute<Attribute.Event>();
+                Event attribute = method.GetCustomAttribute<Event>();
                 if (attribute != null)
                 {
                     MethodEvents.Remove((name, attribute.Mapping));

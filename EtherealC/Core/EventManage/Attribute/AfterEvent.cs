@@ -1,13 +1,14 @@
-﻿using System;
+﻿using EtherealC.Core.EventManage.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.EventManage.Attribute
 {
-    public class AfterEventContext : Model.EventContext
+    public class AfterEventContext : EventContext
     {
         public object Result { get; set; }
         public AfterEventContext(Dictionary<string, object> parameters, MethodInfo method, object result) : base(parameters, method)

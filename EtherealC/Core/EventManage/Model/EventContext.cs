@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core.Event.Model
+namespace EtherealC.Core.EventManage.Model
 {
     public class EventContext
     {

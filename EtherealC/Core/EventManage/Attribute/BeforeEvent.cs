@@ -1,13 +1,14 @@
-﻿using System;
+﻿using EtherealC.Core.EventManage.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.EventManage.Attribute
 {
-    public class BeforeEventContext : Model.EventContext
+    public class BeforeEventContext : EventContext
     {
         public BeforeEventContext(Dictionary<string, object> parameters, MethodInfo method) : base(parameters, method)
         {

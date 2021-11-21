@@ -5,22 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.EventManage.Attribute
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class EventSender : System.Attribute
     {
         public string InstanceName { get; set; }
         public string Mapping { get; set; }
-        public Dictionary<string,string> paramsMapping { get; set; }
-        public EventSender(string instance, string mapping, string params_mapping="")
+        public Dictionary<string, string> paramsMapping { get; set; }
+        public EventSender(string instance, string mapping, string params_mapping = "")
         {
             InstanceName = instance;
             Mapping = mapping;
-            params_mapping = params_mapping.Replace("[","").Replace("]","");
+            params_mapping = params_mapping.Replace("[", "").Replace("]", "");
             string[] paramsSplit = params_mapping.Split(",");
             paramsMapping = new(params_mapping.Length);
-            foreach(string param in paramsSplit)
+            foreach (string param in paramsSplit)
             {
                 string[] param_mapping = param.Split(":");
                 if (param_mapping.Length != 2) throw new TrackException(TrackException.ErrorCode.Core, $"{params_mapping}中{param}不合法");

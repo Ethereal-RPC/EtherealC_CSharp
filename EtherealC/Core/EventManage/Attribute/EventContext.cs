@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.EventManage.Attribute
 {
     [AttributeUsage(AttributeTargets.Parameter)]
     public class EventContextParam : System.Attribute

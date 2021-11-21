@@ -1,7 +1,7 @@
 ﻿using EtherealC.Core;
-using EtherealC.Core.Event;
-using EtherealC.Core.Event.Attribute;
-using EtherealC.Core.Event.Model;
+using EtherealC.Core.EventManage;
+using EtherealC.Core.EventManage.Attribute;
+using EtherealC.Core.EventManage.Model;
 using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 using EtherealC.Net.Extension.Plugins;

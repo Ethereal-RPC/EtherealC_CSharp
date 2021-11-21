@@ -1,6 +1,6 @@
 ﻿using EtherealC.Core.Attribute;
-using EtherealC.Core.Event.Attribute;
-using EtherealC.Core.Event.Model;
+using EtherealC.Core.EventManage.Attribute;
+using EtherealC.Core.EventManage.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;

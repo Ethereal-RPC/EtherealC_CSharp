@@ -1,4 +1,4 @@
-﻿using EtherealC.Core.Event.Model;
+﻿using EtherealC.Core.EventManage.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
