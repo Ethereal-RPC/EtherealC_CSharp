@@ -1,4 +1,4 @@
-﻿using EtherealC.Core.EventManage.Attribute;
+﻿using EtherealC.Core.Event.Attribute;
 using EtherealC.Request.Attribute;
 using EtherealC.Request.WebSocket;
 using EtherealC_Test.Model;
@@ -21,7 +21,6 @@ namespace EtherealS_Test.RequestDemo
         {
             object instance = new EventClass();
             RegisterIoc("instance", instance);
-            EventManager.RegisterEventMethod("instance", instance);
         }
 
         [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
@@ -36,8 +35,8 @@ namespace EtherealS_Test.RequestDemo
             Console.WriteLine("Add");
             return false;
         }
-        [AfterEvent("instance.after(d:ddd,s:s)")]
-        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Remote | RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
+        [AfterEvent("instance.after(ddd:d,s:s)")]
+        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
         public virtual bool test(int d, string s)
         {
             Console.WriteLine("Add");

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 
-namespace EtherealC.Core.EventManage.Attribute
+namespace EtherealC.Core.Event.Attribute
 {
     public class AfterEventContext : EventContext
     {

@@ -1,4 +1,4 @@
-﻿using EtherealC.Core.EventManage.Attribute;
+﻿using EtherealC.Core.Event.Attribute;
 using System;
 
 namespace EtherealC_Test.ServiceDemo

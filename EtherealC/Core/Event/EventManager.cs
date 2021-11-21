@@ -1,9 +1,9 @@
-﻿using EtherealC.Core.EventManage.Attribute;
+﻿using EtherealC.Core.Event.Attribute;
 using EtherealC.Core.Model;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace EtherealC.Core.EventManage
+namespace EtherealC.Core.Event
 {
     public class EventManager
     {
@@ -40,7 +40,7 @@ namespace EtherealC.Core.EventManage
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Event attribute = method.GetCustomAttribute<Event>();
+                Attribute.Event attribute = method.GetCustomAttribute<Attribute.Event>();
                 if (attribute != null)
                 {
                     MethodEvents.Add((name, attribute.Mapping), method);
@@ -51,7 +51,7 @@ namespace EtherealC.Core.EventManage
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Event attribute = method.GetCustomAttribute<Event>();
+                Attribute.Event attribute = method.GetCustomAttribute<Attribute.Event>();
                 if (attribute != null)
                 {
                     MethodEvents.Remove((name, attribute.Mapping));

@@ -1,4 +1,4 @@
-﻿using EtherealC.Core.EventManage.Attribute;
+﻿using EtherealC.Core.Event.Attribute;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -8,6 +8,7 @@ namespace EtherealC.Request.Event
     {
         public RequestContext(Dictionary<string, object> parameters, MethodInfo method) : base(parameters, method)
         {
+
         }
     }
 }

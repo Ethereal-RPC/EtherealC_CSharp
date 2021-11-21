@@ -1,6 +1,6 @@
 ﻿using EtherealC.Core;
-using EtherealC.Core.EventManage;
-using EtherealC.Core.EventManage.Attribute;
+using EtherealC.Core.Event;
+using EtherealC.Core.Event.Attribute;
 using EtherealC.Core.Interface;
 using EtherealC.Core.Model;
 using EtherealC.Net.Extension.Plugins;
@@ -102,7 +102,6 @@ namespace EtherealC.Service.Abstract
                 throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}-{request.Service}-{request.Mapping}未找到!");
             }
             ParameterInfo[] parameterInfos = method.GetParameters();
-            List<object> parameters = new List<object>(parameterInfos.Length);
             int i = 0;
             @params = new(parameterInfos.Length);
             foreach (ParameterInfo parameterInfo in parameterInfos)
@@ -111,9 +110,8 @@ namespace EtherealC.Service.Abstract
                 if ((abstractTypeAttribute != null && Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out Core.Model.AbstractType type))
                     || Types.TypesByType.TryGetValue(parameterInfo.ParameterType, out type))
                 {
-                    object param = type.Deserialize(request.Params[i++]);
-                    parameters.Add(param);
-                    @params.Add(parameterInfo.Name, param);
+                    request.Params[i] = type.Deserialize((string)request.Params[i]);
+                    @params.Add(parameterInfo.Name, request.Params[i++]);
                 }
                 else throw new TrackException($"RPC中的{request.Params[i]}类型中尚未被注册");
             }
@@ -177,6 +175,7 @@ namespace EtherealC.Service.Abstract
                 throw new TrackException(TrackException.ErrorCode.Runtime, $"{Name}请求中的{name}实例已注册");
             }
             IocContainer.Add(name, instance);
+            EventManager.RegisterEventMethod(name, instance);
         }
         public void UnRegisterIoc(string name)
         {
