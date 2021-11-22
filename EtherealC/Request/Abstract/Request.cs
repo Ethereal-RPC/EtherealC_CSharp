@@ -63,7 +63,6 @@ namespace EtherealC.Request.Abstract
         private Dictionary<int, ClientRequestModel> tasks = new();
         private AbstractTypes types = new();
         private Client.Abstract.Client client;
-        private Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         private Dictionary<string, Service.Abstract.Service> services = new Dictionary<string, Service.Abstract.Service>();
         #endregion
 
@@ -75,7 +74,6 @@ namespace EtherealC.Request.Abstract
         public Net.Abstract.Net Net { get => net; set => net = value; }
         public Client.Abstract.Client Client { get => client; set => client = value; }
         public Dictionary<string, Service.Abstract.Service> Services { get => services; set => services = value; }
-        internal Dictionary<string, MethodInfo> Methods { get => methods; set => methods = value; }
         internal protected Dictionary<string, object> IocContainer { get; set; } = new();
         internal Dictionary<int, ClientRequestModel> Tasks { get => tasks; set => tasks = value; }
 
@@ -89,14 +87,6 @@ namespace EtherealC.Request.Abstract
             ProxyGenerator generator = new ProxyGenerator();
             RequestInterceptor interceptor = new RequestInterceptor();
             T request = generator.CreateClassProxy<T>(interceptor);
-            foreach (MethodInfo method in typeof(T).GetMethods())
-            {
-                RequestMapping attribute = method.GetCustomAttribute<RequestMapping>();
-                if (attribute != null)
-                {
-                    request.Methods.Add(attribute.Mapping, method);
-                }
-            }
             return request;
         }
         public void OnException(TrackException.ErrorCode code, string message)
@@ -156,6 +146,9 @@ namespace EtherealC.Request.Abstract
         {
             return IocContainer.TryGetValue(name, out instance);
         }
+
+        public abstract void Register();
+        public abstract void UnRegister();
         #endregion
     }
 }

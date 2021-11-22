@@ -4,7 +4,9 @@ namespace EtherealC.Service.Interface
 {
     public interface IService : ILogEvent, IExceptionEvent
     {
-        public void Initialize();
-        public void UnInitialize();
+        void Initialize();
+        void Register();
+        void UnRegister();
+        void UnInitialize();
     }
 }

@@ -189,5 +189,8 @@ namespace EtherealC.Service.Abstract
         {
             return IocContainer.TryGetValue(name, out instance);
         }
+
+        public abstract void Register();
+        public abstract void UnRegister();
     }
 }

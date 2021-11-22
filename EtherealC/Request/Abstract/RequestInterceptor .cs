@@ -16,6 +16,7 @@ namespace EtherealC.Request.Abstract
     internal class RequestInterceptor : IInterceptor
     {
         private Random random = new Random();
+
         public void Intercept(IInvocation invocation)
         {
             MethodInfo method = invocation.Method;

@@ -30,6 +30,7 @@ namespace EtherealC.Request
         public static R Register<R>(Net.Abstract.Net net, string serviceName = null) where R : Abstract.Request
         {
             R request = Abstract.Request.Register<R>();
+            request.Initialize();
             if (serviceName != null) request.Name = serviceName;
             if (!net.Requests.ContainsKey(request.Name))
             {
@@ -37,7 +38,7 @@ namespace EtherealC.Request
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;
                 net.Requests[request.Name] = request;
-                request.Initialize();
+                request.Register();
                 return request;
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}-{serviceName}已注册，无法重复注册！");
@@ -45,7 +46,7 @@ namespace EtherealC.Request
 
         public static bool UnRegister(Abstract.Request request)
         {
-            request.UnInitialize();
+            request.UnRegister();
             ClientCore.UnRegister(request.Client);
             foreach (Service.Abstract.Service service in request.Services.Values)
             {
@@ -55,6 +56,7 @@ namespace EtherealC.Request
             request.LogEvent -= request.Net.OnLog;
             request.ExceptionEvent -= request.Net.OnException;
             request.Net = null;
+            request.UnInitialize();
             return true;
         }
         #endregion

@@ -26,26 +26,28 @@ namespace EtherealC.Service
         }
         public static T Register<T>(Request.Abstract.Request request, T service, string serviceName = null) where T : Abstract.Service
         {
+            service.Initialize();
             if (serviceName != null) service.Name = serviceName;
-            Abstract.Service.Register(service);
             if (!request.Services.ContainsKey(service.Name))
             {
+                Abstract.Service.Register(service);
                 service.Request = request;
                 service.LogEvent += request.OnLog;
                 service.ExceptionEvent += request.OnException;
                 request.Services[service.Name] = service;
-                service.Initialize();
+                service.Register();
                 return service;
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"{request.Net.Name}-{request.Name}-{service.Name}已注册！");
         }
         public static bool UnRegister(Abstract.Service service)
         {
-            service.UnInitialize();
+            service.UnRegister();
             service.Request.Services.Remove(service.Name, out service);
             service.LogEvent -= service.Request.OnLog;
             service.ExceptionEvent -= service.Request.OnException;
             service.Request = null;
+            service.Initialize();
             return true;
         }
     }
