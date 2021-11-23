@@ -16,6 +16,7 @@ namespace EtherealC.Net.Abstract
         #endregion
 
         #region --字段--
+        internal string name;
         /// <summary>
         /// Reqeust映射表
         /// </summary>
@@ -28,6 +29,7 @@ namespace EtherealC.Net.Abstract
         public Dictionary<string, Request.Abstract.Request> Requests { get => requests; set => requests = value; }
         public NetType Type { get => type; set => type = value; }
         public NetConfig Config { get => config; set => config = value; }
+        public string Name { get => name; set => name = value; }
 
         #endregion
 
@@ -35,7 +37,7 @@ namespace EtherealC.Net.Abstract
 
         public Net(string name)
         {
-            this.name = name;
+            this.Name = name;
         }
         #endregion
     }

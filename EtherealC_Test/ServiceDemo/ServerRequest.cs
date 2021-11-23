@@ -13,6 +13,7 @@ namespace EtherealS_Test.RequestDemo
     {
         public ServerRequest()
         {
+            Name = "Server";
             Types.Add<int>("Int");
             Types.Add<int>("Int1");
             Types.Add<long>("Long");

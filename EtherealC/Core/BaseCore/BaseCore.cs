@@ -1,8 +1,9 @@
-﻿using EtherealC.Core.Model;
+﻿using EtherealC.Core.Interface;
+using EtherealC.Core.Model;
 
 namespace EtherealC.Core.BaseCore
 {
-    public class BaseCore
+    public class BaseCore : IExceptionEvent,ILogEvent
     {
         #region --事件字段--
         private OnLogDelegate logEvent;
@@ -44,13 +45,11 @@ namespace EtherealC.Core.BaseCore
 
         #region -- 字段 --
 
-        internal string name;
 
         #endregion
 
         #region -- 属性 --
 
-        public string Name { get => name; }
 
         #endregion
 

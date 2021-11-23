@@ -19,7 +19,7 @@ namespace EtherealC.Service.Abstract
         #region --事件属性--
 
         #endregion
-
+        internal string name;
         protected Dictionary<string, MethodInfo> methods = new Dictionary<string, MethodInfo>();
         protected Request.Abstract.Request request;
         protected ServiceConfig config;
@@ -29,6 +29,7 @@ namespace EtherealC.Service.Abstract
         public ServiceConfig Config { get => config; set => config = value; }
         public PluginDomain PluginDomain { get => pluginDomain; set => pluginDomain = value; }
         public Request.Abstract.Request Request { get => request; set => request = value; }
+        public string Name { get => name; set => name = value; }
 
         internal static void Register<T>(T instance) where T : Service
         {

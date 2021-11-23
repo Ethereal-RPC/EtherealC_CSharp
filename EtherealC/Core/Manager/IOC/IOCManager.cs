@@ -2,9 +2,9 @@
 using EtherealC.Core.Model;
 using System.Collections.Generic;
 
-namespace EtherealC.Core.Manager.IOC
+namespace EtherealC.Core.Manager.Ioc
 {
-    public class IOCManager
+    public class IocManager
     {
         private Dictionary<string, object> IocContainer { get; set; } = new();
         internal EventManager EventManager { get; set; } = new ();

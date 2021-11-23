@@ -37,12 +37,14 @@ namespace EtherealC.Request.Abstract
             request.Mapping = attribute.Mapping;
             request.Params = new Dictionary<string, string>(parameterInfos.Length);
             Dictionary<string, object>  @params = new Dictionary<string, object>(parameterInfos.Length);
+            object[] args = invocation.Arguments;
             int idx = 0;
             foreach(ParameterInfo parameterInfo in parameterInfos)
             {
                 instance.Types.Get(parameterInfo, out AbstractType type);
-                request.Params.Add(parameterInfo.Name, type.Serialize(invocation.Arguments[idx]));
-                @params.Add(parameterInfo.Name, invocation.Arguments[idx++]);
+                request.Params.Add(parameterInfo.Name, type.Serialize(args[idx]));
+
+                @params.Add(parameterInfo.Name, args[idx++]);
             }
             eventSender = method.GetCustomAttribute<BeforeEvent>();
             if (eventSender != null)

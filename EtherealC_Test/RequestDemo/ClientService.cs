@@ -9,6 +9,7 @@ namespace EtherealS_Test.RequestDemo
     {
         public ClientService()
         {
+            Name = "Client";
             Types.Add<int>("Int");
             Types.Add<long>("Long");
             Types.Add<string>("String");

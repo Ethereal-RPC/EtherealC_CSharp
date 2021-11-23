@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EtherealC.Core.Interface;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

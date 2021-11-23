@@ -24,7 +24,7 @@ namespace EtherealC.Request.Abstract
         #endregion
 
         #region --字段--
-
+        internal string name;
         private Net.Abstract.Net net;
         protected RequestConfig config;
         private Dictionary<int, ClientRequestModel> tasks = new();
@@ -40,6 +40,7 @@ namespace EtherealC.Request.Abstract
         public Client.Abstract.Client Client { get => client; set => client = value; }
         public Dictionary<string, Service.Abstract.Service> Services { get => services; set => services = value; }
         internal Dictionary<int, ClientRequestModel> Tasks { get => tasks; set => tasks = value; }
+        public string Name { get => name; set => name = value; }
 
         #endregion
 
@@ -63,9 +64,17 @@ namespace EtherealC.Request.Abstract
                 Attribute.RequestMapping attribute = method.GetCustomAttribute<Attribute.RequestMapping>();
                 if (attribute != null)
                 {
-                    if (method.ReturnType != typeof(void) && !instance.Types.Get(method.GetCustomAttribute<Param>()?.Type, method.ReturnType,out AbstractType type))
+                    if(method.ReturnType != typeof(void))
                     {
-                        throw new TrackException(TrackException.ErrorCode.Core, $"{method.Name} 返回值未提供抽象类型方案");
+                        Param paramAttribute = method.GetCustomAttribute<Param>();
+                        if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out AbstractType type))
+                        {
+                            throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{paramAttribute.Type}抽象类型未找到");
+                        }
+                        else if (!instance.Types.Get(method.ReturnType, out type))
+                        {
+                            throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{method.ReturnType}类型映射抽象类型");
+                        }
                     }
                     ParameterInfo[] parameterInfos = method.GetParameters();
                     foreach (ParameterInfo parameterInfo in parameterInfos)
@@ -76,7 +85,7 @@ namespace EtherealC.Request.Abstract
                             continue;
                         }
                         Param paramAttribute = parameterInfo.GetCustomAttribute<Param>();
-                        if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out type))
+                        if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out AbstractType type))
                         {
                             throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{paramAttribute.Type}抽象类型未找到");
                         }
