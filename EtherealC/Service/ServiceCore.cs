@@ -27,7 +27,7 @@ namespace EtherealC.Service
         public static T Register<T>(Request.Abstract.Request request, T service, string serviceName = null) where T : Abstract.Service
         {
             service.Initialize();
-            if (serviceName != null) service.Name = serviceName;
+            if (serviceName != null) service.name = serviceName;
             if (!request.Services.ContainsKey(service.Name))
             {
                 Abstract.Service.Register(service);

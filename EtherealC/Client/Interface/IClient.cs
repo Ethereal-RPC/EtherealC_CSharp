@@ -1,9 +1,7 @@
-using EtherealC.Core.Interface;
-
 namespace EtherealC.Client.Interface
 {
 
-    public interface IClient : ILogEvent, IExceptionEvent
+    public interface IClient
     {
         public void Connect();
         public void DisConnect();

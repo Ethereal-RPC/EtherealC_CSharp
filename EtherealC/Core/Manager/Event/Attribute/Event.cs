@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.Manager.Event.Attribute
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class Event : System.Attribute

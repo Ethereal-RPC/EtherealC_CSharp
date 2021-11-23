@@ -1,5 +1,6 @@
 ﻿using EtherealC.Client;
 using EtherealC.Client.WebSocket;
+using EtherealC.Core.Manager.AbstractType;
 using EtherealC.Core.Model;
 using EtherealC.Net;
 using EtherealC.Net.Abstract;
@@ -18,13 +19,6 @@ namespace EtherealC_Test
     {
         public static void Single(string ip, string port, string netName)
         {
-            //注册数据类型
-            AbstractTypes types = new AbstractTypes();
-            types.Add<int>("Int");
-            types.Add<User>("User");
-            types.Add<long>("Long");
-            types.Add<string>("String");
-            types.Add<bool>("Bool");
             //建立网关
             Net net = NetCore.Register(new WebSocketNet(netName));
             net.ExceptionEvent += Config_ExceptionEvent;
@@ -45,13 +39,12 @@ namespace EtherealC_Test
 
         private static void Request_ConnectSuccessEvent(Request request)
         {
-            (request as ServerRequest).test(4, "你好");
+            (request as ServerRequest).Test(4, "你好", 2);
         }
 
         private static void Config_ExceptionEvent(TrackException exception)
         {
             Console.WriteLine($"---------------------------------\n{exception.Exception.Message}\n{exception.Exception.StackTrace}---------------------------------\n");
-            throw exception.Exception;
         }
 
         public static void Main()

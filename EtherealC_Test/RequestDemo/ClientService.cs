@@ -16,7 +16,7 @@ namespace EtherealS_Test.RequestDemo
             Types.Add<User>("User");
         }
         [ServiceMapping(Mapping: "Say")]
-        public void Say(User sender, string message)
+        public void Say(User sender,string message)
         {
             Console.WriteLine(sender.Username + ":" + message);
         }
@@ -26,6 +26,16 @@ namespace EtherealS_Test.RequestDemo
         }
 
         public override void UnInitialize()
+        {
+
+        }
+
+        public override void Register()
+        {
+
+        }
+
+        public override void UnRegister()
         {
 
         }

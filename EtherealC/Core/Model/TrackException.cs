@@ -13,20 +13,17 @@ namespace EtherealC.Core.Model
         /// 错误代码
         /// </summary>
         private ErrorCode errorCode;
-        private Net.Abstract.Net net;
-        private Client.Abstract.Client client;
-        private Service.Abstract.Service service;
-        private Request.Abstract.Request request;
+        private object sender;
         private Exception exception;
         #endregion
 
         #region --属性--
+
         public ErrorCode Error { get => errorCode; set => errorCode = value; }
-        public Net.Abstract.Net Net { get => net; set => net = value; }
-        public Service.Abstract.Service Service { get => service; set => service = value; }
-        public Request.Abstract.Request Request { get => request; set => request = value; }
         public Exception Exception { get => exception; set => exception = value; }
-        public Client.Abstract.Client Client { get => client; set => client = value; }
+        public object Sender { get => sender; set => sender = value; }
+
+
         #endregion
 
         public TrackException(string message) : base(message)

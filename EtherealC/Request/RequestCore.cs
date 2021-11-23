@@ -1,6 +1,8 @@
-﻿using EtherealC.Client;
+﻿using Castle.DynamicProxy;
+using EtherealC.Client;
 using EtherealC.Core.Model;
 using EtherealC.Net;
+using EtherealC.Request.Abstract;
 using EtherealC.Service;
 
 namespace EtherealC.Request
@@ -27,13 +29,16 @@ namespace EtherealC.Request
             reqeust = (T)value;
             return result;
         }
-        public static R Register<R>(Net.Abstract.Net net, string serviceName = null) where R : Abstract.Request
+        public static T Register<T>(Net.Abstract.Net net, string serviceName = null) where T : Abstract.Request
         {
-            R request = Abstract.Request.Register<R>();
+            ProxyGenerator generator = new ProxyGenerator();
+            RequestInterceptor interceptor = new RequestInterceptor();
+            T request = generator.CreateClassProxy<T>(interceptor);
             request.Initialize();
-            if (serviceName != null) request.Name = serviceName;
+            if (serviceName != null) request.name = serviceName;
             if (!net.Requests.ContainsKey(request.Name))
             {
+                Abstract.Request.Register(request);
                 request.Net = net;
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;

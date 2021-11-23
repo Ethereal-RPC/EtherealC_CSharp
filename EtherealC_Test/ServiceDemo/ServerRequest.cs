@@ -1,4 +1,6 @@
-﻿using EtherealC.Core.Event.Attribute;
+﻿using EtherealC.Core.Attribute;
+using EtherealC.Core.Manager.AbstractType;
+using EtherealC.Core.Manager.Event.Attribute;
 using EtherealC.Request.Attribute;
 using EtherealC.Request.WebSocket;
 using EtherealC_Test.Model;
@@ -12,6 +14,7 @@ namespace EtherealS_Test.RequestDemo
         public ServerRequest()
         {
             Types.Add<int>("Int");
+            Types.Add<int>("Int1");
             Types.Add<long>("Long");
             Types.Add<string>("String");
             Types.Add<bool>("Bool");
@@ -20,11 +23,16 @@ namespace EtherealS_Test.RequestDemo
         public override void Initialize()
         {
             object instance = new EventClass();
-            RegisterIoc("instance", instance);
+            IOCManager.Register("instance", instance);
+        }
+
+        public override void Register()
+        {
+
         }
 
         [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
-        public virtual bool SendSay(long listener_id, string message)
+        public virtual bool SendSay(long listener_id,string message)
         {
             Console.WriteLine("Add");
             return false;
@@ -35,16 +43,22 @@ namespace EtherealS_Test.RequestDemo
             Console.WriteLine("Add");
             return false;
         }
+
         [AfterEvent("instance.after(ddd:d,s:s)")]
-        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.ReturnLocal)]
-        public virtual bool test(int d, string s)
+        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.Remote | RequestMapping.InvokeTypeFlags.ReturnRemote)]
+        public virtual bool Test([Param("Int1")]int d, string s,int k)
         {
-            Console.WriteLine("Add");
-            return false;
+            Console.WriteLine("调用了Test");
+            return true;
         }
 
 
         public override void UnInitialize()
+        {
+
+        }
+
+        public override void UnRegister()
         {
 
         }

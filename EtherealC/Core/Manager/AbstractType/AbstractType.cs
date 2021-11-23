@@ -1,12 +1,14 @@
 ﻿using System;
 
-namespace EtherealC.Core.Model
+namespace EtherealC.Core.Manager.AbstractType
 {
     public class AbstractType
     {
         #region --委托--
+
         public delegate object DeserializeDelegage(string obj);
         public delegate string SerializeDelegage(object obj);
+
         #endregion
 
         #region --字段--

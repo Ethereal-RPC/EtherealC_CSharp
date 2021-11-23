@@ -1,8 +1,6 @@
-﻿using EtherealC.Core.Interface;
-
-namespace EtherealC.Request.Interface
+﻿namespace EtherealC.Request.Interface
 {
-    public interface IRequest : ILogEvent, IExceptionEvent
+    public interface IRequest
     {
         #region --方法--
         void Initialize();

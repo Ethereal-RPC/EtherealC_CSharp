@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace EtherealC.Core.Event.Attribute
+namespace EtherealC.Core.Manager.Event.Attribute
 {
     public class EventContext
     {

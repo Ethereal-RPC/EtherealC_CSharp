@@ -1,15 +1,12 @@
 ﻿using Castle.DynamicProxy;
-using EtherealC.Core.Attribute;
-using EtherealC.Core.Event.Attribute;
+using EtherealC.Core.Manager.AbstractType;
+using EtherealC.Core.Manager.Event.Attribute;
 using EtherealC.Core.Model;
 using EtherealC.Request.Attribute;
 using EtherealC.Request.Event;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtherealC.Request.Abstract
 {
@@ -31,7 +28,6 @@ namespace EtherealC.Request.Abstract
             object localResult = null;
             object methodResult = null;
             ClientRequestModel request = null;
-            Dictionary<string, object> @params = null;
             ClientResponseModel result = null;
             EventSender eventSender;
             EventContext eventContext;
@@ -39,23 +35,20 @@ namespace EtherealC.Request.Abstract
             ParameterInfo[] parameterInfos = method.GetParameters();
             request = new ClientRequestModel();
             request.Mapping = attribute.Mapping;
-            request.Params = new string[parameterInfos.Length];
-            @params = new(parameterInfos.Length);
-            for (int i = 0; i < parameterInfos.Length; i++)
+            request.Params = new Dictionary<string, string>(parameterInfos.Length);
+            Dictionary<string, object>  @params = new Dictionary<string, object>(parameterInfos.Length);
+            int idx = 0;
+            foreach(ParameterInfo parameterInfo in parameterInfos)
             {
-                Param paramAttribute = parameterInfos[i].GetCustomAttribute<Param>(true);
-                if ((paramAttribute != null && instance.Types.TypesByName.TryGetValue(paramAttribute.Name, out AbstractType type)) || instance.Types.TypesByType.TryGetValue(parameterInfos[i].ParameterType, out type))
-                {
-                    request.Params[i] = type.Serialize(invocation.Arguments[i]);
-                    @params.Add(parameterInfos[i].Name, invocation.Arguments[i]);
-                }
-                else throw new TrackException($"{method.Name}方法中的{parameterInfos[i].ParameterType}类型参数尚未注册");
+                instance.Types.Get(parameterInfo, out AbstractType type);
+                request.Params.Add(parameterInfo.Name, type.Serialize(invocation.Arguments[idx]));
+                @params.Add(parameterInfo.Name, invocation.Arguments[idx++]);
             }
             eventSender = method.GetCustomAttribute<BeforeEvent>();
             if (eventSender != null)
             {
                 eventContext = new BeforeEventContext(@params, method);
-                instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
             if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Local))
             {
@@ -71,7 +64,7 @@ namespace EtherealC.Request.Abstract
                     {
                         (eventSender as ExceptionEvent).Exception = e;
                         eventContext = new ExceptionEventContext(@params, method, e);
-                        instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                        instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
                         if ((eventSender as ExceptionEvent).IsThrow) throw;
                     }
                     else throw;
@@ -106,23 +99,18 @@ namespace EtherealC.Request.Abstract
                                 if (eventSender != null)
                                 {
                                     eventContext = new FailEventContext(@params, method, result.Error);
-                                    instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                                    instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
                                 }
                                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"来自服务器的报错消息:\nErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            Param abstractTypeAttribute = method.GetCustomAttribute<Param>(true);
-                            if ((abstractTypeAttribute != null && instance.Types.TypesByName.TryGetValue(abstractTypeAttribute.Name, out AbstractType type))
-                                || instance.Types.TypesByType.TryGetValue(method.ReturnType, out type))
+                            instance.Types.Get(method.GetCustomAttribute<Param>(true)?.Type,method.ReturnType,out AbstractType type);
+                            remoteResult = type.Deserialize(result.Result);
+                            eventSender = method.GetCustomAttribute<SuccessEvent>();
+                            if (eventSender != null)
                             {
-                                remoteResult = type.Deserialize(result.Result);
-                                eventSender = method.GetCustomAttribute<SuccessEvent>();
-                                if (eventSender != null)
-                                {
-                                    eventContext = new SuccessEventContext(@params, method, result.Result);
-                                    instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
-                                }
+                                eventContext = new SuccessEventContext(@params, method, result.Result);
+                                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
                             }
-                            else throw new TrackException($"{method.Name}方法中的{method.ReturnType}类型参数尚未注册");
                         }
                         else
                         {
@@ -130,7 +118,7 @@ namespace EtherealC.Request.Abstract
                             if (eventSender != null)
                             {
                                 eventContext = new TimeoutEventContext(@params, method);
-                                instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
                             }
                         }
                     }
@@ -152,7 +140,7 @@ namespace EtherealC.Request.Abstract
             if (eventSender != null)
             {
                 eventContext = new AfterEventContext(@params, method, methodResult);
-                instance.EventManager.InvokeEvent(instance.IocContainer[eventSender.InstanceName], eventSender, @params, eventContext);
+                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
             invocation.ReturnValue = methodResult;
         }

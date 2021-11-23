@@ -1,23 +1,19 @@
-﻿namespace EtherealC.Core.Model
+﻿using System.Collections.Generic;
+
+namespace EtherealC.Core.Model
 {
     public class ServerRequestModel
     {
         private string type = "ER-1.0-ServerRequest";
         private string mapping;
-        private object[] @params;
+        private Dictionary<string,string> @params;
         private string service;
 
         public string Type { get => type; set => type = value; }
         public string Mapping { get => mapping; set => mapping = value; }
-        public object[] Params { get => @params; set => @params = value; }
+        public Dictionary<string, string> Params { get => @params; set => @params = value; }
         public string Service { get => service; set => service = value; }
 
-        public ServerRequestModel(string service, string id, string methodid, string[] @params)
-        {
-            Mapping = methodid;
-            Params = @params;
-            Service = service;
-        }
         public override string ToString()
         {
             return "ServerRequestModel{" +

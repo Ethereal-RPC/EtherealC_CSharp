@@ -1,4 +1,4 @@
-﻿using EtherealC.Core.Event.Attribute;
+﻿using EtherealC.Core.Manager.Event.Attribute;
 using System.Collections.Generic;
 using System.Reflection;
 

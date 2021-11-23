@@ -1,9 +1,9 @@
-﻿using EtherealC.Core.Event.Attribute;
+﻿using EtherealC.Core.Manager.Event.Attribute;
 using EtherealC.Core.Model;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace EtherealC.Core.Event
+namespace EtherealC.Core.Manager.Event
 {
     public class EventManager
     {
