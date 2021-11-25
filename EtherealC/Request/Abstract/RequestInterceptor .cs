@@ -27,13 +27,12 @@ namespace EtherealC.Request.Abstract
             object remoteResult = null;
             object localResult = null;
             object methodResult = null;
-            ClientRequestModel request = null;
             ClientResponseModel result = null;
             EventSender eventSender;
             EventContext eventContext;
             //注入参数
             ParameterInfo[] parameterInfos = method.GetParameters();
-            request = new ClientRequestModel();
+            ClientRequestModel request = new ClientRequestModel();
             request.Mapping = attribute.Mapping;
             request.Params = new Dictionary<string, string>(parameterInfos.Length);
             Dictionary<string, object>  @params = new Dictionary<string, object>(parameterInfos.Length);
@@ -43,7 +42,6 @@ namespace EtherealC.Request.Abstract
             {
                 instance.Types.Get(parameterInfo, out AbstractType type);
                 request.Params.Add(parameterInfo.Name, type.Serialize(args[idx]));
-
                 @params.Add(parameterInfo.Name, args[idx++]);
             }
             eventSender = method.GetCustomAttribute<BeforeEvent>();
@@ -71,6 +69,12 @@ namespace EtherealC.Request.Abstract
                     }
                     else throw;
                 }
+            }
+            eventSender = method.GetCustomAttribute<AfterEvent>();
+            if (eventSender != null)
+            {
+                eventContext = new AfterEventContext(@params, method, localResult);
+                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
             if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Remote))
             {
@@ -137,12 +141,6 @@ namespace EtherealC.Request.Abstract
             if ((attribute.InvokeType & RequestMapping.InvokeTypeFlags.ReturnLocal) != 0)
             {
                 methodResult = localResult;
-            }
-            eventSender = method.GetCustomAttribute<AfterEvent>();
-            if (eventSender != null)
-            {
-                eventContext = new AfterEventContext(@params, method, methodResult);
-                instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
             invocation.ReturnValue = methodResult;
         }

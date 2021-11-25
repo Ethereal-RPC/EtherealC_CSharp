@@ -36,14 +36,16 @@ namespace EtherealC.Request
             T request = generator.CreateClassProxy<T>(interceptor);
             request.Initialize();
             if (serviceName != null) request.name = serviceName;
-            if (!net.Requests.ContainsKey(request.Name))
+            if (!net.IsRegister)
             {
+                request.isRegister = true;
                 Abstract.Request.Register(request);
                 request.Net = net;
                 request.LogEvent += net.OnLog;
                 request.ExceptionEvent += net.OnException;
                 net.Requests[request.Name] = request;
                 request.Register();
+                request.isRegister = true;
                 return request;
             }
             else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}-{serviceName}已注册，无法重复注册！");
@@ -51,18 +53,21 @@ namespace EtherealC.Request
 
         public static bool UnRegister(Abstract.Request request)
         {
-            request.UnRegister();
-            ClientCore.UnRegister(request.Client);
-            foreach (Service.Abstract.Service service in request.Services.Values)
+            if (request.IsRegister)
             {
-                ServiceCore.UnRegister(service);
+                request.UnRegister();
+                if(request.Net != null)
+                {
+                    request.Net.Requests.Remove(request.Name, out request);
+                    request.LogEvent -= request.Net.OnLog;
+                    request.ExceptionEvent -= request.Net.OnException;
+                    request.Net = null;
+                }
+                request.UnInitialize();
+                request.isRegister = false;
+                return true;
             }
-            request.Net.Requests.Remove(request.Name, out request);
-            request.LogEvent -= request.Net.OnLog;
-            request.ExceptionEvent -= request.Net.OnException;
-            request.Net = null;
-            request.UnInitialize();
-            return true;
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{request.Name}并未注册，无需UnRegister");
         }
         #endregion
     }

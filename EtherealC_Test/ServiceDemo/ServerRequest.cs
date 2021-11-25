@@ -21,17 +21,6 @@ namespace EtherealS_Test.RequestDemo
             Types.Add<bool>("Bool");
             Types.Add<User>("User");
         }
-        public override void Initialize()
-        {
-            object instance = new EventClass();
-            IOCManager.Register("instance", instance);
-        }
-
-        public override void Register()
-        {
-
-        }
-
         [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(long listener_id,string message)
         {
@@ -53,13 +42,23 @@ namespace EtherealS_Test.RequestDemo
             return true;
         }
 
-
-        public override void UnInitialize()
+        protected override void Initialize()
         {
 
         }
 
-        public override void UnRegister()
+        protected override void Register()
+        {
+            object instance = new EventClass();
+            IOCManager.Register("instance", instance);
+        }
+
+        protected override void UnInitialize()
+        {
+
+        }
+
+        protected override void UnRegister()
         {
 
         }

@@ -48,11 +48,12 @@ namespace EtherealC.Request.Abstract
 
         #endregion
 
-        #region  -- 抽象接口 --
-        public abstract void Initialize();
-        public abstract void UnInitialize();
-        public abstract void Register();
-        public abstract void UnRegister();
+        #region -- 生命周期 --
+
+        internal protected abstract void Initialize();
+        internal protected abstract void Register();
+        internal protected abstract void UnRegister();
+        internal protected abstract void UnInitialize();
 
         #endregion
 

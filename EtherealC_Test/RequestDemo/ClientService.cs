@@ -21,22 +21,22 @@ namespace EtherealS_Test.RequestDemo
         {
             Console.WriteLine(sender.Username + ":" + message);
         }
-        public override void Initialize()
+        protected override void Initialize()
         {
 
         }
 
-        public override void UnInitialize()
+        protected override void Register()
         {
 
         }
 
-        public override void Register()
+        protected override void UnInitialize()
         {
 
         }
 
-        public override void UnRegister()
+        protected override void UnRegister()
         {
 
         }

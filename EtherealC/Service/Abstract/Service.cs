@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace EtherealC.Service.Abstract
 {
-    public abstract class Service : Core.BaseCore.MZCore,IService
+    public abstract class Service : Core.BaseCore.MZCore, IService
     {
         #region --事件字段--
 
@@ -113,10 +113,13 @@ namespace EtherealC.Service.Abstract
                 IOCManager.EventManager.InvokeEvent(IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
         }
+        #region -- 生命周期 --
 
-        public abstract void Initialize();
-        public abstract void UnInitialize();
-        public abstract void Register();
-        public abstract void UnRegister();
+        internal protected abstract void Initialize();
+        internal protected abstract void Register();
+        internal protected abstract void UnRegister();
+        internal protected abstract void UnInitialize();
+
+        #endregion
     }
 }

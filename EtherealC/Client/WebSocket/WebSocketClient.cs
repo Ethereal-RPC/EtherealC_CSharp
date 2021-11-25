@@ -44,7 +44,7 @@ namespace EtherealC.Client.WebSocket
         {
             try
             {
-                if (Prefixes.LastIndexOf('/') != Prefixes.Length - 1) Prefixes += $"/{Request.Name}";
+                if (Prefixes[prefixes.Length - 1] != '/') Prefixes += $"/{Request.Name}";
                 else Prefixes += $"{Request.Name}";
                 await Accept.ConnectAsync(new Uri(Prefixes.Replace("ethereal://", "ws://")), cancellationToken);
                 if (Accept.State == WebSocketState.Open)
@@ -57,9 +57,16 @@ namespace EtherealC.Client.WebSocket
                     OnConnnectFail();
                 }
             }
+            catch (TrackException e)
+            {
+                OnException(e);
+            }
             catch (Exception e)
             {
                 OnException(new TrackException(e));
+            }
+            finally
+            {
                 OnConnnectFail();
             }
         }
@@ -109,18 +116,18 @@ namespace EtherealC.Client.WebSocket
         }
         public async void ReceiveAsync()
         {
-            byte[] receiveBuffer = null;
-            int offset = 0;
-            int free = Config.BufferSize;
-            // While the WebSocket connection remains open run a simple loop that receives data and sends it back.
-            while (Accept.State == WebSocketState.Open)
+            try
             {
-                if (receiveBuffer == null)
+                byte[] receiveBuffer = null;
+                int offset = 0;
+                int free = Config.BufferSize;
+                // While the WebSocket connection remains open run a simple loop that receives data and sends it back.
+                while (Accept.State == WebSocketState.Open)
                 {
-                    receiveBuffer = new byte[Config.BufferSize];
-                }
-                try
-                {
+                    if (receiveBuffer == null)
+                    {
+                        receiveBuffer = new byte[Config.BufferSize];
+                    }
                     WebSocketReceiveResult receiveResult = await Accept.ReceiveAsync(new ArraySegment<byte>(receiveBuffer, offset, free), cancellationToken);
                     offset += receiveResult.Count;
                     free -= receiveResult.Count;
@@ -171,11 +178,18 @@ namespace EtherealC.Client.WebSocket
                         continue;
                     }
                 }
-                catch (Exception e)
-                {
-                    DisConnect(WebSocketCloseStatus.NormalClosure, $"{e.Message}");
-                    OnException(TrackException.ErrorCode.Runtime, e.Message);
-                }
+            }
+            catch (TrackException e)
+            {
+                OnException(TrackException.ErrorCode.Runtime, e.Message);
+            }
+            catch (Exception e)
+            {
+                OnException(TrackException.ErrorCode.Runtime, e.Message);
+            }
+            finally
+            {
+                DisConnect(WebSocketCloseStatus.NormalClosure, $"");
             }
         }
         internal override async void SendClientRequestModel(ClientRequestModel request)

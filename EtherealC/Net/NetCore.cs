@@ -17,8 +17,9 @@ namespace EtherealC.Net
         }
         public static Abstract.Net Register(Abstract.Net net)
         {
-            if (!nets.ContainsKey(net.Name))
+            if (!net.IsRegister)
             {
+                net.isRegister = true;
                 nets.Add(net.Name, net);
                 return net;
             }
@@ -26,16 +27,14 @@ namespace EtherealC.Net
         }
         public static bool UnRegister(Abstract.Net net)
         {
-            if (net != null)
+            if (net.isRegister)
             {
-                foreach (Request.Abstract.Request request in net.Requests.Values)
-                {
-                    RequestCore.UnRegister(request);
-                }
                 net.Requests.Clear();
                 nets.Remove(net.Name);
+                net.isRegister = false;
+                return true;
             }
-            return true;
+            else throw new TrackException(TrackException.ErrorCode.Core, $"{net.Name}并未注册，无需UnRegister");
         }
     }
 }
