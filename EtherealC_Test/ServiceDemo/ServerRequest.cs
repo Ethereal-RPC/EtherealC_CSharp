@@ -21,13 +21,13 @@ namespace EtherealS_Test.RequestDemo
             Types.Add<bool>("Bool");
             Types.Add<User>("User");
         }
-        [RequestMapping(Mapping: "SendSay", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
+        [RequestMappingAttribute(Mapping: "SendSay", InvokeType = RequestMappingAttribute.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(long listener_id,string message)
         {
             Console.WriteLine("Add");
             return false;
         }
-        [RequestMapping(Mapping: "SendSay1", InvokeType = RequestMapping.InvokeTypeFlags.Remote)]
+        [RequestMappingAttribute(Mapping: "SendSay1", InvokeType = RequestMappingAttribute.InvokeTypeFlags.Remote)]
         public virtual bool SendSay(string listener_id, string message)
         {
             Console.WriteLine("Add");
@@ -35,8 +35,8 @@ namespace EtherealS_Test.RequestDemo
         }
 
         [AfterEvent("instance.after(ddd:d,s:s)")]
-        [RequestMapping(Mapping: "test", InvokeType = RequestMapping.InvokeTypeFlags.Local | RequestMapping.InvokeTypeFlags.Remote | RequestMapping.InvokeTypeFlags.ReturnRemote)]
-        public virtual bool Test([Param("Int1")]int d, string s,int k)
+        [RequestMappingAttribute(Mapping: "test", InvokeType = RequestMappingAttribute.InvokeTypeFlags.Local | RequestMappingAttribute.InvokeTypeFlags.Remote | RequestMappingAttribute.InvokeTypeFlags.ReturnRemote)]
+        public virtual bool Test([ParamAttribute("Int1")]int d, string s,int k)
         {
             Console.WriteLine("调用了Test");
             return true;

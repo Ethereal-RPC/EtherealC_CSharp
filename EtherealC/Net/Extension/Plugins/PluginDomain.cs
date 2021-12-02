@@ -141,7 +141,7 @@ namespace EtherealC.Net.Extension.Plugins
             //扫描Service
             foreach (var type in assembly.GetTypes())
             {
-                Service.Attribute.Service serviceAttribute = type.GetCustomAttribute<Service.Attribute.Service>();
+                Service.Attribute.ServiceAttribute serviceAttribute = type.GetCustomAttribute<Service.Attribute.ServiceAttribute>();
                 if (serviceAttribute != null && serviceAttribute.Plugin)
                 {
                     Service.Abstract.Service service = Activator.CreateInstance(type) as Service.Abstract.Service;

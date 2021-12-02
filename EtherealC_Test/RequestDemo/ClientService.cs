@@ -16,7 +16,7 @@ namespace EtherealS_Test.RequestDemo
             Types.Add<bool>("Bool");
             Types.Add<User>("User");
         }
-        [ServiceMapping(Mapping: "Say")]
+        [ServiceMappingAttribute(Mapping: "Say")]
         public void Say(User sender,string message)
         {
             Console.WriteLine(sender.Username + ":" + message);

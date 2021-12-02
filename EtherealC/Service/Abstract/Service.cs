@@ -35,7 +35,7 @@ namespace EtherealC.Service.Abstract
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.ServiceMapping attribute = method.GetCustomAttribute<Attribute.ServiceMapping>();
+                Attribute.ServiceMappingAttribute attribute = method.GetCustomAttribute<Attribute.ServiceMappingAttribute>();
                 if (method.ReturnType != typeof(void) && attribute != null)
                 {
                     ParameterInfo[] parameterInfos = method.GetParameters();
@@ -46,7 +46,7 @@ namespace EtherealC.Service.Abstract
                         {
                             continue;
                         }
-                        Param paramAttribute = parameterInfo.GetCustomAttribute<Param>();
+                        ParamAttribute paramAttribute = parameterInfo.GetCustomAttribute<ParamAttribute>();
                         if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out AbstractType type))
                         {
                             throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{paramAttribute.Type}抽象类型未找到");
@@ -63,7 +63,7 @@ namespace EtherealC.Service.Abstract
         internal void ServerRequestReceiveProcess(ServerRequestModel request)
         {
             EventContext eventContext;
-            EventSender eventSender;
+            EventSenderAttribute eventSender;
             Dictionary<string, object> @params = null;
             if (!Methods.TryGetValue(request.Mapping, out MethodInfo method))
             {
@@ -83,7 +83,7 @@ namespace EtherealC.Service.Abstract
                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"来自服务器的{Name}服务请求中未提供{method.Name}方法的{parameterInfo.Name}参数");
                 @params.Add(parameterInfo.Name, localParams[idx++]);
             }
-            eventSender = method.GetCustomAttribute<BeforeEvent>();
+            eventSender = method.GetCustomAttribute<BeforeEventAttribute>();
             if (eventSender != null)
             {
                 eventContext = new BeforeEventContext(@params, method);
@@ -96,17 +96,17 @@ namespace EtherealC.Service.Abstract
             }
             catch (Exception e)
             {
-                eventSender = method.GetCustomAttribute<ExceptionEvent>();
+                eventSender = method.GetCustomAttribute<ExceptionEventAttribute>();
                 if (eventSender != null)
                 {
-                    (eventSender as ExceptionEvent).Exception = e;
+                    (eventSender as ExceptionEventAttribute).Exception = e;
                     eventContext = new ExceptionEventContext(@params, method, e);
                     IOCManager.EventManager.InvokeEvent(IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
-                    if ((eventSender as ExceptionEvent).IsThrow) throw;
+                    if ((eventSender as ExceptionEventAttribute).IsThrow) throw;
                 }
                 else throw;
             }
-            eventSender = method.GetCustomAttribute<AfterEvent>();
+            eventSender = method.GetCustomAttribute<AfterEventAttribute>();
             if (eventSender != null)
             {
                 eventContext = new AfterEventContext(@params, method, result);

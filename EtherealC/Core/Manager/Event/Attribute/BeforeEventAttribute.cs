@@ -10,10 +10,11 @@ namespace EtherealC.Core.Manager.Event.Attribute
 
         }
     }
-    public class BeforeEvent : EventSender
+    public class BeforeEventAttribute : EventSenderAttribute
     {
-        public BeforeEvent(string function) : base(function)
+        public BeforeEventAttribute(string function) : base(function)
         {
+
         }
     }
 }

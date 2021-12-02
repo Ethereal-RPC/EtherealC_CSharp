@@ -3,7 +3,7 @@
 namespace EtherealC.Request.Attribute
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class RequestMapping : System.Attribute
+    public class RequestMappingAttribute : System.Attribute
     {
         [Flags]
         public enum InvokeTypeFlags
@@ -22,7 +22,7 @@ namespace EtherealC.Request.Attribute
         public int Timeout { get => timeout; set => timeout = value; }
         public string Mapping { get => mapping; set => mapping = value; }
 
-        public RequestMapping(string Mapping)
+        public RequestMappingAttribute(string Mapping)
         {
             this.Mapping = Mapping;
         }

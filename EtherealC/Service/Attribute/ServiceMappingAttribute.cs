@@ -3,14 +3,14 @@
 namespace EtherealC.Service.Attribute
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class ServiceMapping : System.Attribute
+    public class ServiceMappingAttribute : System.Attribute
     {
         private string mapping = null;
 
         public string Mapping { get => mapping; set => mapping = value; }
 
 
-        public ServiceMapping(string Mapping)
+        public ServiceMappingAttribute(string Mapping)
         {
             this.Mapping = Mapping;
         }

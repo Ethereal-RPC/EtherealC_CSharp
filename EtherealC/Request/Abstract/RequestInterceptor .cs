@@ -17,7 +17,7 @@ namespace EtherealC.Request.Abstract
         public void Intercept(IInvocation invocation)
         {
             MethodInfo method = invocation.Method;
-            RequestMapping attribute = method.GetCustomAttribute<RequestMapping>();
+            RequestMappingAttribute attribute = method.GetCustomAttribute<RequestMappingAttribute>();
             if (attribute == null)
             {
                 invocation.Proceed();
@@ -28,7 +28,7 @@ namespace EtherealC.Request.Abstract
             object localResult = null;
             object methodResult = null;
             ClientResponseModel result = null;
-            EventSender eventSender;
+            EventSenderAttribute eventSender;
             EventContext eventContext;
             //注入参数
             ParameterInfo[] parameterInfos = method.GetParameters();
@@ -44,13 +44,13 @@ namespace EtherealC.Request.Abstract
                 request.Params.Add(parameterInfo.Name, type.Serialize(args[idx]));
                 @params.Add(parameterInfo.Name, args[idx++]);
             }
-            eventSender = method.GetCustomAttribute<BeforeEvent>();
+            eventSender = method.GetCustomAttribute<BeforeEventAttribute>();
             if (eventSender != null)
             {
                 eventContext = new BeforeEventContext(@params, method);
                 instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
-            if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Local))
+            if (attribute.InvokeType.HasFlag(RequestMappingAttribute.InvokeTypeFlags.Local))
             {
                 try
                 {
@@ -59,24 +59,24 @@ namespace EtherealC.Request.Abstract
                 }
                 catch (Exception e)
                 {
-                    eventSender = method.GetCustomAttribute<ExceptionEvent>();
+                    eventSender = method.GetCustomAttribute<ExceptionEventAttribute>();
                     if (eventSender != null)
                     {
-                        (eventSender as ExceptionEvent).Exception = e;
+                        (eventSender as ExceptionEventAttribute).Exception = e;
                         eventContext = new ExceptionEventContext(@params, method, e);
                         instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
-                        if ((eventSender as ExceptionEvent).IsThrow) throw;
+                        if ((eventSender as ExceptionEventAttribute).IsThrow) throw;
                     }
                     else throw;
                 }
             }
-            eventSender = method.GetCustomAttribute<AfterEvent>();
+            eventSender = method.GetCustomAttribute<AfterEventAttribute>();
             if (eventSender != null)
             {
                 eventContext = new AfterEventContext(@params, method, localResult);
                 instance.IOCManager.EventManager.InvokeEvent(instance.IOCManager.Get(eventSender.InstanceName), eventSender, @params, eventContext);
             }
-            if (attribute.InvokeType.HasFlag(RequestMapping.InvokeTypeFlags.Remote))
+            if (attribute.InvokeType.HasFlag(RequestMappingAttribute.InvokeTypeFlags.Remote))
             {
                 if (method.ReturnType == typeof(void))
                 {
@@ -109,7 +109,7 @@ namespace EtherealC.Request.Abstract
                                 }
                                 else throw new TrackException(TrackException.ErrorCode.Runtime, $"来自服务器的报错消息:\nErrorCode:{result.Error.Code} Message:{result.Error.Message} Data:{result.Error.Data}");
                             }
-                            instance.Types.Get(method.GetCustomAttribute<Param>(true)?.Type,method.ReturnType,out AbstractType type);
+                            instance.Types.Get(method.GetCustomAttribute<ParamAttribute>(true)?.Type,method.ReturnType,out AbstractType type);
                             remoteResult = type.Deserialize(result.Result);
                             eventSender = method.GetCustomAttribute<SuccessEvent>();
                             if (eventSender != null)
@@ -134,11 +134,11 @@ namespace EtherealC.Request.Abstract
                     }
                 }
             }
-            if ((attribute.InvokeType & RequestMapping.InvokeTypeFlags.ReturnRemote) != 0)
+            if ((attribute.InvokeType & RequestMappingAttribute.InvokeTypeFlags.ReturnRemote) != 0)
             {
                 methodResult = remoteResult;
             }
-            if ((attribute.InvokeType & RequestMapping.InvokeTypeFlags.ReturnLocal) != 0)
+            if ((attribute.InvokeType & RequestMappingAttribute.InvokeTypeFlags.ReturnLocal) != 0)
             {
                 methodResult = localResult;
             }

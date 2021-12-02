@@ -62,12 +62,12 @@ namespace EtherealC.Request.Abstract
         {
             foreach (MethodInfo method in instance.GetType().GetMethods())
             {
-                Attribute.RequestMapping attribute = method.GetCustomAttribute<Attribute.RequestMapping>();
+                Attribute.RequestMappingAttribute attribute = method.GetCustomAttribute<Attribute.RequestMappingAttribute>();
                 if (attribute != null)
                 {
                     if(method.ReturnType != typeof(void))
                     {
-                        Param paramAttribute = method.GetCustomAttribute<Param>();
+                        ParamAttribute paramAttribute = method.GetCustomAttribute<ParamAttribute>();
                         if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out AbstractType type))
                         {
                             throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{paramAttribute.Type}抽象类型未找到");
@@ -85,7 +85,7 @@ namespace EtherealC.Request.Abstract
                         {
                             continue;
                         }
-                        Param paramAttribute = parameterInfo.GetCustomAttribute<Param>();
+                        ParamAttribute paramAttribute = parameterInfo.GetCustomAttribute<ParamAttribute>();
                         if (paramAttribute != null && !instance.Types.Get(paramAttribute.Type, out AbstractType type))
                         {
                             throw new TrackException(TrackException.ErrorCode.Core, $"{instance.Name}-{method.Name}-{paramAttribute.Type}抽象类型未找到");
