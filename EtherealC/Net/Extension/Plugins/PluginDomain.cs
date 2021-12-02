@@ -11,8 +11,6 @@ namespace EtherealC.Net.Extension.Plugins
     {
         #region --字段--
         private AssemblyLoadContext assemlyLoad;
-        private PluginManager manager;
-        private List<Service.Abstract.Service> services = new List<Service.Abstract.Service>();
         #endregion
 
         #region --属性--
@@ -57,7 +55,7 @@ namespace EtherealC.Net.Extension.Plugins
         /// </summary>
         public bool IsDisposed { get; set; }
         public AssemblyLoadContext AssemlyLoad { get => assemlyLoad; set => assemlyLoad = value; }
-        public PluginManager Manager { get => manager; set => manager = value; }
+        public Plugin Plugin { get; set; }
         #endregion
 
         /// <summary>
@@ -97,27 +95,28 @@ namespace EtherealC.Net.Extension.Plugins
             #endregion
 
             #region 初始化目录
-            this.AssemblyPath = assemblyPath;
-            this.AssemblyName = Path.GetFileNameWithoutExtension(this.AssemblyPath);   // 获取文件名
-            this.BaseDirectory = baseDirectory;
-            this.DataDirectory = dataDirectory;
-            this.PrivateLibDirectory = libDirectory;
-            this.CachesDirectory = cachesDirectory;
-            this.ShadowCopyDirectory = shadowCopyDirectory;
+            AssemblyPath = assemblyPath;
+            AssemblyName = Path.GetFileNameWithoutExtension(AssemblyPath);   // 获取文件名
+            BaseDirectory = baseDirectory;
+            DataDirectory = dataDirectory;
+            PrivateLibDirectory = libDirectory;
+            CachesDirectory = cachesDirectory;
+            ShadowCopyDirectory = shadowCopyDirectory;
 
-            if (!Directory.Exists(this.PrivateLibDirectory))
-                Directory.CreateDirectory(this.PrivateLibDirectory);
-            if (!Directory.Exists(this.DataDirectory))
-                Directory.CreateDirectory(this.DataDirectory);
-            if (!Directory.Exists(this.CachesDirectory))
-                Directory.CreateDirectory(this.CachesDirectory);
-            if (!Directory.Exists(this.ShadowCopyDirectory))
-                Directory.CreateDirectory(this.ShadowCopyDirectory);
+            if (!Directory.Exists(PrivateLibDirectory))
+                Directory.CreateDirectory(PrivateLibDirectory);
+            if (!Directory.Exists(DataDirectory))
+                Directory.CreateDirectory(DataDirectory);
+            if (!Directory.Exists(CachesDirectory))
+                Directory.CreateDirectory(CachesDirectory);
+            if (!Directory.Exists(ShadowCopyDirectory))
+                Directory.CreateDirectory(ShadowCopyDirectory);
             #endregion
         }
-        public bool Initialize(Request.Abstract.Request request)
+        public bool Initialize(Abstract.Net net)
         {
             assemlyLoad = new AssemblyLoadContext(null, true);
+
             #region 加载Lib
             //将所有Lib复制到卷影目录
             foreach (FileInfo fileInfo in new DirectoryInfo(PrivateLibDirectory).GetFiles("*.dll", SearchOption.AllDirectories))
@@ -137,39 +136,36 @@ namespace EtherealC.Net.Extension.Plugins
             //将核心入口Dll复制到卷影目录
             File.Copy(AssemblyPath, AssemblyShadowCopyPath, true);
             //加载Assembly
-            Assembly assembly = assemlyLoad.LoadFromAssemblyPath(this.AssemblyShadowCopyPath);
-            //扫描Service
+            Assembly assembly = assemlyLoad.LoadFromAssemblyPath(AssemblyShadowCopyPath);
+            //扫描IPlugin
             foreach (var type in assembly.GetTypes())
             {
-                Service.Attribute.ServiceAttribute serviceAttribute = type.GetCustomAttribute<Service.Attribute.ServiceAttribute>();
-                if (serviceAttribute != null && serviceAttribute.Plugin)
+                if (type.GetCustomAttribute<PluginAttribute>() != null)
                 {
-                    Service.Abstract.Service service = Activator.CreateInstance(type) as Service.Abstract.Service;
-                    ServiceCore.Register(request, service);
-                    services.Add(service);
-                    service.PluginDomain = this;
+                    Plugin = Activator.CreateInstance(type) as Plugin;
+                    IsInitialized = true;
+                    Plugin.Initialize(net);
                 }
             }
             #endregion
-            IsInitialized = true;
             return true;
         }
-        public bool UnInitialize()
+        public bool UnInitialize(Abstract.Net net)
         {
-            if (IsInitialized && !IsDisposed)
+            if (IsInitialized)
             {
-                foreach (Service.Abstract.Service service in services)
-                {
-                    service.PluginDomain = null;
-                    ServiceCore.UnRegister(service);
-                }
-                services.Clear();
+                Plugin.UnInitialize(net);
+                Plugin = null;
+                IsInitialized = false;
+            }
+            if (!IsDisposed)
+            {
                 //创建弱引用，跟踪销毁情况。
                 WeakReference weakReference = new WeakReference(assemlyLoad, true);
                 assemlyLoad = null;
                 (weakReference.Target as AssemblyLoadContext).Unload();
                 //一般第二次,IsAlive就会变为False,即AssemblyLoadContext卸载.
-                for (int i = 0; weakReference.IsAlive && (i < 10); i++)
+                for (int i = 0; weakReference.IsAlive && i < 10; i++)
                 {
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
